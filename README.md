@@ -1,1 +1,1 @@
-# conference-scheduling
+# Conference Scheduling Problem

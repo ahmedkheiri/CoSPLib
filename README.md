@@ -1,1 +1,1 @@
-# Conference Scheduling Problem
+# CSPLib - A Benchmark Library for Conference Scheduling Problems

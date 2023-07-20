@@ -6,25 +6,33 @@ Created on Thu Jul 20 15:18:28 2023
 """
 
 class Parameters:
-    def __init__(self, tracks_sessions_penalty, tracks_rooms_penalty, sessions_rooms_penalty, tracks_tracks_penalty, 
-                 num_rooms_per_track, parallel_tracks, consecutive_tracks, tracks_relative_order, tracks_actual_order, 
-                 submissions_timezones_penalty, submissions_relative_order, submissions_actual_order, submissions_sessions_penalty, 
-                 submissions_rooms_penalty, speakers_conflicts, attendees_conflicts, organiser_conflicts, track_duration, 
-                 tracks_buildings, balance, speakers_conflicts_timeslot_level, attendees_conflicts_timeslot_level):
-        self.__tracks_sessions_penalty = tracks_sessions_penalty
-        self.__tracks_rooms_penalty = tracks_rooms_penalty
-        self.__sessions_rooms_penalty = sessions_rooms_penalty
-        self.__tracks_tracks_penalty = tracks_tracks_penalty
+    def __init__(self, tracks_sessions_penalty_weight, tracks_rooms_penalty_weight, 
+                 sessions_rooms_penalty_weight, tracks_tracks_penalty_weight, 
+                 num_rooms_per_track, parallel_tracks, consecutive_tracks, 
+                 tracks_relative_order, tracks_actual_order, 
+                 submissions_timezones_penalty_weight, submissions_relative_order, 
+                 submissions_actual_order, submissions_sessions_penalty_weight, 
+                 submissions_rooms_penalty_weight, speakers_conflicts, 
+                 attendees_conflicts, organiser_conflicts, track_duration, 
+                 tracks_buildings, balance, speakers_conflicts_timeslot_level, 
+                 attendees_conflicts_timeslot_level, open_session_weight, 
+                 close_session_weight, same_session_weight, different_session_weight,
+                 track_max_num_days_weight, tracks_same_room_weight, tracks_same_building_weight,
+                 preferred_num_time_slots, min_num_time_slots, max_num_time_slots):
+        self.__tracks_sessions_penalty_weight = tracks_sessions_penalty_weight
+        self.__tracks_rooms_penalty_weight = tracks_rooms_penalty_weight
+        self.__sessions_rooms_penalty_weight = sessions_rooms_penalty_weight
+        self.__tracks_tracks_penalty_weight = tracks_tracks_penalty_weight
         self.__num_rooms_per_track = num_rooms_per_track
         self.__parallel_tracks = parallel_tracks
         self.__consecutive_tracks = consecutive_tracks
         self.__tracks_relative_order = tracks_relative_order
         self.__tracks_actual_order = tracks_actual_order
-        self.__submissions_timezones_penalty = submissions_timezones_penalty
+        self.__submissions_timezones_pnealty_weight = submissions_timezones_penalty_weight
         self.__submissions_relative_order = submissions_relative_order
         self.__submissions_actual_order = submissions_actual_order
-        self.__submissions_sessions_penalty = submissions_sessions_penalty
-        self.__submissions_rooms_penalty = submissions_rooms_penalty
+        self.__submissions_sessions_penalty_weight = submissions_sessions_penalty_weight
+        self.__submissions_rooms_penalty_weight = submissions_rooms_penalty_weight
         self.__speakers_conflicts = speakers_conflicts
         self.__attendees_conflicts = attendees_conflicts
         self.__organiser_conflicts = organiser_conflicts
@@ -33,136 +41,206 @@ class Parameters:
         self.__balance = balance
         self.__speakers_conflicts_timeslot_level = speakers_conflicts_timeslot_level
         self.__attendees_conflicts_timeslot_level = attendees_conflicts_timeslot_level
+        self.__open_session_weight = open_session_weight
+        self.__close_session_weight = close_session_weight
+        self.__same_session_weight = same_session_weight
+        self.__different_session_weight = different_session_weight
+        self.__track_max_num_days_weight = track_max_num_days_weight
+        self.__tracks_same_room_weight = tracks_same_room_weight
+        self.__tracks_same_building_weight = tracks_same_building_weight
+        self.__preferred_num_time_slots = preferred_num_time_slots
+        self.__min_num_time_slots = min_num_time_slots
+        self.__max_num_time_slots = max_num_time_slots
 
     
-    def getTracksSessionsPenalty(self):
-        return self.__tracks_sessions_penalty
+    def getTracksSessionsPenaltyWeight(self):
+        return self.__tracks_sessions_penalty_weight
 
-    def setTracksSessionsPenalty(self, tracks_sessions_penalty):
-        self.__tracks_sessions_penalty = tracks_sessions_penalty
+    def setTracksSessionsPenaltyWeight(self, tracks_sessions_penalty_weight):
+        self.__tracks_sessions_penalty_weight = tracks_sessions_penalty_weight
 
-    def getTracksRoomsPenalty(self):
-        return self.__tracks_rooms_penalty
+    def getTracksRoomsPenaltyWeight(self):
+        return self.__tracks_rooms_penalty_weight
 
-    def setTracksRoomsPenalty(self, tracks_rooms_penalty):
-        self.__tracks_rooms_penalty = tracks_rooms_penalty
+    def setTracksRoomsPenaltyWeight(self, tracks_rooms_penalty_weight):
+        self.__tracks_rooms_penalty_weight = tracks_rooms_penalty_weight
 
-    def getSessionsRoomsPenalty(self):
-        return self.__sessions_rooms_penalty
+    def getSessionsRoomsPenaltyWeight(self):
+        return self.__sessions_rooms_penalty_weight
 
-    def setSessionsRoomsPenalty(self, sessions_rooms_penalty):
-        self.__sessions_rooms_penalty = sessions_rooms_penalty
+    def setSessionsRoomsPenaltyWeight(self, sessions_rooms_penalty_weight):
+        self.__sessions_rooms_penalty_weight = sessions_rooms_penalty_weight
 
-    def getTracksTracksPenalty(self):
-        return self.__tracks_tracks_penalty
+    def getTracksTracksPenaltyWeight(self):
+        return self.__tracks_tracks_penalty_weight
 
-    def setTracksTracksPenalty(self, tracks_tracks_penalty):
-        self.__tracks_tracks_penalty = tracks_tracks_penalty
+    def setTracksTracksPenaltyWeight(self, tracks_tracks_penalty_weight):
+        self.__tracks_tracks_penalty_weight = tracks_tracks_penalty_weight
 
-    def getNumOfRoomsPerTrackPenalty(self):
+    def getNumOfRoomsPerTrackWeight(self):
         return self.__num_rooms_per_track
 
-    def setNumOfRoomsPerTrackPenalty(self, num_rooms_per_track):
+    def setNumOfRoomsPerTrackWeight(self, num_rooms_per_track):
         self.__num_rooms_per_track = num_rooms_per_track
 
-    def getParallelTracksPenalty(self):
+    def getParallelTracksWeight(self):
         return self.__parallel_tracks
 
-    def setParallelTracksPenalty(self, parallel_tracks):
+    def setParallelTracksWeight(self, parallel_tracks):
         self.__parallel_tracks = parallel_tracks
 
-    def getConsecutiveTracksPenalty(self):
+    def getConsecutiveTracksWeight(self):
         return self.__consecutive_tracks
 
-    def setConsecutiveTracksPenalty(self, consecutive_tracks):
+    def setConsecutiveTracksWeight(self, consecutive_tracks):
         self._consecutive_tracks = consecutive_tracks
 
-    def getTracksRelativeOrderPenalty(self):
+    def getTracksRelativeOrderWeight(self):
         return self.__tracks_relative_order
 
-    def setTracksRelativeOrderPenalty(self, tracks_relative_order):
+    def setTracksRelativeOrderWeight(self, tracks_relative_order):
         self.__tracks_relative_order = tracks_relative_order
 
-    def getTracksActualOrderPenalty(self):
+    def getTracksActualOrderWeight(self):
         return self.__tracks_actual_order
 
-    def setTracksActualOrderPenalty(self, tracks_actual_order):
+    def setTracksActualOrderWeight(self, tracks_actual_order):
         self.__tracks_actual_order = tracks_actual_order
 
-    def getSubmissionsTimezonesPenalty(self):
-        return self.__submissions_timezones_penalty
+    def getSubmissionsTimezonesWeight(self):
+        return self.__submissions_timezones_penalty_weight
 
-    def setSubmissionsTimezonesPenalty(self, submissions_timezones_penalty):
-        self.__submissions_timezones_penalty = submissions_timezones_penalty
+    def setSubmissionsTimezonesPenaltyWeight(self, submissions_timezones_penalty_weight):
+        self.__submissions_timezones_penalty_weight = submissions_timezones_penalty_weight
 
-    def getSubmissionsRelativeOrderPenalty(self):
+    def getSubmissionsRelativeOrderWeight(self):
         return self.__submissions_relative_order
 
-    def setSubmissionsRelativeOrderPenalty(self, submissions_relative_order):
+    def setSubmissionsRelativeOrderWeight(self, submissions_relative_order):
         self.__submissions_relative_order = submissions_relative_order
 
-    def getSubmissionsActualOrder(self):
+    def getSubmissionsActualOrderWeight(self):
         return self.__submissions_actual_order
 
-    def setSubmissionsActualOrder(self, submissions_actual_order):
+    def setSubmissionsActualOrderWeight(self, submissions_actual_order):
         self.__submissions_actual_order = submissions_actual_order
 
-    def getSubmissionsSessionsPenalty(self):
-        return self.__submissions_sessions_penalty
+    def getSubmissionsSessionsPenaltyWeight(self):
+        return self.__submissions_sessions_penalty_weight
 
-    def setSubmissionsSessionsPenalty(self, submissions_sessions_penalty):
-        self.__submissions_sessions_penalty = submissions_sessions_penalty
+    def setSubmissionsSessionsWeight(self, submissions_sessions_penalty_weight):
+        self.__submissions_sessions_penalty_weight = submissions_sessions_penalty_weight
 
-    def getSubmissionsRoomsPenalty(self):
-        return self.__submissions_rooms_penalty
+    def getSubmissionsRoomsPenaltyWeight(self):
+        return self.__submissions_rooms_penalty_weight
 
-    def setSubmissionsRoomsPenalty(self, submissions_rooms_penalty):
-        self.__submissions_rooms_penalty = submissions_rooms_penalty
+    def setSubmissionsRoomsPenaltyWeight(self, submissions_rooms_penalty_weight):
+        self.__submissions_rooms_penalty_weight = submissions_rooms_penalty_weight
 
-    def getSpeakersConflictsPenalty(self):
+    def getSpeakersConflictsWeight(self):
         return self.__speakers_conflicts
 
-    def setSpeakersConflictsPenalty(self, speakers_conflicts):
+    def setSpeakersConflictsWeight(self, speakers_conflicts):
         self.__speakers_conflicts = speakers_conflicts
 
-    def getAteendeesConflictsPenalty(self):
+    def getAteendeesConflictsWeight(self):
         return self.__attendees_conflicts
 
-    def setAteendeesConflictsPenalty(self, attendees_conflicts):
+    def setAteendeesConflictsWeight(self, attendees_conflicts):
         self.__attendees_conflicts = attendees_conflicts
 
-    def getOrganisersConflicts(self):
+    def getOrganisersConflictsWeight(self):
         return self.__organiser_conflicts
 
-    def setOrganisersConflicts(self, organiser_conflicts):
+    def setOrganisersConflictsWeight(self, organiser_conflicts):
         self.__organiser_conflicts = organiser_conflicts
 
-    def getTrackDurationPenalty(self):
+    def getTrackDurationWeight(self):
         return self.__track_duration
 
-    def setTrackDurationPenalty(self, track_duration):
+    def setTrackDurationWeight(self, track_duration):
         self.__track_duration = track_duration
 
-    def getTracksBuildingsPenalty(self):
+    def getTracksBuildingsWeight(self):
         return self.__tracks_buildings
 
-    def setTracksBuildingsPenalty(self, tracks_buildings):
+    def setTracksBuildingsWeight(self, tracks_buildings):
         self.__tracks_buildings = tracks_buildings
 
-    def getBalancePenalty(self):
+    def getBalanceWeight(self):
         return self.__balance
 
-    def setBalancePenalty(self, balance):
+    def setBalanceWeight(self, balance):
         self.__balance = balance
 
-    def getSpeakersConflictsTimeslotLevelPenalty(self):
+    def getSpeakersConflictsTimeslotLevelWeight(self):
         return self.__speakers_conflicts_timeslot_level
 
-    def setSpeakersConflictsTimeslotLevelPenalty(self, speakers_conflicts_timeslot_level):
+    def setSpeakersConflictsTimeslotLevelWeight(self, speakers_conflicts_timeslot_level):
         self.__speakers_conflicts_timeslot_level = speakers_conflicts_timeslot_level
 
-    def getAttendeesConflictsTimeSlotPenalty(self):
+    def getAttendeesConflictsTimeSlotWeight(self):
         return self.__attendees_conflicts_timeslot_level
 
-    def setAttendeesConflictsTimeSlotPenalty(self, attendees_conflicts_timeslot_level):
+    def setAttendeesConflictsTimeSlotWeight(self, attendees_conflicts_timeslot_level):
         self.__attendees_conflicts_timeslot_level = attendees_conflicts_timeslot_level
+        
+    def getOpenSessionWeight(self):
+        return self.__open_session_weight
+    
+    def setOpenSessionWeight(self, open_session_weight):
+        self.__open_session_weight = open_session_weight
+        
+    def getCloseSessionWeight(self):
+        return self.__close_session_weight
+    
+    def setCloseSessionWeight(self, close_session_weight):
+        self.__close_session_weight = close_session_weight
+        
+    def getSameSessionWeight(self):
+        return self.__same_session_weight
+    
+    def setSameSessionWeight(self, same_session_weight):
+        self.__same_session_weight = same_session_weight
+        
+    def getDifferentSessionWeight(self):
+        return self.__different_session_weight
+    
+    def setDifferentSessionWeight(self, different_session_weight):
+        self.__different_session_weight = different_session_weight
+    
+    def getTrackMaxNumDaysWeight(self):
+        return self.__track_max_num_days_weight
+    
+    def setTrackMaxNumDaysWeight(self, track_max_num_days_weight):
+        self.__track_max_num_days_weight = track_max_num_days_weight
+        
+    def getTrackSameRoomWeight(self):
+        return self.__tracks_same_room_weight
+    
+    def setTrackSameRoomWeight(self, tracks_same_room_weight):
+        self.__tracks_same_room_weight = tracks_same_room_weight
+    
+    def getTracksSameBuildingWeight(self):
+        return self.__tracks_same_building_weight
+    
+    def setTracksSameBuildingWeight(self, tracks_same_building_weight):
+        self.__tracks_same_building_weight = tracks_same_building_weight
+        
+    def getPreferredNumTimeSlotsWeight(self):
+        return self.__preferred_num_time_slots
+    
+    def setPreferredNumTimeSlotsWeight(self, preferred_num_time_slots):
+        self.__preferred_num_time_slots = preferred_num_time_slots
+        
+    def getMinNumTimeSlotsWeight(self):
+        return self.__min_num_time_slots
+    
+    def setMinNumTimeSlotsWeight(self, min_num_time_slots):
+        self.__min_num_time_slots = min_num_time_slots
+    
+    def getMaxNumTimeSlotsWeight(self):
+        return self.__max_num_time_slots
+    
+    def setMaxNumTimeSlotsWeight(self, max_num_time_slots):
+        self.__max_num_time_slots = max_num_time_slots

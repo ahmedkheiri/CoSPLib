@@ -5,7 +5,7 @@ Created on Wed Jun 14 15:25:15 2023
 @author: pylya
 """
 
-class Track():
+class Track:
     def __init__(self, name, required_time_slots, rel_order, act_order, max_num_days, cost_extra_day, track_same_room, organisers):
         self.__name = name
         self.__required_time_slots = required_time_slots

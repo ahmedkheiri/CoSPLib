@@ -61,7 +61,7 @@ track_organisers = update_lists(df_tracks, "Organisers")
 submission_speakers = update_lists(df_submissions, "Speakers")
 submission_attendees = update_lists(df_submissions, "Attendees")
 
-#print_new_participant_ids()
+print_new_participant_ids()
 #print_track_organisers()
 #print_submission_speakers()
 #print_submission_attendees()

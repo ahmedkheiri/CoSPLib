@@ -5,6 +5,59 @@ Created on Tue Mar 14 19:19:00 2023
 @author: pylya
 """
 
+'''
+
+class Solution:
+    def __init__(self, problem):
+        .....
+    def evall():
+        ......
+        
+Class InitialSolution:
+    
+    def __init__(self, problem, solution):
+
+    def Initilise():
+        pass
+    
+class Random(InitialSolution):
+    
+    def Initilise():
+        random method
+
+class Greedy(InitialSolution):
+    
+    def Initilise():
+        random method
+
+class Exact(InitialSolution):
+    
+    def Initilise():
+        solve exactly
+
+class Improvement:
+    
+    def __init__(self, problem, solution):
+        ,,,,
+    
+    def solve(self):
+        pass
+  
+from Improvement import improvement
+class Matheuristic(Improvement):
+    def solve(self):
+        ......
+
+p = Problem()
+#sol = Random(p)
+sol = Greedy(p)
+solver = Matheuristic(p, sol)
+solver.solve
+
+'''
+
+
+
 from Problem import *
 from Solution import *
 from ExactModels import *

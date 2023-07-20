@@ -6,21 +6,24 @@ Created on Wed Jun 14 15:25:42 2023
 
 """
 
-
-
 class Room:
-    def __init__(self, name):
+    def __init__(self, name, building):
         self.__name = name
+        self.__building = building
     def getRoomName(self):
         return str(self.__name)
     def setRoomName(self, name):
         self.__name = name
+    def getRoomBuilding(self):
+        return str(self.__building)
+    def setRoomBuilding(self, building):
+        self.__building = building
+
     def __str__(self):
-        return self.__name
+        return "Room("+self.__name+")"
     
 if __name__ == '__main__':
-    r = Room("Room 1")
+    r = Room("Room 1", "Floor 1")
     print(r.getRoomName())
     r.setRoomName("Room 2")
     print(r)
-    

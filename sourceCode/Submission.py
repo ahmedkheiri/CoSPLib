@@ -5,7 +5,8 @@ Created on Wed Jun 14 15:23:01 2023
 @author: pylya
 """
 
-class Submission():
+from Track import Track
+class Submission:
     def __init__(self, name, track, required_time_slots, rel_order, act_order, can_open_session, can_close_session, same_session, different_session, speakers, attendees):        
         self.__name = name
         self.__track = track
@@ -20,14 +21,14 @@ class Submission():
         self.__attendees = attendees
         self.__speaker_conflicts = []
         self.__attendee_conflicts = []
-        self.__delta_time_slots = required_time_slots
+    
     def __str__(self):
         return self.__name
     def getSubmissionName(self):
         return self.__name
     def setSubmissionName(self, name):
         self.__name = name
-    def getSubmissionTrack(self):
+    def getSubmissionTrack(self) -> Track:
         return self.__track
     def setSubmissionTrack(self, track):
         self.__track = track
@@ -63,23 +64,28 @@ class Submission():
         return self.__speakers
     def getSubmissionAttendees(self):
         return self.__attendees
-    def getSubmissionSpeakerConflicts(self):
+    
+    
+    
+    def getNumberOfSubmissionSpeakerConflicts(self):
+        return len(self.__speaker_conflicts)
+    def getSubmissionSpeakerConflicts(self, submission_speaker_conflict_index) -> :
+        return self.__speaker_conflicts[submission_speaker_conflict_index]
+    def getSubmissionSpeakerConflictsList(self):
         return self.__speaker_conflicts
-    def setSubmissionSpeakerConflicts(self, submission_name):
-        if submission_name not in self.__speaker_conflicts:
-            self.__speaker_conflicts.append(submission_name)
+    
+    def setSubmissionSpeakerConflicts(self, submission):
+        self.__speaker_conflicts.append(submission)
+    
+        
+        
+    
     def getSubmissionAttendeeConflicts(self):
         return self.__attendee_conflicts
     def setSubmissionAttendeeConflicts(self, submission_name):
         if submission_name not in self.__attendee_conflicts:
             self.__attendee_conflicts.append(submission_name)
-    def subtractSubmissionTimeSlots(self, number):
-        self.__delta_time_slots -= number
-        if self.__delta_time_slots < 0:
-            self.__delta_time_slots = 0
-    def addSubmissionTimeSlots(self, number):
-        self.__delta_time_slots += number
-    def getSubmissionDeltaTimeSlots(self):
-        return self.__delta_time_slots
-    def resetSubmissionDeltaTimeSlots(self):
-        self.__delta_time_slots = self.__required_time_slots
+
+
+    
+    

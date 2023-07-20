@@ -4,8 +4,9 @@ Created on Wed Jun 14 15:26:06 2023
 
 @author: pylya
 """
+from datetime import datetime, date
 
-class Session():
+class Session:
     def __init__(self, name, pref_num_time_slots, min_time_slots, max_time_slots, date, start_time, end_time):
         self.__name = name
         self.__pref_num_time_slots = pref_num_time_slots
@@ -14,8 +15,9 @@ class Session():
         self.__date = date
         self.__start_time = start_time
         self.__end_time = end_time
+    
     def __str__(self):
-        return self.__name
+        return "Session("+self.__name+")"
     def getSessionName(self):
         return str(self.__name)
     def setSessionName(self, name):
@@ -44,4 +46,11 @@ class Session():
         return self.__end_time
     def setSessionEndTime(self, end_time):
         self.__end_time = end_time
+    
+if __name__ == '__main__':
+    s = Session("Mon1", 2, 0, 2, date(2021,7,28), datetime(2021, 7, 28, 9, 30), datetime(2021, 7, 28, 10, 30))
+    print(s.getSessionDate())
+    print(s.getSessionEndTime())
+    print(s)
+    
     

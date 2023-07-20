@@ -6,21 +6,42 @@ Created on Wed Jun 14 15:26:06 2023
 """
 
 class Session():
-    def __init__(self, name, max_time_slots, date, start_time, end_time):
+    def __init__(self, name, pref_num_time_slots, min_time_slots, max_time_slots, date, start_time, end_time):
         self.__name = name
+        self.__pref_num_time_slots = pref_num_time_slots
+        self.__min_time_slots = min_time_slots
         self.__max_time_slots = max_time_slots
         self.__date = date
         self.__start_time = start_time
         self.__end_time = end_time
-    def getName(self):
-        return str(self.__name)
-    def getMaxTimeSlots(self):
-        return self.__max_time_slots
-    def getDate(self):
-        return self.__date
-    def getStartTime(self):
-        return self.__start_time
-    def getEndTime(self):
-        return self.__end_time
     def __str__(self):
         return self.__name
+    def getSessionName(self):
+        return str(self.__name)
+    def setSessionName(self, name):
+        self.__name = name
+    def getSessionPrefNumOfTimeSlots(self):
+        return self.__pref_num_time_slots
+    def setSessionPrefNumOfTimeSlots(self, pref_num_time_slots):
+        self.__pref_num_time_slots = pref_num_time_slots
+    def getSessionMinTimeSlots(self):
+        return self.__min_time_slots
+    def setSessionMinTimeSlots(self, min_time_slots):
+        self.__min_time_slots = min_time_slots
+    def getSessionMaxTimeSlots(self):
+        return self.__max_time_slots
+    def setSessionMaxTimeSlots(self, max_time_slots):
+        self.__max_time_slots = max_time_slots
+    def getSessionDate(self):
+        return self.__date
+    def setSessionDate(self, date):
+        self.__date = date
+    def getSessionStartTime(self):
+        return self.__start_time
+    def setSessionStartTime(self, start_time):
+        self.__start_time = start_time
+    def getSessionEndTime(self):
+        return self.__end_time
+    def setSessionEndTime(self, end_time):
+        self.__end_time = end_time
+    

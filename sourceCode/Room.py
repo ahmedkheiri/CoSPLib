@@ -10,12 +10,12 @@ class Room:
     def __init__(self, name, building):
         self.__name = name
         self.__building = building
-    def getRoomName(self):
-        return str(self.__name)
+    def getRoomName(self) -> str:
+        return self.__name
     def setRoomName(self, name):
         self.__name = name
-    def getRoomBuilding(self):
-        return str(self.__building)
+    def getRoomBuilding(self) -> str:
+        return self.__building
     def setRoomBuilding(self, building):
         self.__building = building
 

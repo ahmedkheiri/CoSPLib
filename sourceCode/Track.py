@@ -2,72 +2,91 @@
 """
 Created on Wed Jun 14 15:25:15 2023
 
-@author: pylya
+@authors: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
+
 """
 
+import Participant
+import Submission
 class Track:
-    def __init__(self, name, required_time_slots, rel_order, act_order, max_num_days, cost_extra_day, track_same_room, organisers):
+    def __init__(self, name, rel_order, act_order, max_num_days, cost_extra_day
+                 , track_same_room, track_same_building, organisers, organiser_conflicts, submissions):
         self.__name = name
-        self.__required_time_slots = required_time_slots
         self.__rel_order = rel_order
         self.__act_order = act_order
         self.__max_num_days = max_num_days
         self.__cost_extra_day = cost_extra_day
         self.__track_same_room = track_same_room
+        self.__track_same_building = track_same_building
         self.__organisers = organisers
-        self.__organiser_conflicts = []
-        self.__submissions = []
-        self.__delta_time_slots = required_time_slots
-    def __str__(self):
+        self.__organiser_conflicts = organiser_conflicts
+        self.__submissions = submissions
+    def getTrackName(self) -> str:
         return self.__name
-    def getTrackName(self):
-        return str(self.__name)
     def setTrackName(self, name):
         self.__name = name
-    def getTrackRequiredTimeSlots(self):
-        return self.__required_time_slots
-    def setTrackRequiredTimeSlots(self, required_time_slots):
-        self.__required_time_slots = required_time_slots
-    def getTrackRelativeOrder(self):
+    def getTrackRelativeOrder(self) -> int:
         return self.__rel_order
     def setTrackRelativeOrder(self, rel_order):
         self.__rel_order = rel_order
-    def getTrackActualOrder(self):
+    def getTrackActualOrder(self) -> int:
         return self.__act_order
     def setTrackActualOrder(self, act_order):
         self.__act_order = act_order
-    def getTrackMaxNumOfDays(self):
+    def getTrackMaxNumOfDays(self) -> int:
         return self.__max_num_days
     def setTrackMaxNumOfDays(self, max_num_days):
         self.__max_num_days = max_num_days
-    def getTrackCostExtraDay(self):
+    def getTrackCostExtraDay(self) -> int:
         return self.__cost_extra_day
     def setTrackCostExtraDay(self, cost_extra_day):
         self.__cost_extra_day = cost_extra_day
-    def getTrackSameRoom(self):
+    def getNumberOfTrackSameRoom(self) -> int:
+        return len(self.__track_same_room)
+    def getTrackSameRoom(self, track_same_room_index) -> 'Track':
+        return self.__track_same_room[track_same_room_index]
+    def getTrackSameRoomList(self) -> list:
         return self.__track_same_room
-    def setTrackSameRoom(self, track_same_room):
-        self.__track_same_room = track_same_room
-    def getTrackOrganisers(self):
+    def setTrackSameRoom(self, track):
+        self.__track_same_room.append(track)
+    def getNumberOfTrackSameBuilding(self) -> int:
+        return self.__track_same_building
+    def getTrackSameBuilding(self, track_same_building_index) -> 'Track':
+        return self.__track_same_building[track_same_building_index]
+    def getTrackSameBuildingList(self) -> list:
+        return self.__track_same_building
+    def setTrackSameBuilding(self, track):
+        self.__track_same_building.append(track)
+    def getNumberOfTrackOrganisers(self) -> int:
+        return len(self.__organisers)
+    def getTrackOrganisers(self, organiser_index) -> Participant:
+        return self.__organisers[organiser_index]
+    def getTrackOrganisersList(self) -> list:
         return self.__organisers
-    def setTrackOrganisers(self, organisers):
-        self.__organisers = organisers
-    def setTrackOrganiserConflicts(self, submission_name):
-        if submission_name not in self.__organiser_conflicts:
-            self.__organiser_conflicts.append(submission_name)
-    def getTrackOrganiserConflicts(self):
-        return self.__organizer_conflicts
-    def setTrackSubmission(self, submission_name):
-        self.__submissions.append(submission_name)
-    def getTrackSubmissions(self):
+    def setTrackOrganisers(self, participant):
+        self.__organisers.append(participant)
+    def getNumberOfTrackOrganiserConflicts(self) -> int:
+        return len(self.__organiser_conflicts)
+    def getTrackOrganiserConflicts(self, organiser_conflict_index) -> 'Track':
+        return self.__organiser_conflicts[organiser_conflict_index]
+    def getTrackOrganiserConflictsList(self) -> list:
+        return self.__organiser_conflicts
+    def setTrackOrganiserConflicts(self, track):
+        self.__organiser_conflicts.append(track)
+    def getNumberOfTrackSubmissions(self) -> int:
+        return len(self.__submissions)
+    def getTrackSubmissions(self, track_submissions_index) -> Submission:
+        return self.__submissions[track_submissions_index]
+    def getTrackSubmissionsList(self) -> list:
         return self.__submissions
-    def subtractTrackTimeSlots(self, number):
-        self.__delta_time_slots -= number
-        if self.__delta_time_slots < 0:
-            self.__delta_time_slots = 0
-    def addTrackTimeSlots(self, number):
-        self.__delta_time_slots += number
-    def getTrackDeltaTimeSlots(self):
-        return self.__delta_time_slots
-    def resetTrackDeltaTimeSlots(self):
-        self.__delta_time_slots = self.__required_time_slots
+    def setTrackSubmissions(self, submission):
+        self.__submissions.append(submission)
+        
+    def __str__(self):
+        return "Track("+self.__name+")"
+    
+if __name__ == '__main__':
+    track = Track('NewTrack', 0, 0, 0, 0, [], [], [], [], [])
+    print(track.getTrackName())
+    track.setTrackName('Track_1')
+    print(track)

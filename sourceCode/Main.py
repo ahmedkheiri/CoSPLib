@@ -6,14 +6,16 @@ Created on Tue Mar 14 19:22:03 2023
 """
 
 from Heuristics import *
+import sys
 
 #np.random.seed(1)
-f_name = "N2OR.xlsx"
+f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\Dataset\\N2OR_New.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
     parameters = p.ReadProblemInstance()
     p.FindConflicts()
     p.AssignTimezonesPenalties(parameters)
+    sys.exit()
     sol = Solution(p, parameters)
     opt = Optimisation(p, sol)
     

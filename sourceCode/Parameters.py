@@ -7,7 +7,8 @@ Created on Thu Jul 20 15:18:28 2023
 """
 
 class Parameters:
-    def __init__(self, local_time_zone, schedule_time_from, schedule_time_to, tracks_sessions_penalty_weight, tracks_rooms_penalty_weight, 
+    def __init__(self, local_time_zone, schedule_time_from, schedule_time_to, 
+                 tracks_sessions_penalty_weight, tracks_rooms_penalty_weight, 
                  sessions_rooms_penalty_weight, tracks_tracks_penalty_weight, 
                  num_rooms_per_track, parallel_tracks, consecutive_tracks, 
                  tracks_relative_order, tracks_actual_order, 
@@ -32,7 +33,7 @@ class Parameters:
         self.__consecutive_tracks = consecutive_tracks
         self.__tracks_relative_order = tracks_relative_order
         self.__tracks_actual_order = tracks_actual_order
-        self.__submissions_timezones_pnealty_weight = submissions_timezones_penalty_weight
+        self.__submissions_timezones_penalty_weight = submissions_timezones_penalty_weight
         self.__submissions_relative_order = submissions_relative_order
         self.__submissions_actual_order = submissions_actual_order
         self.__submissions_sessions_penalty_weight = submissions_sessions_penalty_weight

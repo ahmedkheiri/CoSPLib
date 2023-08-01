@@ -49,6 +49,8 @@ class Track:
         return self.__track_same_room
     def setTrackSameRoom(self, track):
         self.__track_same_room.append(track)
+    def setTrackSameRoomList(self, track_same_room_list):
+        self.__track_same_room = track_same_room_list
     def getNumberOfTrackSameBuilding(self) -> int:
         return self.__track_same_building
     def getTrackSameBuilding(self, track_same_building_index) -> 'Track':
@@ -57,6 +59,8 @@ class Track:
         return self.__track_same_building
     def setTrackSameBuilding(self, track):
         self.__track_same_building.append(track)
+    def setTrackSameBuildingList(self, track_same_building_list):
+        self.__track_same_building = track_same_building_list
     def getNumberOfTrackOrganisers(self) -> int:
         return len(self.__organisers)
     def getTrackOrganisers(self, organiser_index) -> Participant:
@@ -65,6 +69,8 @@ class Track:
         return self.__organisers
     def setTrackOrganisers(self, participant):
         self.__organisers.append(participant)
+    def setTrackOrganisersList(self, organisers_list):
+        self.__organisers = organisers_list
     def getNumberOfTrackOrganiserConflicts(self) -> int:
         return len(self.__organiser_conflicts)
     def getTrackOrganiserConflicts(self, organiser_conflict_index) -> 'Track':

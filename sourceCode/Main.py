@@ -15,8 +15,14 @@ for i in range(1):
     parameters = p.ReadProblemInstance()
     p.FindConflicts()
     p.AssignTimezonesPenalties(parameters)
-    sys.exit()
     sol = Solution(p, parameters)
+    sol = Random(p, sol)
+    print(sol.getSolTracks())
+    print(sol.getSolSubmissions())
+    print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
+    print('Is solution valid? ', sol.ValidateSolution())
+    sys.exit()
+    
     opt = Optimisation(p, sol)
     
     '''

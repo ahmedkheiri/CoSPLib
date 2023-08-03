@@ -8,7 +8,7 @@ Created on Tue Mar 14 19:17:25 2023
 from Solution import *
 from pulp import *
 
-class InitialSolution():
+class InitialSolution2():
     def __init__(self, problem, solution):
         self.__solution = solution
         self.__problem = problem

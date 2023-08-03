@@ -78,7 +78,8 @@ class Track:
     def getTrackOrganiserConflictsList(self) -> list:
         return self.__organiser_conflicts
     def setTrackOrganiserConflicts(self, track):
-        self.__organiser_conflicts.append(track)
+        if track not in self.__organiser_conflicts:
+            self.__organiser_conflicts.append(track)
     def getNumberOfTrackSubmissions(self) -> int:
         return len(self.__submissions)
     def getTrackSubmissions(self, track_submissions_index) -> Submission:

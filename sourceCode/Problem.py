@@ -172,7 +172,16 @@ class Problem():
             self.getTrack(i).setTrackSameBuildingList(temp)
             temp = [self.getParticipant(self.getParticipantIndex(self.getTrack(i).getTrackOrganisersList()[j])) for j in range(len(self.getTrack(i).getTrackOrganisersList())) if self.getTrack(i).getTrackOrganisersList()[j] != '']
             self.getTrack(i).setTrackOrganisersList(temp)
-    
+    def convertSubmissionsElementsToObjects(self):
+        for i in range(self.getNumberOfSubmissions()):
+            temp = [self.getSubmission(self.getSubmissionIndex(self.getSubmission(i).getSubmissionSameSessionList()[j])) for j in range(len(self.getSubmission(i).getSubmissionSameSessionList())) if self.getSubmission(i).getSubmissionSameSessionList()[j] != '']
+            self.getSubmission(i).setSubmissionSameSessionList(temp)
+            temp = [self.getSubmission(self.getSubmissionIndex(self.getSubmission(i).getSubmissionDifferentSessionList()[j])) for j in range(len(self.getSubmission(i).getSubmissionDifferentSessionList())) if self.getSubmission(i).getSubmissionDifferentSessionList()[j] != '']
+            self.getSubmission(i).setSubmissionDifferentSessionList(temp)
+            temp = [self.getParticipant(self.getParticipantIndex(self.getSubmission(i).getSubmissionSpeakersList()[j])) for j in range(len(self.getSubmission(i).getSubmissionSpeakersList())) if self.getSubmission(i).getSubmissionSpeakersList()[j] != '']
+            self.getSubmission(i).setSubmissionSpeakersList(temp)
+            temp = [self.getParticipant(self.getParticipantIndex(self.getSubmission(i).getSubmissionAttendeesList()[j])) for j in range(len(self.getSubmission(i).getSubmissionAttendeesList())) if self.getSubmission(i).getSubmissionAttendeesList()[j] != '']
+            self.getSubmission(i).setSubmissionAttendeesList(temp)
     def ReadProblemInstance(self):
         #Begin checking All Sheets Exist
         file = pd.read_excel(self.getFileName(), None)
@@ -295,7 +304,7 @@ class Problem():
                 self.setSubmissionsSessionsPenalty(self.getSubmission(self.getSubmissionIndex(file.iloc[i,0])).getSubmissionName(), self.getSession(self.getSessionIndex(columns[j])).getSessionName(), file.iloc[i,j])
             for y in range(11 + self.getNumberOfSessions(), 11 + self.getNumberOfSessions() + self.getNumberOfRooms()):
                 self.setSubmissionsRoomsPenalty(self.getSubmission(self.getSubmissionIndex(file.iloc[i,0])).getSubmissionName(), self.getRoom(self.getRoomIndex(columns[y])).getRoomName(), file.iloc[i,y])
-        
+        self.convertSubmissionsElementsToObjects()
         #Reading 'tracks_sessions|penalty' sheet
         file = pd.read_excel(self.getFileName(), sheet_name = "tracks_sessions|penalty", keep_default_na = False, na_filter = False)
         file.replace(to_replace = '', value = 0, inplace = True)
@@ -433,53 +442,55 @@ class Problem():
         if self.getSumOfAvailableTimeSlots() * self.getNumberOfRooms() < self.getSumOfRequiredTimeSlots():
             sys.exit(print("Infeasible!: Not Enough Time Slots Available!\nConsider to add an extra session or room."))
         
+        return par
+    
     def FindConflictsNoAttendees(self):
         for i in range(self.getNumberOfSubmissions()):
             for y in range(self.getNumberOfSubmissions()):
                 if y != i:
-                    for x in range(len(self.getSubmission(i).getSpeakers())):
-                        if self.getSubmission(i).getSpeakers()[x] != '':
-                            for z in range(len(self.getSubmission(y).getSpeakers())):
-                                if self.getSubmission(i).getSpeakers()[x] == self.getSubmission(y).getSpeakers()[z]:
-                                    self.getSubmission(i).setSpeakerConflicts(self.getSubmission(y).getName())
-                                    self.getSubmission(y).setSpeakerConflicts(self.getSubmission(i).getName())
-                            for z in range(len(self.getSubmission(y).getTrack().getOrganizers())):
-                                if self.getSubmission(i).getSpeakers()[x] == self.getSubmission(y).getTrack().getOrganizers()[z] and self.getSubmission(i).getTrack().getName() != self.getSubmission(y).getTrack().getName():
-                                    self.getSubmission(i).setSpeakerConflicts(self.getSubmission(y).getName())
-                                    self.getSubmission(y).setSpeakerConflicts(self.getSubmission(i).getName())
+                    for x in range(len(self.getSubmission(i).getSubmissionSpeakersList())):
+                        if self.getSubmission(i).getSubmissionSpeakersList()[x] != '':
+                            for z in range(len(self.getSubmission(y).getSubmissionSpeakersList())):
+                                if self.getSubmission(i).getSubmissionSpeakersList()[x] == self.getSubmission(y).getSubmissionSpeakersList()[z]:
+                                    self.getSubmission(i).setSubmissionSpeakerConflicts(self.getSubmission(y))
+                                    self.getSubmission(y).setSubmissionSpeakerConflicts(self.getSubmission(i))
+                            for z in range(len(self.getSubmission(y).getSubmissionTrack().getTrackOrganisersList())):
+                                if (self.getSubmission(i).getSubmissionSpeakersList()[x] == self.getSubmission(y).getSubmissionTrack().getTrackOrganisersList()[z]) and (self.getSubmission(i).getSubmissionTrack() != self.getSubmission(y).getSubmissionTrack()):
+                                    self.getSubmission(i).setSubmissionSpeakerConflicts(self.getSubmission(y))
+                                    self.getSubmission(y).setSubmissionSpeakerConflicts(self.getSubmission(i))
         for i in range(self.getNumberOfTracks()):
             for y in range(self.getNumberOfTracks()):
                 if y != i:
-                    for x in range(len(self.getTrack(i).getOrganizers())):
-                        if self.getTrack(i).getOrganizers()[x] != '':
-                            for z in range(len(self.getTrack(y).getOrganizers())):
-                                if self.getTrack(i).getOrganizers()[x] == self.getTrack(y).getOrganizers()[z]:
-                                    self.getTrack(i).setOrganizerConflicts(self.getTrack(y).getName())
-                                    self.getTrack(y).setOrganizerConflicts(self.getTrack(i).getName())
+                    for x in range(len(self.getTrack(i).getTrackOrganisersList())):
+                        if self.getTrack(i).getTrackOrganisersList()[x] != '':
+                            for z in range(len(self.getTrack(y).getTrackOrganisersList())):
+                                if self.getTrack(i).getTrackOrganisersList()[x] == self.getTrack(y).getTrackOrganisersList()[z]:
+                                    self.getTrack(i).setTrackOrganiserConflicts(self.getTrack(y))
+                                    self.getTrack(y).setTrackOrganiserConflicts(self.getTrack(i))
 
     def FindAllConflicts(self):
         self.FindConflictsNoAttendees()
         for i in range(self.getNumberOfSubmissions()):
             for y in range(self.getNumberOfSubmissions()):
                 if y != i:
-                    for x in range(len(self.getSubmission(i).getAttendees())):
-                        if self.getSubmission(i).getAttendees()[x] != '':
-                            for z in range(len(self.getSubmission(y).getAttendees())):
-                                if self.getSubmission(i).getAttendees()[x] == self.getSubmission(y).getAttendees()[z]:
-                                    self.getSubmission(i).setAttendeeConflicts(self.getSubmission(y).getName())
-                                    self.getSubmission(y).setAttendeeConflicts(self.getSubmission(i).getName())
-                    for x in range(len(self.getSubmission(i).getAttendees())):
-                        if self.getSubmission(i).getAttendees()[x] != '':
-                            for z in range(len(self.getSubmission(y).getSpeakers())):
-                                if self.getSubmission(i).getAttendees()[x] == self.getSubmission(y).getSpeakers()[z]:
-                                    self.getSubmission(i).setAttendeeConflicts(self.getSubmission(y).getName())
-                                    self.getSubmission(y).setAttendeeConflicts(self.getSubmission(i).getName())
-                    for x in range(len(self.getSubmission(i).getAttendees())):
-                        if self.getSubmission(i).getAttendees()[x] != '':
-                            for z in range(len(self.getSubmission(y).getTrack().getOrganizers())):
-                                if self.getSubmission(i).getAttendees()[x] == self.getSubmission(y).getTrack().getOrganizers()[z] and self.getSubmission(i).getTrack().getName() != self.getSubmission(y).getTrack().getName():
-                                    self.getSubmission(i).setAttendeeConflicts(self.getSubmission(y).getName())
-                                    self.getSubmission(y).setAttendeeConflicts(self.getSubmission(i).getName())
+                    for x in range(len(self.getSubmission(i).getSubmissionAttendeesList())):
+                        if self.getSubmission(i).getSubmissionAttendeesList()[x] != '':
+                            for z in range(len(self.getSubmission(y).getSubmissionAttendeesList())):
+                                if self.getSubmission(i).getSubmissionAttendeesList()[x] == self.getSubmission(y).getSubmissionAttendeesList()[z]:
+                                    self.getSubmission(i).setSubmissionAttendeeConflicts(self.getSubmission(y))
+                                    self.getSubmission(y).setSubmissionAttendeeConflicts(self.getSubmission(i))
+                    for x in range(len(self.getSubmission(i).getSubmissionAttendeesList())):
+                        if self.getSubmission(i).getSubmissionAttendeesList()[x] != '':
+                            for z in range(len(self.getSubmission(y).getSubmissionSpeakersList())):
+                                if self.getSubmission(i).getSubmissionAttendeesList()[x] == self.getSubmission(y).getSubmissionSpeakersList()[z]:
+                                    self.getSubmission(i).setSubmissionAttendeeConflicts(self.getSubmission(y))
+                                    self.getSubmission(y).setSubmissionAttendeeConflicts(self.getSubmission(i))
+                    for x in range(len(self.getSubmission(i).getSubmissionAttendeesList())):
+                        if self.getSubmission(i).getSubmissionAttendeesList()[x] != '':
+                            for z in range(len(self.getSubmission(y).getSubmissionTrack().getTrackOrganisersList())):
+                                if (self.getSubmission(i).getSubmissionAttendeesList()[x] == self.getSubmission(y).getSubmissionTrack().getTrackOrganisersList()[z]) and (self.getSubmission(i).getSubmissionTrack() != self.getSubmission(y).getSubmissionTrack()):
+                                    self.getSubmission(i).setSubmissionAttendeeConflicts(self.getSubmission(y))
+                                    self.getSubmission(y).setSubmissionAttendeeConflicts(self.getSubmission(i))
     
     def FindConflicts(self, attendees = True):
         if attendees == True:
@@ -488,24 +499,42 @@ class Problem():
             self.FindConflictsNoAttendees()
         
     def AssignTimezonesPenalties(self, parameters):
-        suitable_from = dt.datetime(2021, 7, 21, parameters[1][0], parameters[1][1]).time()
-        suitable_to = dt.datetime(2021, 7, 21, parameters[2][0], parameters[2][1]).time()
-        less_suitable_from = dt.datetime(2021, 7, 21, parameters[3][0], parameters[3][1]).time()
-        less_suitable_to = dt.datetime(2021, 7, 21, parameters[4][0], parameters[4][1]).time()
+        temp_schedule_from = str(parameters.getScheduleTimeFrom()).split(':')
+        schedule_from = dt.datetime(2021, 7, 21, int(temp_schedule_from[0]), int(temp_schedule_from[1])).time()
+        temp_schedule_to = str(parameters.getScheduleTimeTo()).split(':')
+        schedule_to = dt.datetime(2021, 7, 21, int(temp_schedule_to[0]), int(temp_schedule_to[1])).time()
+        #Assign local time zone to session time
         for i in range(self.getNumberOfSessions()):
-            #Defining session's local time zone
-            loc_tz_st = self.getSession(i).getStartTime().replace(tzinfo = pytz.timezone(parameters[0]))
-            loc_tz_et = self.getSession(i).getEndTime().replace(tzinfo = pytz.timezone(parameters[0]))
+            loc_tz_st = self.getSession(i).getSessionStartTime().replace(tzinfo = pytz.timezone(parameters.getLocalTimeZone()))
+            loc_tz_et = self.getSession(i).getSessionEndTime().replace(tzinfo = pytz.timezone(parameters.getLocalTimeZone()))
+            #Assign speaker's time zone to submission
             for j in range(self.getNumberOfSubmissions()):
-                #Defining submission's time zone
-                submission_tz = pytz.timezone(self.getSubmission(j).getTimeZone())
-                #Removing dates
-                start_time = loc_tz_st.astimezone(submission_tz).time()
-                end_time = loc_tz_et.astimezone(submission_tz).time()
-                #Assigning submissionstimezones|penalty
-                if start_time < less_suitable_from or end_time > less_suitable_to or end_time < less_suitable_from:
-                    self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getName(), self.getSession(i).getName(), parameters[5][0])
-                elif (start_time >= less_suitable_from and start_time < suitable_from) or (end_time > suitable_to and end_time <= less_suitable_to):
-                    self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getName(), self.getSession(i).getName(), parameters[5][1])
+                if len(self.getSubmission(j).getSubmissionSpeakersList()) == 1:
+                    speaker_tz = pytz.timezone(self.getSubmission(j).getSubmissionSpeakers(0).getParticipantTimeZone())
+                    start_time = loc_tz_st.astimezone(speaker_tz).time()
+                    end_time = loc_tz_et.astimezone(speaker_tz).time()
+                    if (start_time >= schedule_from) and (end_time <= schedule_to) and (start_time < schedule_to) and (end_time > schedule_from):
+                        self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), 0)
+                    else:
+                        temp_start_time = str(start_time).split(':')
+                        temp_end_time = str(end_time).split(':')
+                        distance = [abs(int(temp_start_time[0]) - int(temp_schedule_from[0])), abs(int(temp_end_time[0]) - int(temp_schedule_to[0]))]
+                        violation = min(distance)
+                        self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), violation)
+                #Assign speakers time zones to submission
                 else:
-                    self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getName(), self.getSession(i).getName(), 0)
+                    violation_sum = 0
+                    for speaker in range(len(self.getSubmission(j).getSubmissionSpeakersList())):
+                        speaker_tz = pytz.timezone(self.getSubmission(j).getSubmissionSpeakers(speaker).getParticipantTimeZone())
+                        start_time = loc_tz_st.astimezone(speaker_tz).time()
+                        end_time = loc_tz_et.astimezone(speaker_tz).time()
+                        if (start_time >= schedule_from) and (end_time <= schedule_to) and (start_time < schedule_to) and (end_time > schedule_from):
+                            pass
+                        else:
+                            temp_start_time = str(start_time).split(':')
+                            temp_end_time = str(end_time).split(':')
+                            distance = [abs(int(temp_start_time[0]) - int(temp_schedule_from[0])), abs(int(temp_end_time[0]) - int(temp_schedule_to[0]))]
+                            violation = min(distance)
+                            violation_sum += violation
+                    violation_sum = violation_sum * len(self.getSubmission(j).getSubmissionSpeakersList())
+                    self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), violation_sum)

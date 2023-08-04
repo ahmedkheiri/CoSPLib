@@ -165,9 +165,22 @@ class Solution:
                 order += 1
         return pen
     
-    '''
-    Evaluation for Submissions actual order.
-    '''
+    def EvaluateSubmissionsActualOrder(self):
+        pen = 0
+        di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                if self.getSolTracks()[session][room] != -1:
+                    for ts in range(len(self.getSolSubmissions()[session][room])):
+                        if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
+                            di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
+        for track in range(self.getProblem().getNumberOfTracks()):
+            order = 1
+            for sub in di[track]:
+                if (self.getProblem().getSubmission(sub).getSubmissionActualOrder() != order) and (self.getProblem().getSubmission(sub).getSubmissionActualOrder() != 0):
+                    pen += 1
+                order += 1
+        return pen
     
     def EvaluateSubmissionsSessions(self):
         pen = 0
@@ -238,9 +251,16 @@ class Solution:
     Evaluate Track duration. Need to discuss.
     '''
     
-    '''
-    Evaluate Tracks_Buildings
-    '''
+    def EvaluateTracksBuildings(self):
+        pen = 0
+        di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        for i in range(len(self.getSolTracks())):
+            for j in range(len(self.getSolTracks()[i])):
+                if (self.getSolTracks()[i][j] in di.keys()) and (self.getProblem().getRoom(j).getRoomBuilding() not in di[self.getSolTracks()[i][j]]):
+                    di[self.getSolTracks()[i][j]].append(self.getProblem().getRoom(j).getRoomBuilding())
+        for track in di.values():
+            pen += len(track) - 1
+        return pen
     
     '''
     Evaluate Balance. Need to discuss.
@@ -280,33 +300,98 @@ class Solution:
                                 pen += 1
         return pen
     
-    '''
-    Evaluate Can Submission Open Session?
-    '''
+    def EvaluateCanSubmissionOpenSession(self):
+        pen = 0
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                if self.getProblem().getSubmission(self.getSolSubmissions()[session][room][0]).getSubmissionCanOpenSession() == False:
+                    pen += 1
+        return pen
     
-    '''
-    Evaluate Can Submission Close Session?
-    '''
+    def EvaluateCanSubmissionCloseSession(self):
+        pen = 0
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                if self.getProblem().getSubmission(self.getSolSubmissions()[session][room][len(self.getSolSubmissions()[session][room]) - 1]).getSubmissionCanCloseSession() == False:
+                    pen += 1
+        return pen
     
-    '''
-    Evaluate Submissions that need to be in same session.
-    '''
+    def EvaluateSubmissionsSameSession(self):
+        pen = 0
+        di = {str(session): [] for session in range(self.getProblem().getNumberOfSessions())}
+        subs = [x for x in range(self.getProblem().getNumberOfSubmissions()) if len(self.getProblem().getSubmission(x).getSubmissionSameSessionList()) > 0]
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                for ts in range(len(self.getSolSubmissions()[session][room])):
+                    if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[str(session)]):
+                        di[str(session)].append(self.getSolSubmissions()[session][room][ts])
+        for sub in subs:
+            for session in range(len(self.getSolTracks())):
+                if sub in di[str(session)]:
+                    for x in range(len(self.getProblem().getSubmission(sub).getSubmissionSameSessionList())):
+                        if self.getProblem().getSubmissionIndex(self.getProblem().getSubmission(sub).getSubmissionSameSession(x).getSubmissionName()) not in di[str(session)]:
+                            pen += 1
+        return pen
     
-    '''
-    Evaluate Submissions that need to be in different session.
-    '''
+    def EvaluateSubmissionsDifferentSession(self):
+        pen = 0
+        di = {str(session): [] for session in range(self.getProblem().getNumberOfSessions())}
+        subs = [x for x in range(self.getProblem().getNumberOfSubmissions()) if len(self.getProblem().getSubmission(x).getSubmissionDifferentSessionList()) > 0]
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                for ts in range(len(self.getSolSubmissions()[session][room])):
+                    if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[str(session)]):
+                        di[str(session)].append(self.getSolSubmissions()[session][room][ts])
+        for sub in subs:
+            for session in range(len(self.getSolTracks())):
+                if sub in di[str(session)]:
+                    for x in range(len(self.getProblem().getSubmission(sub).getSubmissionDifferentSessionList())):
+                        if self.getProblem().getSubmissionIndex(self.getProblem().getSubmission(sub).getSubmissionDifferentSession(x).getSubmissionName()) in di[str(session)]:
+                            pen += 1
+        return pen
     
-    '''
-    Evaluate Track Max Number Of Days
-    '''
+    def EvaluateTrackMaxNumberOfDays(self):
+        pen = 0
+        tracks = [x for x in range(self.getProblem().getNumberOfTracks()) if self.getProblem().getTrack(x).getTrackMaxNumOfDays() != 0]
+        di = {str(track): [] for track in tracks}
+        for session in range(len(self.getSolTracks())):
+            for track in tracks:
+                if track in self.getSolTracks()[session]:
+                    di[str(track)].append(self.getProblem().getSession(session).getSessionDate())
+        for track in tracks:
+            if max(di[str(track)]).day - min(di[str(track)]).day >= self.getProblem().getTrack(track).getTrackMaxNumOfDays():
+                pen += (max(di[str(track)]).day - min(di[str(track)]).day) * self.getProblem().getTrack(track).getTrackCostExtraDay()
+        return pen
     
-    '''
-    Evaluate Tracks that need to be in same room.
-    '''
+    def EvaluateTracksSameRoom(self):
+        pen = 0
+        di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        tracks = [track for track in range(self.getProblem().getNumberOfTracks()) if len(self.getProblem().getTrack(track).getTrackSameRoomList()) > 0]
+        for i in range(len(self.getSolTracks())):
+            for j in range(len(self.getSolTracks()[i])):
+                if (self.getSolTracks()[i][j] in di.keys()) and (j+1 not in di[self.getSolTracks()[i][j]]):
+                    di[self.getSolTracks()[i][j]].append(j+1) #Adding one to j to eliminate room with index 0 issues when summing
+        for track in tracks:
+            for x in range(len(self.getProblem().getTrack(track).getTrackSameRoomList())):
+                if sum(di[track]) != sum(di[self.getProblem().getTrackIndex(self.getProblem().getTrack(track).getTrackSameRoom(x).getTrackName())]):
+                    pen += abs(sum(di[track]) - sum(di[self.getProblem().getTrackIndex(self.getProblem().getTrack(track).getTrackSameRoom(x).getTrackName())]))
+        return pen
     
-    '''
-    Evaluate Tracks that need to be in same building.
-    '''
+    def EvaluateTracksSameBuilding(self):
+        pen = 0
+        di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        tracks = [track for track in range(self.getProblem().getNumberOfTracks()) if len(self.getProblem().getTrack(track).getTrackSameBuildingList()) > 0]
+        for i in range(len(self.getSolTracks())):
+            for j in range(len(self.getSolTracks()[i])):
+                if (self.getSolTracks()[i][j] in di.keys()) and (self.getProblem().getRoom(j).getRoomBuilding() not in di[self.getSolTracks()[i][j]]):
+                    di[self.getSolTracks()[i][j]].append(self.getProblem().getRoom(j).getRoomBuilding())
+        for track in tracks:
+            for x in range(len(self.getProblem().getTrack(track).getTrackSameBuildingList())):
+                temp1 = set(di[track])
+                temp2 = set(di[self.getProblem().getTrackIndex(self.getProblem().getTrack(track).getTrackSameBuilding(x).getTrackName())])
+                result = temp1.symmetric_difference(temp2)
+                pen += len(result)
+        return pen
     
     '''
     Evaluate Session's Preferred number of time slots. Need to discuss.

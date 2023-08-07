@@ -193,6 +193,9 @@ class Problem():
         #End of checking
         
         #Begin checking for Duplicates
+        cols = list(pd.read_excel(self.getFileName(), sheet_name = "submissions", header = None, nrows = 1).values[0])
+        if len(cols) != len(set(cols)):
+            sys.exit(print('Duplicates Error! \nColumn names duplicate in sheet submissions!'))
         duplicates_check = ['submissions', 'tracks', 'sessions', 'rooms']
         for i in duplicates_check:
             duplicates = file[i].duplicated(subset = file[i].columns[0])
@@ -204,13 +207,12 @@ class Problem():
         #Begin checking for Duplicates in penalty sheets
         duplicates_check = ['tracks_sessions|penalty', 'tracks_rooms|penalty', 'tracks_tracks|penalty', 'sessions_rooms|penalty']
         for i in duplicates_check:
-            duplicate_row = file[i].iloc[0,:].duplicated()
-            duplicate_column = file[i].iloc[:,0].duplicated()
+            cols = list(pd.read_excel(self.getFileName(), sheet_name = i, header = None, nrows = 1).values[0])
+            if len(cols) != len(set(cols)):
+                sys.exit(print('Duplicates Error! \nColumn names duplicate in sheet', i, '!'))
+            duplicate_row = file[i].iloc[:,0].duplicated()
             if duplicate_row.any() == True:
                 duplicate_indexes = duplicate_row[duplicate_row].index
-                sys.exit(print('Duplicates Error! \nThe following duplicates were found in sheet', i,':\n', file[i].iloc[0, duplicate_indexes]))
-            elif duplicate_column.any() == True:
-                duplicate_indexes = duplicate_column[duplicate_column].index
                 sys.exit(print('Duplicates Error! \nThe following duplicates were found in sheet', i,':\n', file[i][file[i].columns[0]][duplicate_indexes]))
         #End of checking
         

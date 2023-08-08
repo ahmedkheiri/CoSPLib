@@ -2,7 +2,7 @@
 """
 Created on Tue Mar 14 19:16:16 2023
 
-@author: pylya
+@author: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
 """
 
 from Problem import *
@@ -11,19 +11,16 @@ import sys
 import numpy as np
 
 class Solution:
-    def __init__(self, problem, parameters):        
+    def __init__(self, problem):    
         self.__problem = problem
-        self.__parameters = parameters
         self.__solTracks = [[-1 for x in range(self.getProblem().getNumberOfRooms())] for y in range(self.getProblem().getNumberOfSessions())]
         self.__solSubmissions = [[[-1 for x in range(self.getProblem().getSession(z).getSessionMaxTimeSlots())] for y in range(self.getProblem().getNumberOfRooms())] for z in range(self.getProblem().getNumberOfSessions())]
         self.__indsolSubmissions = [[x for x in self.getProblem().getTrack(y).getTrackSubmissionsList()] for y in range(self.getProblem().getNumberOfTracks())]
+        self.generateEvaluations()
         
     def getProblem(self) -> Problem:
         return self.__problem
-    
-    def getParameters(self) -> Parameters:
-        return self.__parameters
-    
+      
     def getSolTracks(self) -> list:
         return self.__solTracks
     
@@ -48,7 +45,80 @@ class Solution:
     def resetSolSubmissions(self):
         self.__solSubmissions = [[[-1 for x in range(self.getProblem().getSession(z).getSessionMaxTimeSlots())] for y in range(self.getProblem().getNumberOfRooms())] for z in range(self.getProblem().getNumberOfSessions())]
     
-    def EvaluateTracksSessions(self):
+    def generateEvaluations(self):
+        self.__evaluations = []
+        self.__evaluations_names = {}
+        if self.getProblem().getParameters().getTracksSessionsPenaltyWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTracksSessionsPenaltyWeight() * self.EvaluateTracksSessions(), 'Tracks_Sessions|Penalty:')
+        if self.getProblem().getParameters().getTracksRoomsPenaltyWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTracksRoomsPenaltyWeight() * self.EvaluateTracksRooms(), 'Tracks_Rooms|Penalty:')
+        if self.getProblem().getParameters().getSessionsRoomsPenaltyWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSessionsRoomsPenaltyWeight() * self.EvaluateSessionsRooms(), 'Sessions_Rooms|Penalty')
+        if self.getProblem().getParameters().getTracksTracksPenaltyWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTracksTracksPenaltyWeight() * self.EvaluateTracksTracks(), 'Tracks_Tracks|Penalty:')
+        if self.getProblem().getParameters().getNumOfRoomsPerTrackWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getNumOfRoomsPerTrackWeight() * self.EvaluateNumberOfRoomsPerTrack(), 'Number of rooms per track:')
+        if self.getProblem().getParameters().getParallelTracksWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getParallelTracksWeight() * self.EvaluateParallelTracks(), 'Parallel tracks:')
+        if self.getProblem().getParameters().getConsecutiveTracksWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getConsecutiveTracksWeight() * self.EvaluateConsecutiveTracks(), 'Consecutive tracks:')
+        if self.getProblem().getParameters().getTracksRelativeOrderWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTracksRelativeOrderWeight() * self.EvaluateTracksRelativeOrder(), 'Tracks relative order:')
+        #Tracks actual order
+        if self.getProblem().getParameters().getSubmissionsTimezonesWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSubmissionsTimezonesWeight() * self.EvaluateSubmissionsTimezones(), 'Submissions timezones:')
+        if self.getProblem().getParameters().getSubmissionsRelativeOrderWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSubmissionsRelativeOrderWeight() * self.EvaluateSubmissionsRelativeOrder(), 'Submissions relative order:')
+        if self.getProblem().getParameters().getSubmissionsActualOrderWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSubmissionsActualOrderWeight() * self.EvaluateSubmissionsActualOrder(), 'Submissions actual order:')
+        if self.getProblem().getParameters().getSubmissionsSessionsPenaltyWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSubmissionsSessionsPenaltyWeight() * self.EvaluateSubmissionsSessions(), 'Submissions_Sessions|Penalty:')
+        if self.getProblem().getParameters().getSubmissionsRoomsPenaltyWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSubmissionsRoomsPenaltyWeight() * self.EvaluateSubmissionsRooms(), 'Submissions_Rooms|Penalty:')
+        if self.getProblem().getParameters().getSpeakersConflictsWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSpeakersConflictsWeight() * self.EvaluateSpeakersConflicts(), 'Speakers conflicts [Session Level]:')
+        if self.getProblem().getParameters().getAteendeesConflictsWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getAteendeesConflictsWeight() * self.EvaluateAttendeesConflicts(), 'Attendees conflicts [Session Level]:')
+        if self.getProblem().getParameters().getOrganisersConflictsWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getOrganisersConflictsWeight() * self.EvaluateOrganiserConflicts(), 'Organisers conflicts:')
+        #Tracks duration
+        if self.getProblem().getParameters().getTracksBuildingsWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTracksBuildingsWeight() * self.EvaluateTracksBuildings(), 'Tracks buildings:')
+        #Balance
+        if self.getProblem().getParameters().getSpeakersConflictsTimeslotLevelWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSpeakersConflictsTimeslotLevelWeight() * self.EvaluateSpeakersConflictsTS(), 'Speakers conflicts [Timeslot Level]:')
+        if self.getProblem().getParameters().getAttendeesConflictsTimeSlotWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getAttendeesConflictsTimeSlotWeight() * self.EvaluateAttendeesConflictsTS(), 'Attendees conflicts [Timeslot Level]:')
+        if self.getProblem().getParameters().getOpenSessionWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getOpenSessionWeight() * self.EvaluateCanSubmissionOpenSession(), 'Submissions open session:')
+        if self.getProblem().getParameters().getCloseSessionWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getCloseSessionWeight() * self.EvaluateCanSubmissionCloseSession(), 'Submissions close session:')
+        if self.getProblem().getParameters().getSameSessionWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getSameSessionWeight() * self.EvaluateSubmissionsSameSession(), 'Submissions same session:')
+        if self.getProblem().getParameters().getDifferentSessionWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getDifferentSessionWeight() * self.EvaluateSubmissionsDifferentSession(), 'Submissions different session:')
+        if self.getProblem().getParameters().getTrackMaxNumDaysWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTrackMaxNumDaysWeight() * self.EvaluateTrackMaxNumberOfDays(), 'Track max number of days:')
+        if self.getProblem().getParameters().getTrackSameRoomWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTrackSameRoomWeight() * self.EvaluateTracksSameRoom(), 'Tracks same room:')
+        if self.getProblem().getParameters().getTracksSameBuildingWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getTracksSameBuildingWeight() * self.EvaluateTracksSameBuilding(), 'Tracks same building:')
+        #Preferred number of timeslots
+        #min number of timeslots
+        #max number of timeslots
+        self.setEvaluation(lambda: self.EvaluateExtendedSubmissions(), 'Submissions with multiple timeslots in different sessions:')
+        
+    def setEvaluation(self, evaluation_function, evaluation_name):
+        self.__evaluations.append(evaluation_function)
+        self.__evaluations_names[evaluation_function] = evaluation_name
+        
+    def getEvaluationsList(self) -> list:
+        return self.__evaluations
+    
+    def getEvaluationName(self, evaluation_function) -> str:
+        return self.__evaluations_names[evaluation_function]
+    
+    def EvaluateTracksSessions(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -56,7 +126,7 @@ class Solution:
                     pen += self.getProblem().getTracksSessionsPenaltybyIndex(self.getSolTracks()[i][j], i)
         return pen
     
-    def EvaluateTracksRooms(self):
+    def EvaluateTracksRooms(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -64,7 +134,7 @@ class Solution:
                     pen += self.getProblem().getTracksRoomsPenaltybyIndex(self.getSolTracks()[i][j], j)
         return pen
     
-    def EvaluateSessionsRooms(self):
+    def EvaluateSessionsRooms(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -72,7 +142,7 @@ class Solution:
                     pen += self.getProblem().getSessionsRoomsPenaltybyIndex(i, j)
         return pen
     
-    def EvaluateTracksTracks(self):
+    def EvaluateTracksTracks(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -81,7 +151,7 @@ class Solution:
                         pen += self.getProblem().getTracksTracksPenaltybyIndex(self.getSolTracks()[i][j], self.getSolTracks()[i][x])
         return pen
     
-    def EvaluateNumberOfRoomsPerTrack(self):
+    def EvaluateNumberOfRoomsPerTrack(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         for i in range(len(self.getSolTracks())):
@@ -93,7 +163,7 @@ class Solution:
                 pen += len(i) - 1
         return pen
     
-    def EvaluateParallelTracks(self):
+    def EvaluateParallelTracks(self) -> int:
         pen = 0
         temp = [tuple(self.getSolTracks()[session]) for session in range(len(self.getSolTracks()))]
         for track in range(self.getProblem().getNumberOfTracks()):
@@ -103,7 +173,7 @@ class Solution:
                     pen += c - 1
         return pen
     
-    def EvaluateConsecutiveTracks(self):
+    def EvaluateConsecutiveTracks(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         for i in range(len(self.getSolTracks())):
@@ -115,7 +185,7 @@ class Solution:
                 pen += 1
         return pen
     
-    def EvaluateTracksRelativeOrder(self):
+    def EvaluateTracksRelativeOrder(self) -> int:
         info = [(track, self.getProblem().getTrack(track).getTrackRelativeOrder()) for track in range(self.getProblem().getNumberOfTracks()) if self.getProblem().getTrack(track).getTrackRelativeOrder() != 0]
         sorted_info = sorted(info, key = lambda x: x[1])
         di = {}
@@ -139,7 +209,7 @@ class Solution:
     Evaluation for Tracks actual order. However, what does this mean?
     '''
     
-    def EvaluateSubmissionsTimezones(self):
+    def EvaluateSubmissionsTimezones(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -148,7 +218,7 @@ class Solution:
                         pen += self.getProblem().getSubmissionsTimezonesPenaltybyIndex(self.getSolSubmissions()[i][j][x], i)
         return pen
     
-    def EvaluateSubmissionsRelativeOrder(self):
+    def EvaluateSubmissionsRelativeOrder(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         for session in range(len(self.getSolTracks())):
@@ -165,7 +235,7 @@ class Solution:
                 order += 1
         return pen
     
-    def EvaluateSubmissionsActualOrder(self):
+    def EvaluateSubmissionsActualOrder(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         for session in range(len(self.getSolTracks())):
@@ -182,7 +252,7 @@ class Solution:
                 order += 1
         return pen
     
-    def EvaluateSubmissionsSessions(self):
+    def EvaluateSubmissionsSessions(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -191,7 +261,7 @@ class Solution:
                         pen += self.getProblem().getSubmissionsSessionsPenaltybyIndex(self.getSolSubmissions()[i][j][x], i)
         return pen
     
-    def EvaluateSubmissionsRooms(self):
+    def EvaluateSubmissionsRooms(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
             for j in range(len(self.getSolTracks()[i])):
@@ -200,7 +270,7 @@ class Solution:
                         pen += self.getProblem().getSubmissionsRoomsPenaltybyIndex(self.getSolSubmissions()[i][j][x], j)
         return pen
     
-    def EvaluateSpeakersConflicts(self): #Session Level
+    def EvaluateSpeakersConflicts(self) -> int: #Session Level
         pen = 0
         di = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for i in range(len(self.getSolTracks())):
@@ -216,7 +286,7 @@ class Solution:
                             pen += 1
         return pen
     
-    def EvaluateAttendeesConflicts(self): #Session Level
+    def EvaluateAttendeesConflicts(self) -> int: #Session Level
         pen = 0
         di = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for i in range(len(self.getSolTracks())):
@@ -232,7 +302,7 @@ class Solution:
                             pen += 1
         return pen
     
-    def EvaluateOrganiserConflicts(self):
+    def EvaluateOrganiserConflicts(self) -> int:
         pen = 0
         di = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for i in range(len(self.getSolTracks())):
@@ -251,7 +321,7 @@ class Solution:
     Evaluate Track duration. Need to discuss.
     '''
     
-    def EvaluateTracksBuildings(self):
+    def EvaluateTracksBuildings(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         for i in range(len(self.getSolTracks())):
@@ -266,7 +336,7 @@ class Solution:
     Evaluate Balance. Need to discuss.
     '''
     
-    def EvaluateSpeakersConflictsTS(self): #Time slot Level
+    def EvaluateSpeakersConflictsTS(self) -> int: #Time slot Level
         pen = 0
         di = {str(session)+str(ts):[] for session in range(self.getProblem().getNumberOfSessions()) for ts in range(self.getProblem().getSession(session).getSessionMaxTimeSlots())}
         for session in range(len(self.getSolTracks())):
@@ -283,7 +353,7 @@ class Solution:
                                 pen += 1
         return pen
     
-    def EvaluateAttendeesConflictsTS(self): #Time slot level
+    def EvaluateAttendeesConflictsTS(self) -> int: #Time slot level
         pen = 0
         di = {str(session)+str(ts):[] for session in range(self.getProblem().getNumberOfSessions()) for ts in range(self.getProblem().getSession(session).getSessionMaxTimeSlots())}
         for session in range(len(self.getSolTracks())):
@@ -300,7 +370,7 @@ class Solution:
                                 pen += 1
         return pen
     
-    def EvaluateCanSubmissionOpenSession(self):
+    def EvaluateCanSubmissionOpenSession(self) -> int:
         pen = 0
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
@@ -308,7 +378,7 @@ class Solution:
                     pen += 1
         return pen
     
-    def EvaluateCanSubmissionCloseSession(self):
+    def EvaluateCanSubmissionCloseSession(self) -> int:
         pen = 0
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
@@ -316,7 +386,7 @@ class Solution:
                     pen += 1
         return pen
     
-    def EvaluateSubmissionsSameSession(self):
+    def EvaluateSubmissionsSameSession(self) -> int:
         pen = 0
         di = {str(session): [] for session in range(self.getProblem().getNumberOfSessions())}
         subs = [x for x in range(self.getProblem().getNumberOfSubmissions()) if len(self.getProblem().getSubmission(x).getSubmissionSameSessionList()) > 0]
@@ -333,7 +403,7 @@ class Solution:
                             pen += 1
         return pen
     
-    def EvaluateSubmissionsDifferentSession(self):
+    def EvaluateSubmissionsDifferentSession(self) -> int:
         pen = 0
         di = {str(session): [] for session in range(self.getProblem().getNumberOfSessions())}
         subs = [x for x in range(self.getProblem().getNumberOfSubmissions()) if len(self.getProblem().getSubmission(x).getSubmissionDifferentSessionList()) > 0]
@@ -350,7 +420,7 @@ class Solution:
                             pen += 1
         return pen
     
-    def EvaluateTrackMaxNumberOfDays(self):
+    def EvaluateTrackMaxNumberOfDays(self) -> int:
         pen = 0
         tracks = [x for x in range(self.getProblem().getNumberOfTracks()) if self.getProblem().getTrack(x).getTrackMaxNumOfDays() != 0]
         di = {str(track): [] for track in tracks}
@@ -363,7 +433,7 @@ class Solution:
                 pen += (max(di[str(track)]).day - min(di[str(track)]).day) * self.getProblem().getTrack(track).getTrackCostExtraDay()
         return pen
     
-    def EvaluateTracksSameRoom(self):
+    def EvaluateTracksSameRoom(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         tracks = [track for track in range(self.getProblem().getNumberOfTracks()) if len(self.getProblem().getTrack(track).getTrackSameRoomList()) > 0]
@@ -377,7 +447,7 @@ class Solution:
                     pen += abs(sum(di[track]) - sum(di[self.getProblem().getTrackIndex(self.getProblem().getTrack(track).getTrackSameRoom(x).getTrackName())]))
         return pen
     
-    def EvaluateTracksSameBuilding(self):
+    def EvaluateTracksSameBuilding(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
         tracks = [track for track in range(self.getProblem().getNumberOfTracks()) if len(self.getProblem().getTrack(track).getTrackSameBuildingList()) > 0]
@@ -405,7 +475,7 @@ class Solution:
     Evaluate Session's Max number of time slots. Need to discuss.
     '''
     
-    def EvaluateExtendedSubmissions(self):
+    def EvaluateExtendedSubmissions(self) -> int:
         pen = 0
         di = {str(session)+str(room):[] for session in range(self.getProblem().getNumberOfSessions()) for room in range(self.getProblem().getNumberOfRooms())}
         di2 = {sub: [] for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() > 1}
@@ -429,14 +499,14 @@ class Solution:
                 pen += 1000000000
         return pen
     
-    def EvaluateAllSubmissionsScheduled(self):
+    def EvaluateAllSubmissionsScheduled(self) -> bool:
         temp = [self.getSolSubmissions()[session][room][ts] for session in range(len(self.getSolTracks())) for room in range(len(self.getSolTracks()[session])) for ts in range(len(self.getSolSubmissions()[session][room])) if self.getSolSubmissions()[session][room][ts] != -1]
         for sub in range(self.getProblem().getNumberOfSubmissions()):
             if (sub not in temp) or (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() != temp.count(sub)):
                 return False
         return True
     
-    def ValidateSolution(self):
+    def ValidateSolution(self) -> bool:
         for i in range(len(self.getSolTracks())):
             for j in range(len(self.getSolTracks()[i])):
                 for x in range(len(self.getSolSubmissions()[i][j])):
@@ -446,13 +516,47 @@ class Solution:
                                 return False
         return True
     
-    '''
-    Evaluate Solution
-    '''
+    def EvaluateSolution(self) -> int:
+        obj = [self.getEvaluationsList()[i]() for i in range(len(self.getEvaluationsList()))]
+        return sum(obj)
     
-    '''
-    Print Violations
-    '''
+    def QuickEvaluateSolution(self, previous_obj) -> int:
+        obj = 0
+        for i in range(len(self.getEvaluationsList())):
+            obj += self.getEvaluationsList()[i]()
+            if obj > previous_obj:
+                return obj
+        return obj
+    
+    def copyWholeSolution(self):
+        copy_solTracks = []
+        copy_solSubmissions = []
+        for i in range(len(self.getSolTracks())):
+            temp = []
+            temp3 = []
+            for j in range(len(self.getSolTracks()[i])):
+                temp.append(self.getSolTracks()[i][j])
+                temp2 = []
+                for z in range(len(self.getSolSubmissions()[i][j])):
+                    temp2.append(self.getSolSubmissions()[i][j][z])
+                temp3.append(temp2)
+            copy_solTracks.append(temp)
+            copy_solSubmissions.append(temp3)
+        copy_indsol = []
+        for i in range(len(self.getIndSolSubmissions())):
+            temp = []
+            for j in range(len(self.getIndSolSubmissions()[i])):
+                temp.append(self.getIndSolSubmissions()[i][j])
+            copy_indsol.append(temp)
+        return copy_solTracks, copy_solSubmissions, copy_indsol
+    
+    def printViolations(self):
+        print('----- Violations breakdown -----')
+        for i in range(len(self.getEvaluationsList())):
+            result = self.getEvaluationsList()[i]()
+            if result > 0:
+                print(self.getEvaluationName(self.getEvaluationsList()[i]), result)
+        print('--------------------------------')
     
     '''
     toExcel
@@ -463,12 +567,12 @@ class Solution:
     '''
     
 class InitialSolution(Solution):
-    def __init__(self, problem, parameters):
-        Solution.__init__(self, problem, parameters)
+    def __init__(self, problem):
+        Solution.__init__(self, problem)
     
 class Random(InitialSolution):
-    def __init__(self, problem, parameters):
-        InitialSolution.__init__(self, problem, parameters)
+    def __init__(self, problem):
+        InitialSolution.__init__(self, problem)
         temp = [sub for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() > 1]
         temp2 = [sub for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() == 1]
         sessions = [session for session in range(self.getProblem().getNumberOfSessions())]

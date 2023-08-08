@@ -2,7 +2,7 @@
 """
 Created on Tue Mar 14 19:12:46 2023
 
-@author: pylya
+@author: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
 """
 
 import Submission
@@ -73,6 +73,11 @@ class Problem():
         for i in range(len(self.__sessions)):
             self.__sum_of_time_slots += self.__sessions[i].getSessionMaxTimeSlots()
         return self.__sum_of_time_slots
+    def getLargestSessionTimeSlots(self):
+        temp = []
+        for i in range(len(self.__sessions)):
+            temp.append(self.getSession(i).getSessionMaxTimeSlots())
+        return max(temp)
     #Tracks
     def getNumberOfTracks(self) -> int:
         return len(self.__tracks)
@@ -114,6 +119,11 @@ class Problem():
         self.__participants_map[participant_object.getParticipantID()] = len(self.__participants_map)
     def getParticipantIndex(self, participant_id):
         return self.__participants_map[participant_id]
+    #Parameters
+    def setParameters(self, parameters_object):
+        self.__parameters = parameters_object
+    def getParameters(self) -> Parameters:
+        return self.__parameters
     #Submissions_sessions|penalty
     def setSubmissionsSessionsPenalty(self, submission_name, session_name, penalty):
         self.__submissions_sessions_penalty_map[submission_name + session_name] = penalty
@@ -307,6 +317,13 @@ class Problem():
             for y in range(11 + self.getNumberOfSessions(), 11 + self.getNumberOfSessions() + self.getNumberOfRooms()):
                 self.setSubmissionsRoomsPenalty(self.getSubmission(self.getSubmissionIndex(file.iloc[i,0])).getSubmissionName(), self.getRoom(self.getRoomIndex(columns[y])).getRoomName(), file.iloc[i,y])
         self.convertSubmissionsElementsToObjects()
+        
+        for track in range(self.getNumberOfTracks()):
+            track_ts = []
+            for sub in self.getTrack(track).getTrackSubmissionsList():
+                track_ts.append(sub.getSubmissionRequiredTimeSlots())
+            self.getTrack(track).setTrackRequiredTimeSlots(sum(track_ts))
+        
         #Reading 'tracks_sessions|penalty' sheet
         file = pd.read_excel(self.getFileName(), sheet_name = "tracks_sessions|penalty", keep_default_na = False, na_filter = False)
         file.replace(to_replace = '', value = 0, inplace = True)
@@ -405,6 +422,7 @@ class Problem():
                               preferred_num_time_slots = file.iloc[29,4], 
                               min_num_time_slots = file.iloc[30,4], 
                               max_num_time_slots = file.iloc[31,4])
+        self.setParameters(par)
         '''
         print(par.getTracksSessionsPenaltyWeight())
         print(par.getTracksRoomsPenaltyWeight())
@@ -500,15 +518,15 @@ class Problem():
         else:
             self.FindConflictsNoAttendees()
         
-    def AssignTimezonesPenalties(self, parameters):
-        temp_schedule_from = str(parameters.getScheduleTimeFrom()).split(':')
+    def AssignTimezonesPenalties(self):
+        temp_schedule_from = str(self.getParameters().getScheduleTimeFrom()).split(':')
         schedule_from = dt.datetime(2021, 7, 21, int(temp_schedule_from[0]), int(temp_schedule_from[1])).time()
-        temp_schedule_to = str(parameters.getScheduleTimeTo()).split(':')
+        temp_schedule_to = str(self.getParameters().getScheduleTimeTo()).split(':')
         schedule_to = dt.datetime(2021, 7, 21, int(temp_schedule_to[0]), int(temp_schedule_to[1])).time()
         #Assign local time zone to session time
         for i in range(self.getNumberOfSessions()):
-            loc_tz_st = self.getSession(i).getSessionStartTime().replace(tzinfo = pytz.timezone(parameters.getLocalTimeZone()))
-            loc_tz_et = self.getSession(i).getSessionEndTime().replace(tzinfo = pytz.timezone(parameters.getLocalTimeZone()))
+            loc_tz_st = self.getSession(i).getSessionStartTime().replace(tzinfo = pytz.timezone(self.getParameters().getLocalTimeZone()))
+            loc_tz_et = self.getSession(i).getSessionEndTime().replace(tzinfo = pytz.timezone(self.getParameters().getLocalTimeZone()))
             #Assign speaker's time zone to submission
             for j in range(self.getNumberOfSubmissions()):
                 if len(self.getSubmission(j).getSubmissionSpeakersList()) == 1:

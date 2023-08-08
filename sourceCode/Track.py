@@ -88,6 +88,10 @@ class Track:
         return self.__submissions
     def setTrackSubmissions(self, submission):
         self.__submissions.append(submission)
+    def getTrackRequiredTimeSlots(self):
+        return self.__required_timeslots
+    def setTrackRequiredTimeSlots(self, required_timeslots):
+        self.__required_timeslots = required_timeslots
         
     def __str__(self):
         return "Track("+self.__name+")"

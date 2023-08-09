@@ -18,9 +18,9 @@ for i in range(1):
     p.AssignTimezonesPenalties()
     
     sol = Solution(p)
-    sol = Random(p)
+    #sol = Random(p)
     
-    solver = HyperHeuristic(p, sol)
+    solver = Matheuristic(p, sol)
     s_time = time()
     solver.solve(start_time = s_time, run_time = 3)
 

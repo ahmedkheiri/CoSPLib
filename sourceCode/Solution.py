@@ -15,7 +15,7 @@ class Solution:
         self.__problem = problem
         self.__solTracks = [[-1 for x in range(self.getProblem().getNumberOfRooms())] for y in range(self.getProblem().getNumberOfSessions())]
         self.__solSubmissions = [[[-1 for x in range(self.getProblem().getSession(z).getSessionMaxTimeSlots())] for y in range(self.getProblem().getNumberOfRooms())] for z in range(self.getProblem().getNumberOfSessions())]
-        self.__indsolSubmissions = [[x for x in self.getProblem().getTrack(y).getTrackSubmissionsList()] for y in range(self.getProblem().getNumberOfTracks())]
+        self.__indsolSubmissions = [[self.getProblem().getSubmissionIndex(x.getSubmissionName()) for x in self.getProblem().getTrack(y).getTrackSubmissionsList()] for y in range(self.getProblem().getNumberOfTracks())]
         self.generateEvaluations()
         
     def getProblem(self) -> Problem:
@@ -29,6 +29,9 @@ class Solution:
     
     def getIndSolSubmissions(self) -> list:
         return self.__indsolSubmissions
+    
+    def setIndSolSubmissions(self, solInd):
+        self.__indsolSubmissions = solInd
     
     def setBestSolution(self, solTracks, solSubmissions):
         self.__solTracks = solTracks
@@ -557,6 +560,30 @@ class Solution:
             if result > 0:
                 print(self.getEvaluationName(self.getEvaluationsList()[i]), result)
         print('--------------------------------')
+        
+    def convertSolFirstTime(self):
+        subs_ts = {str(sub): 0 for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() == 1}
+        index = {str(track): 0 for track in range(self.getProblem().getNumberOfTracks())}
+        for sub in range(self.getProblem().getNumberOfSubmissions()):
+            if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() != 1) and (sub in self.getIndSolSubmissions()[self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName())]):
+                self.getIndSolSubmissions()[self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName())].remove(sub)
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                if self.getSolTracks()[session][room] != -1:
+                    for ts in range(len(self.getSolSubmissions()[session][room])):
+                        if (index[str(self.getSolTracks()[session][room])] <= len(self.getIndSolSubmissions()[self.getSolTracks()[session][room]]) - 1) and (self.getSolSubmissions()[session][room][ts] == -1):
+                            self.getSolSubmissions()[session][room][ts] = self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]]
+                            subs_ts[str(self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]])] += 1
+                            if self.getProblem().getSubmission(self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]]).getSubmissionRequiredTimeSlots() == subs_ts[str(self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]])]:
+                                index[str(self.getSolTracks()[session][room])] += 1
+        #Creating Ind sol
+        temp = [[] for i in range(self.getProblem().getNumberOfTracks())]
+        for i in range(len(self.getSolTracks())):
+            for j in range(len(self.getSolTracks()[i])):
+                if self.getSolTracks()[i][j] != -1:
+                    for x in range(len(self.getSolSubmissions()[i][j])):
+                        temp[self.getSolTracks()[i][j]].append(self.getSolSubmissions()[i][j][x])
+        self.setIndSolSubmissions(temp)
     
     '''
     toExcel

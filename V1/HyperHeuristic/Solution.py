@@ -67,7 +67,6 @@ class Solution:
             self.setEvaluation(lambda: self.getProblem().getParameters().getConsecutiveTracksWeight() * self.EvaluateConsecutiveTracks(), 'Consecutive tracks:')
         if self.getProblem().getParameters().getTracksRelativeOrderWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getTracksRelativeOrderWeight() * self.EvaluateTracksRelativeOrder(), 'Tracks relative order:')
-        #Tracks actual order
         if self.getProblem().getParameters().getSubmissionsTimezonesWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getSubmissionsTimezonesWeight() * self.EvaluateSubmissionsTimezones(), 'Submissions timezones:')
         if self.getProblem().getParameters().getSubmissionsRelativeOrderWeight() > 0:
@@ -84,7 +83,6 @@ class Solution:
             self.setEvaluation(lambda: self.getProblem().getParameters().getAteendeesConflictsWeight() * self.EvaluateAttendeesConflicts(), 'Attendees conflicts [Session Level]:')
         if self.getProblem().getParameters().getOrganisersConflictsWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getOrganisersConflictsWeight() * self.EvaluateOrganiserConflicts(), 'Organisers conflicts:')
-        #Tracks duration
         if self.getProblem().getParameters().getTracksBuildingsWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getTracksBuildingsWeight() * self.EvaluateTracksBuildings(), 'Tracks buildings:')
         #Balance
@@ -208,10 +206,6 @@ class Solution:
                             pen += 1
         return pen
     
-    '''
-    Evaluation for Tracks actual order. However, what does this mean?
-    '''
-    
     def EvaluateSubmissionsTimezones(self) -> int:
         pen = 0
         for i in range(len(self.getSolTracks())):        
@@ -319,11 +313,7 @@ class Solution:
                         if (self.getProblem().getTrack(di[i][j]) in self.getProblem().getTrack(di[i][z]).getTrackOrganiserConflictsList()):
                             pen += 1
         return pen
-    
-    '''
-    Evaluate Track duration. Need to discuss.
-    '''
-    
+        
     def EvaluateTracksBuildings(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}

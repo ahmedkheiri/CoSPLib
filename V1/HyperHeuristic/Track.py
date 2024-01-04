@@ -9,11 +9,10 @@ Created on Wed Jun 14 15:25:15 2023
 import Participant
 import Submission
 class Track:
-    def __init__(self, name, rel_order, act_order, max_num_days, cost_extra_day
+    def __init__(self, name, rel_order, max_num_days, cost_extra_day
                  , track_same_room, track_same_building, organisers, organiser_conflicts, submissions):
         self.__name = name
         self.__rel_order = rel_order
-        self.__act_order = act_order
         self.__max_num_days = max_num_days
         self.__cost_extra_day = cost_extra_day
         self.__track_same_room = track_same_room
@@ -29,10 +28,6 @@ class Track:
         return self.__rel_order
     def setTrackRelativeOrder(self, rel_order):
         self.__rel_order = rel_order
-    def getTrackActualOrder(self) -> int:
-        return self.__act_order
-    def setTrackActualOrder(self, act_order):
-        self.__act_order = act_order
     def getTrackMaxNumOfDays(self) -> int:
         return self.__max_num_days
     def setTrackMaxNumOfDays(self, max_num_days):
@@ -97,7 +92,7 @@ class Track:
         return "Track("+self.__name+")"
     
 if __name__ == '__main__':
-    track = Track('NewTrack', 0, 0, 0, 0, [], [], [], [], [])
+    track = Track('NewTrack', 0, 0, 0, [], [], [], [], [])
     print(track.getTrackName())
     track.setTrackName('Track_1')
     print(track)

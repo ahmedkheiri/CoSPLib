@@ -11,11 +11,10 @@ class Parameters:
                  tracks_sessions_penalty_weight, tracks_rooms_penalty_weight, 
                  sessions_rooms_penalty_weight, tracks_tracks_penalty_weight, 
                  num_rooms_per_track, parallel_tracks, consecutive_tracks, 
-                 tracks_relative_order, tracks_actual_order, 
-                 submissions_timezones_penalty_weight, submissions_relative_order, 
-                 submissions_actual_order, submissions_sessions_penalty_weight, 
+                 tracks_relative_order, submissions_timezones_penalty_weight, 
+                 submissions_relative_order, submissions_actual_order, submissions_sessions_penalty_weight, 
                  submissions_rooms_penalty_weight, speakers_conflicts, 
-                 attendees_conflicts, organiser_conflicts, track_duration, 
+                 attendees_conflicts, organiser_conflicts, 
                  tracks_buildings, balance, speakers_conflicts_timeslot_level, 
                  attendees_conflicts_timeslot_level, open_session_weight, 
                  close_session_weight, same_session_weight, different_session_weight,
@@ -32,7 +31,6 @@ class Parameters:
         self.__parallel_tracks = parallel_tracks
         self.__consecutive_tracks = consecutive_tracks
         self.__tracks_relative_order = tracks_relative_order
-        self.__tracks_actual_order = tracks_actual_order
         self.__submissions_timezones_penalty_weight = submissions_timezones_penalty_weight
         self.__submissions_relative_order = submissions_relative_order
         self.__submissions_actual_order = submissions_actual_order
@@ -41,7 +39,6 @@ class Parameters:
         self.__speakers_conflicts = speakers_conflicts
         self.__attendees_conflicts = attendees_conflicts
         self.__organiser_conflicts = organiser_conflicts
-        self.__track_duration = track_duration
         self.__tracks_buildings = tracks_buildings
         self.__balance = balance
         self.__speakers_conflicts_timeslot_level = speakers_conflicts_timeslot_level
@@ -100,10 +97,6 @@ class Parameters:
         return self.__tracks_relative_order
     def setTracksRelativeOrderWeight(self, tracks_relative_order):
         self.__tracks_relative_order = tracks_relative_order
-    def getTracksActualOrderWeight(self) -> int:
-        return self.__tracks_actual_order
-    def setTracksActualOrderWeight(self, tracks_actual_order):
-        self.__tracks_actual_order = tracks_actual_order
     def getSubmissionsTimezonesWeight(self) -> int:
         return self.__submissions_timezones_penalty_weight
     def setSubmissionsTimezonesPenaltyWeight(self, submissions_timezones_penalty_weight):
@@ -136,10 +129,6 @@ class Parameters:
         return self.__organiser_conflicts
     def setOrganisersConflictsWeight(self, organiser_conflicts):
         self.__organiser_conflicts = organiser_conflicts
-    def getTrackDurationWeight(self) -> int:
-        return self.__track_duration
-    def setTrackDurationWeight(self, track_duration):
-        self.__track_duration = track_duration
     def getTracksBuildingsWeight(self) -> int:
         return self.__tracks_buildings
     def setTracksBuildingsWeight(self, tracks_buildings):
@@ -199,7 +188,7 @@ class Parameters:
         
 if __name__ == '__main__':
     parameters = Parameters('GMT+2', '9:00', '21:00', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                            , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                            , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     print(parameters.getLocalTimeZone())
     parameters.setLocalTimeZone('GMT+3')
     print(parameters.getLocalTimeZone())

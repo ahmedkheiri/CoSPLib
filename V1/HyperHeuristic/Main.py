@@ -10,7 +10,7 @@ import sys
 import numpy as np
 
 #np.random.seed(2)
-f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\Dataset\\N2OR_New.xlsx"
+f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\N2OR_New.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
     p.ReadProblemInstance()

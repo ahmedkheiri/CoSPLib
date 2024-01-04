@@ -283,7 +283,7 @@ class Problem():
         
         #Reading Tracks
         for i in range(len(file2)):
-            self.setTrack(Track.Track(file2.iloc[i,0], file2.iloc[i,1], file2.iloc[i,2], file2.iloc[i,3], file2.iloc[i,4], list(file2.iloc[i,5].split(", ")), list(file2.iloc[i,6].split(", ")), list(file2.iloc[i,7].split(", ")), [], []))
+            self.setTrack(Track.Track(file2.iloc[i,0], file2.iloc[i,1], file2.iloc[i,2], file2.iloc[i,3], list(file2.iloc[i,4].split(", ")), list(file2.iloc[i,5].split(", ")), list(file2.iloc[i,6].split(", ")), [], []))
         self.convertTracksElementsToObjects()
         
         #Begin checking for number of items between submissions and sessions & rooms
@@ -398,30 +398,28 @@ class Problem():
                               parallel_tracks = file.iloc[5,4], 
                               consecutive_tracks = file.iloc[6,4], 
                               tracks_relative_order = file.iloc[7,4], 
-                              tracks_actual_order = file.iloc[8,4], 
-                              submissions_timezones_penalty_weight = file.iloc[9,4], 
-                              submissions_relative_order = file.iloc[10,4], 
-                              submissions_actual_order = file.iloc[11,4], 
-                              submissions_sessions_penalty_weight = file.iloc[12,4], 
-                              submissions_rooms_penalty_weight = file.iloc[13,4], 
-                              speakers_conflicts = file.iloc[14,4], 
-                              attendees_conflicts = file.iloc[15,4], 
-                              organiser_conflicts = file.iloc[16,4], 
-                              track_duration = file.iloc[17,4], 
-                              tracks_buildings = file.iloc[18,4], 
-                              balance = file.iloc[19,4], 
-                              speakers_conflicts_timeslot_level = file.iloc[20,4], 
-                              attendees_conflicts_timeslot_level = file.iloc[21,4], 
-                              open_session_weight = file.iloc[22,4], 
-                              close_session_weight = file.iloc[23,4], 
-                              same_session_weight = file.iloc[24,4], 
-                              different_session_weight = file.iloc[25,4], 
-                              track_max_num_days_weight = file.iloc[26,4], 
-                              tracks_same_room_weight = file.iloc[27,4], 
-                              tracks_same_building_weight = file.iloc[28,4], 
-                              preferred_num_time_slots = file.iloc[29,4], 
-                              min_num_time_slots = file.iloc[30,4], 
-                              max_num_time_slots = file.iloc[31,4])
+                              submissions_timezones_penalty_weight = file.iloc[8,4], 
+                              submissions_relative_order = file.iloc[9,4], 
+                              submissions_actual_order = file.iloc[10,4], 
+                              submissions_sessions_penalty_weight = file.iloc[11,4], 
+                              submissions_rooms_penalty_weight = file.iloc[12,4], 
+                              speakers_conflicts = file.iloc[13,4], 
+                              attendees_conflicts = file.iloc[14,4], 
+                              organiser_conflicts = file.iloc[15,4],
+                              tracks_buildings = file.iloc[16,4], 
+                              balance = file.iloc[17,4], 
+                              speakers_conflicts_timeslot_level = file.iloc[18,4], 
+                              attendees_conflicts_timeslot_level = file.iloc[19,4], 
+                              open_session_weight = file.iloc[20,4], 
+                              close_session_weight = file.iloc[21,4], 
+                              same_session_weight = file.iloc[22,4], 
+                              different_session_weight = file.iloc[23,4], 
+                              track_max_num_days_weight = file.iloc[24,4], 
+                              tracks_same_room_weight = file.iloc[25,4], 
+                              tracks_same_building_weight = file.iloc[26,4], 
+                              preferred_num_time_slots = file.iloc[27,4], 
+                              min_num_time_slots = file.iloc[28,4], 
+                              max_num_time_slots = file.iloc[29,4])
         self.setParameters(par)
         '''
         print(par.getTracksSessionsPenaltyWeight())
@@ -432,7 +430,6 @@ class Problem():
         print(par.getParallelTracksWeight())
         print(par.getConsecutiveTracksWeight())
         print(par.getTracksRelativeOrderWeight())
-        print(par.getTracksActualOrderWeight())
         print(par.getSubmissionsTimezonesWeight())
         print(par.getSubmissionsRelativeOrderWeight())
         print(par.getSubmissionsActualOrderWeight())
@@ -441,7 +438,6 @@ class Problem():
         print(par.getSpeakersConflictsWeight())
         print(par.getAteendeesConflictsWeight())
         print(par.getOrganisersConflictsWeight())
-        print(par.getTrackDurationWeight())
         print(par.getTracksBuildingsWeight())
         print(par.getBalanceWeight())
         print(par.getSpeakersConflictsTimeslotLevelWeight())

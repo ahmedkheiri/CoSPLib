@@ -48,9 +48,9 @@ def print_submission_attendees():
             else:
                 print(i[j])
 
-df_tracks = pd.read_excel("../Dataset/N2OR_New.xlsx", sheet_name = "tracks")
-df_participants = pd.read_excel("../Dataset/N2OR_New.xlsx", sheet_name = "participants")
-df_submissions = pd.read_excel("../Dataset/N2OR_New.xlsx", sheet_name = "submissions")
+df_tracks = pd.read_excel("C:/Users/pylya/Desktop/PhD/PhD/github/CSPLib/V1/Dataset/ISF22.xlsx", sheet_name = "tracks")
+df_participants = pd.read_excel("C:/Users/pylya/Desktop/PhD/PhD/github/CSPLib/V1/Dataset/ISF22.xlsx", sheet_name = "participants")
+df_submissions = pd.read_excel("C:/Users/pylya/Desktop/PhD/PhD/github/CSPLib/V1/Dataset/ISF22.xlsx", sheet_name = "submissions")
 
 participant = {}
 submission_speakers = []
@@ -62,6 +62,9 @@ submission_speakers = update_lists(df_submissions, "Speakers")
 submission_attendees = update_lists(df_submissions, "Attendees")
 
 print_new_participant_ids()
-#print_track_organisers()
-#print_submission_speakers()
-#print_submission_attendees()
+print('-------------------')
+print_track_organisers()
+print('-------------------')
+print_submission_speakers()
+print('-------------------')
+print_submission_attendees()

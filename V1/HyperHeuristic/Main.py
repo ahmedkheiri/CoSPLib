@@ -9,20 +9,20 @@ from Optimisation import *
 import sys
 import numpy as np
 
-#np.random.seed(2)
-f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\N2OR_New.xlsx"
+np.random.seed(2)
+f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\test.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
     p.ReadProblemInstance()
     p.FindConflicts()
     p.AssignTimezonesPenalties()
     
-    sol = Solution(p)
-    #sol = Random(p)
+    #sol = Solution(p)
+    sol = Random(p)
     
-    solver = Matheuristic(p, sol)
+    solver = HyperHeuristic(p, sol)
     s_time = time()
-    solver.solve(start_time = s_time, run_time = 3)
+    solver.solve(start_time = s_time, run_time = 0)
 
     print(sol.getSolTracks())
     print(sol.getSolSubmissions())

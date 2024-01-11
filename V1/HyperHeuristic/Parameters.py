@@ -19,7 +19,7 @@ class Parameters:
                  attendees_conflicts_timeslot_level, open_session_weight, 
                  close_session_weight, same_session_weight, different_session_weight,
                  track_max_num_days_weight, tracks_same_room_weight, tracks_same_building_weight,
-                 preferred_num_time_slots, min_num_time_slots, max_num_time_slots):
+                 preferred_num_time_slots):
         self.__local_time_zone = local_time_zone
         self.__schedule_time_from = schedule_time_from
         self.__schedule_time_to = schedule_time_to
@@ -51,8 +51,7 @@ class Parameters:
         self.__tracks_same_room_weight = tracks_same_room_weight
         self.__tracks_same_building_weight = tracks_same_building_weight
         self.__preferred_num_time_slots = preferred_num_time_slots
-        self.__min_num_time_slots = min_num_time_slots
-        self.__max_num_time_slots = max_num_time_slots
+
     def getLocalTimeZone(self) -> str:
         return self.__local_time_zone
     def setLocalTimeZone(self, local_time_zone):
@@ -177,18 +176,10 @@ class Parameters:
         return self.__preferred_num_time_slots
     def setPreferredNumTimeSlotsWeight(self, preferred_num_time_slots):
         self.__preferred_num_time_slots = preferred_num_time_slots  
-    def getMinNumTimeSlotsWeight(self) -> int:
-        return self.__min_num_time_slots
-    def setMinNumTimeSlotsWeight(self, min_num_time_slots):
-        self.__min_num_time_slots = min_num_time_slots
-    def getMaxNumTimeSlotsWeight(self) -> int:
-        return self.__max_num_time_slots
-    def setMaxNumTimeSlotsWeight(self, max_num_time_slots):
-        self.__max_num_time_slots = max_num_time_slots
         
 if __name__ == '__main__':
     parameters = Parameters('GMT+2', '9:00', '21:00', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                            , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+                            , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     print(parameters.getLocalTimeZone())
     parameters.setLocalTimeZone('GMT+3')
     print(parameters.getLocalTimeZone())

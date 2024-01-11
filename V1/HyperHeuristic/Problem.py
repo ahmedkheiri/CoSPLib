@@ -417,9 +417,7 @@ class Problem():
                               track_max_num_days_weight = file.iloc[24,4], 
                               tracks_same_room_weight = file.iloc[25,4], 
                               tracks_same_building_weight = file.iloc[26,4], 
-                              preferred_num_time_slots = file.iloc[27,4], 
-                              min_num_time_slots = file.iloc[28,4], 
-                              max_num_time_slots = file.iloc[29,4])
+                              preferred_num_time_slots = file.iloc[27,4])
         self.setParameters(par)
         '''
         print(par.getTracksSessionsPenaltyWeight())
@@ -450,8 +448,6 @@ class Problem():
         print(par.getTrackSameRoomWeight())
         print(par.getTracksSameBuildingWeight())
         print(par.getPreferredNumTimeSlotsWeight())
-        print(par.getMinNumTimeSlotsWeight())
-        print(par.getMaxNumTimeSlotsWeight())
         '''
         
         #Feasibility Checking
@@ -526,31 +522,35 @@ class Problem():
             #Assign speaker's time zone to submission
             for j in range(self.getNumberOfSubmissions()):
                 if len(self.getSubmission(j).getSubmissionSpeakersList()) == 1:
-                    speaker_tz = pytz.timezone(self.getSubmission(j).getSubmissionSpeakers(0).getParticipantTimeZone())
-                    start_time = loc_tz_st.astimezone(speaker_tz).time()
-                    end_time = loc_tz_et.astimezone(speaker_tz).time()
-                    if (start_time >= schedule_from) and (end_time <= schedule_to) and (start_time < schedule_to) and (end_time > schedule_from):
-                        self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), 0)
-                    else:
-                        temp_start_time = str(start_time).split(':')
-                        temp_end_time = str(end_time).split(':')
-                        distance = [abs(int(temp_start_time[0]) - int(temp_schedule_from[0])), abs(int(temp_end_time[0]) - int(temp_schedule_to[0]))]
-                        violation = min(distance)
-                        self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), violation)
-                #Assign speakers time zones to submission
-                else:
-                    violation_sum = 0
-                    for speaker in range(len(self.getSubmission(j).getSubmissionSpeakersList())):
-                        speaker_tz = pytz.timezone(self.getSubmission(j).getSubmissionSpeakers(speaker).getParticipantTimeZone())
+                    if self.getSubmission(j).getSubmissionSpeakers(0).getParticipantInPersonStatus() == False:
+                        speaker_tz = pytz.timezone(self.getSubmission(j).getSubmissionSpeakers(0).getParticipantTimeZone())
                         start_time = loc_tz_st.astimezone(speaker_tz).time()
                         end_time = loc_tz_et.astimezone(speaker_tz).time()
                         if (start_time >= schedule_from) and (end_time <= schedule_to) and (start_time < schedule_to) and (end_time > schedule_from):
-                            pass
+                            self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), 0)
                         else:
                             temp_start_time = str(start_time).split(':')
                             temp_end_time = str(end_time).split(':')
                             distance = [abs(int(temp_start_time[0]) - int(temp_schedule_from[0])), abs(int(temp_end_time[0]) - int(temp_schedule_to[0]))]
                             violation = min(distance)
-                            violation_sum += violation
+                            self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), violation)
+                    else:
+                        self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), 0)
+                #Assign speakers time zones to submission
+                else:
+                    violation_sum = 0
+                    for speaker in range(len(self.getSubmission(j).getSubmissionSpeakersList())):
+                        if self.getSubmission(j).getSubmissionSpeakers(speaker).getParticipantInPersonStatus() == False:
+                            speaker_tz = pytz.timezone(self.getSubmission(j).getSubmissionSpeakers(speaker).getParticipantTimeZone())
+                            start_time = loc_tz_st.astimezone(speaker_tz).time()
+                            end_time = loc_tz_et.astimezone(speaker_tz).time()
+                            if (start_time >= schedule_from) and (end_time <= schedule_to) and (start_time < schedule_to) and (end_time > schedule_from):
+                                pass
+                            else:
+                                temp_start_time = str(start_time).split(':')
+                                temp_end_time = str(end_time).split(':')
+                                distance = [abs(int(temp_start_time[0]) - int(temp_schedule_from[0])), abs(int(temp_end_time[0]) - int(temp_schedule_to[0]))]
+                                violation = min(distance)
+                                violation_sum += violation
                     violation_sum = violation_sum * len(self.getSubmission(j).getSubmissionSpeakersList())
                     self.setSubmissionsTimezonesPenalty(self.getSubmission(j).getSubmissionName(), self.getSession(i).getSessionName(), violation_sum)

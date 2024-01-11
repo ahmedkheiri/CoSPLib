@@ -104,9 +104,8 @@ class Solution:
             self.setEvaluation(lambda: self.getProblem().getParameters().getTrackSameRoomWeight() * self.EvaluateTracksSameRoom(), 'Tracks same room:')
         if self.getProblem().getParameters().getTracksSameBuildingWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getTracksSameBuildingWeight() * self.EvaluateTracksSameBuilding(), 'Tracks same building:')
-        #Preferred number of timeslots
-        #min number of timeslots
-        #max number of timeslots
+        if self.getProblem().getParameters().getPreferredNumTimeSlotsWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getPreferredNumTimeSlotsWeight() * self.EvaluatePreferredNumberTS(), 'Preferred number of timeslots:')
         self.setEvaluation(lambda: self.EvaluateExtendedSubmissions(), 'Submissions with multiple timeslots in different sessions:')
         
     def setEvaluation(self, evaluation_function, evaluation_name):
@@ -456,17 +455,15 @@ class Solution:
                 pen += len(result)
         return pen
     
-    '''
-    Evaluate Session's Preferred number of time slots. Need to discuss.
-    '''
-    
-    '''
-    Evaluate Session's Min number of time slots. Need to discuss.
-    '''
-    
-    '''
-    Evaluate Session's Max number of time slots. Need to discuss.
-    '''
+    def EvaluatePreferredNumberTS(self) -> int:
+        pen = 0
+        for session in range(len(self.getSolTracks())):
+            for room in range(len(self.getSolTracks()[session])):
+                if self.getProblem().getSession(session).getSessionMaxTimeSlots() - self.getSolSubmissions()[session][room].count(-1) > self.getProblem().getSession(session).getSessionPrefNumOfTimeSlots():
+                    pen += (self.getProblem().getSession(session).getSessionMaxTimeSlots() - self.getSolSubmissions()[session][room].count(-1)) - self.getProblem().getSession(session).getSessionPrefNumOfTimeSlots()
+                if self.getProblem().getSession(session).getSessionMaxTimeSlots() - self.getSolSubmissions()[session][room].count(-1) < self.getProblem().getSession(session).getSessionMinTimeSlots():
+                    pen += self.getProblem().getSession(session).getSessionMinTimeSlots() - (self.getProblem().getSession(session).getSessionMaxTimeSlots() - self.getSolSubmissions()[session][room].count(-1))
+        return pen
     
     def EvaluateExtendedSubmissions(self) -> int:
         pen = 0

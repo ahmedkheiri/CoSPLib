@@ -85,7 +85,8 @@ class Solution:
             self.setEvaluation(lambda: self.getProblem().getParameters().getOrganisersConflictsWeight() * self.EvaluateOrganiserConflicts(), 'Organisers conflicts:')
         if self.getProblem().getParameters().getTracksBuildingsWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getTracksBuildingsWeight() * self.EvaluateTracksBuildings(), 'Tracks buildings:')
-        #Balance
+        if self.getProblem().getParameters().getBalanceWeight() > 0:
+            self.setEvaluation(lambda: self.getProblem().getParameters().getBalanceWeight() * self.EvaluateBalance(), 'Balance:')
         if self.getProblem().getParameters().getSpeakersConflictsTimeslotLevelWeight() > 0:
             self.setEvaluation(lambda: self.getProblem().getParameters().getSpeakersConflictsTimeslotLevelWeight() * self.EvaluateSpeakersConflictsTS(), 'Speakers conflicts [Timeslot Level]:')
         if self.getProblem().getParameters().getAttendeesConflictsTimeSlotWeight() > 0:
@@ -324,9 +325,15 @@ class Solution:
             pen += len(track) - 1
         return pen
     
-    '''
-    Evaluate Balance. Need to discuss.
-    '''
+    def EvaluateBalance(self) -> int:
+        pen = 0
+        for session in range(len(self.getSolSubmissions())):
+            s = []
+            for room in range(len(self.getSolSubmissions()[session])):
+                s.append(self.getProblem().getSession(session).getSessionMaxTimeSlots() - self.getSolSubmissions()[session][room].count(-1))
+            for i in s:
+                pen += max(s) - i
+        return pen
     
     def EvaluateSpeakersConflictsTS(self) -> int: #Time slot Level
         pen = 0

@@ -578,6 +578,20 @@ class Solution:
                     for x in range(len(self.getSolSubmissions()[i][j])):
                         temp[self.getSolTracks()[i][j]].append(self.getSolSubmissions()[i][j][x])
         self.setIndSolSubmissions(temp)
+        
+    def convertSol(self):
+        for track in range(len(self.getIndSolSubmissions())):
+            count = 0
+            for session in range(len(self.getSolTracks())):
+                if track in self.getSolTracks()[session]:
+                    for room in range(len(self.getSolTracks()[session])):
+                        if self.getSolTracks()[session][room] == track:
+                            if self.getProblem().getSubmission(self.getIndSolSubmissions()[track][count]).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1):
+                                for ts in range(len(self.getSolSubmissions()[session][room])):
+                                    for t in range(self.getProblem().getSubmission(self.getIndSolSubmissions()[track][count]).getSubmissionRequiredTimeSlots()):
+                                        self.getSolSubmissions()[session][room][ts] = self.getIndSolSubmissions()[track][count]
+                                    if (count + 1 < len(self.getIndSolSubmissions()[track])) and (self.getSolSubmissions()[session][room].count(self.getIndSolSubmissions()[track][count]) == self.getProblem().getSubmission(self.getIndSolSubmissions()[track][count]).getSubmissionRequiredTimeSlots()):
+                                        count += 1
     
     '''
     toExcel
@@ -639,4 +653,54 @@ class Random(InitialSolution):
             else:
                 self.resetSolTracks()
                 self.resetSolSubmissions()
-            
+                
+class RandomInd(InitialSolution):
+    def __init__(self, problem):
+        InitialSolution.__init__(self, problem)
+        temp = [sub for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() > 1]
+        temp2 = [sub for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() == 1]
+        sessions = [session for session in range(self.getProblem().getNumberOfSessions())]
+        rooms = [room for room in range(self.getProblem().getNumberOfRooms())]
+        np.random.shuffle(sessions)
+        np.random.shuffle(rooms)
+        done = False
+        while done == False:
+            np.random.shuffle(temp)
+            for sub in temp:
+                stop = False
+                for session in sessions:
+                    if stop == True:
+                        break
+                    for room in rooms:
+                        if stop == True:
+                            break
+                        if ((self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room])) or ((self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getSolTracks()[session][room] == -1)):
+                            for ts in range(self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots()):
+                                i = self.getSolSubmissions()[session][room].index(-1)
+                                self.getSolSubmissions()[session][room][i] = sub
+                            stop = True
+                            self.getSolTracks()[session][room] = self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName())
+            np.random.shuffle(sessions)
+            np.random.shuffle(rooms)
+            np.random.shuffle(temp2)
+            for sub in temp2:
+                stop = False
+                for session in sessions:
+                    if stop == True:
+                        break
+                    for room in rooms:
+                        if stop == True:
+                            break
+                        if ((self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room])) or ((self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getSolTracks()[session][room] == -1)):
+                            i = self.getSolSubmissions()[session][room].index(-1)
+                            self.getSolSubmissions()[session][room][i] = sub
+                            stop = True
+                            self.getSolTracks()[session][room] = self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName())
+                            
+            if self.EvaluateAllSubmissionsScheduled() == True:
+                self.resetSolSubmissions()
+                done = True
+            else:
+                self.resetSolTracks()
+                self.resetSolSubmissions()
+        

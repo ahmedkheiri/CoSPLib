@@ -100,6 +100,34 @@ class Optimisation:
         for i in range(k):
             self.LLH_SwapTrack()
             
+    #Indirect solution method
+    def SwapTrack(self):
+        session = np.random.randint(self.getProblem().getNumberOfSessions(), size = 2)
+        room = np.random.randint(self.getProblem().getNumberOfRooms(), size = 2)
+        while (session[0] == session[1] and room[0] == room[1]) or (self.getSolution().getSolTracks()[session[0]][room[0]] + self.getSolution().getSolTracks()[session[1]][room[1]] == -2) or (self.getSolution().getSolTracks()[session[0]][room[0]] == self.getSolution().getSolTracks()[session[1]][room[1]]):
+            session = np.random.randint(self.getProblem().getNumberOfSessions(), size = 2)
+            room = np.random.randint(self.getProblem().getNumberOfRooms(), size = 2)
+        self.getSolution().getSolTracks()[session[0]][room[0]], self.getSolution().getSolTracks()[session[1]][room[1]] = self.getSolution().getSolTracks()[session[1]][room[1]], self.getSolution().getSolTracks()[session[0]][room[0]]
+            
+    def SwapSubmission(self):
+        track = np.random.randint(self.getProblem().getNumberOfTracks())
+        subs = np.random.randint(len(self.getSolution().getIndSolSubmissions()[track]), size = 2)
+        while (subs[0] == subs[1]) or (len(self.getSolution().getIndSolSubmissions()[track]) == 1):
+            track = np.random.randint(self.getProblem().getNumberOfTracks())
+            subs = np.random.randint(len(self.getSolution().getIndSolSubmissions()[track]), size = 2)
+        self.getSolution().getIndSolSubmissions()[track][subs[0]], self.getSolution().getIndSolSubmissions()[track][subs[1]] = self.getSolution().getIndSolSubmissions()[track][subs[1]], self.getSolution().getIndSolSubmissions()[track][subs[0]]
+    
+    def ReverseSubmission(self):
+        track = np.random.randint(self.getProblem().getNumberOfTracks())
+        locs = np.random.randint(len(self.getSolution().getIndSolSubmissions()[track]), size = 2)
+        while (locs[0] == locs[1]) or (len(self.getSolution().getIndSolSubmissions()[track]) == 1):
+            track = np.random.randint(self.getProblem().getNumberOfTracks())
+            locs = np.random.randint(len(self.getSolution().getIndSolSubmissions()[track]), size = 2)
+        loc = sorted(locs)
+        temp = self.getSolution().getIndSolSubmissions()[track][loc[0]:loc[1]]
+        temp.reverse()
+        self.getSolution().getIndSolSubmissions()[track][loc[0]:loc[1]] = temp
+    
     def TracksExactModel(self): 
         model = LpProblem('model', LpMinimize)
         names = []
@@ -435,6 +463,47 @@ class HyperHeuristic(Optimisation):
                 self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
         print('Number of iterations:', i)
         
+class iHyperHeuristic(Optimisation):
+    def __init__(self, problem, solution):
+        Optimisation.__init__(self, problem, solution)
+        
+    def improveFeasibility(self):
+        LLHS = [lambda: self.SwapTrack(), lambda: self.SwapSubmission(), lambda: self.ReverseSubmission()]
+        feas = self.getSolution().EvaluateAllSubmissionsScheduled()
+        while feas == False:
+            select = np.random.randint(len(LLHS))
+            LLHS[select]()
+            self.getSolution().resetSolSubmissions()
+            self.getSolution().convertSol()
+            feas = self.getSolution().EvaluateAllSubmissionsScheduled()
+    
+    def solve(self, start_time, run_time):
+        LLHS = [lambda: self.SwapTrack(), lambda: self.SwapSubmission(), lambda: self.ReverseSubmission()]
+        obj_best = self.getSolution().EvaluateSolution()
+        obj = obj_best
+        best_Sol = self.getSolution().copyWholeSolution()
+        i = 0
+        while time() - start_time < run_time:
+            i += 1
+            select = np.random.randint(len(LLHS))
+            sol_copy = self.getSolution().copyWholeSolution()
+            LLHS[select]()
+            self.getSolution().resetSolSubmissions()
+            self.getSolution().convertSol()
+            if self.getSolution().EvaluateAllSubmissionsScheduled() == True:
+                obj_new = self.getSolution().QuickEvaluateSolution(obj)
+                if obj_new <= obj:
+                    obj = obj_new
+                if obj_new < obj_best:
+                    best_Sol = self.getSolution().copyWholeSolution()
+                    obj_best = obj_new
+                else:
+                    self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
+            else:
+                self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
+        self.getSolution().setBestSolution(best_Sol[0], best_Sol[1])
+        print('Number of iterations:', i)
+
 class Matheuristic(Optimisation):
     def __init__(self, problem, solution):
         Optimisation.__init__(self, problem, solution)

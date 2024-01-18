@@ -102,6 +102,8 @@ class Optimisation:
             
     #Indirect solution method
     def SwapTrack(self):
+        if self.getProblem().getNumberOfTracks() == 1:
+            return
         session = np.random.randint(self.getProblem().getNumberOfSessions(), size = 2)
         room = np.random.randint(self.getProblem().getNumberOfRooms(), size = 2)
         while (session[0] == session[1] and room[0] == room[1]) or (self.getSolution().getSolTracks()[session[0]][room[0]] + self.getSolution().getSolTracks()[session[1]][room[1]] == -2) or (self.getSolution().getSolTracks()[session[0]][room[0]] == self.getSolution().getSolTracks()[session[1]][room[1]]):
@@ -429,18 +431,20 @@ class Optimisation:
         df = df.applymap(lambda x: x.split('|'))
         solution = df.iloc[:,0].to_list()
         
-        df = pd.DataFrame(solution2)
-        df.replace(to_replace = '_', value = ' ', regex = True, inplace = True)
-        df = df.applymap(lambda x: x.split('|'))
-        solution2 = df.iloc[:,0].to_list()
+        if len(solution2) > 0:
+            df = pd.DataFrame(solution2)
+            df.replace(to_replace = '_', value = ' ', regex = True, inplace = True)
+            df = df.applymap(lambda x: x.split('|'))
+            solution2 = df.iloc[:,0].to_list()
         
         for i in range(len(solution)):
             self.getSolution().getSolTracks()[self.getProblem().getSessionIndex(solution[i][1])][self.getProblem().getRoomIndex(solution[i][2])] = self.getProblem().getTrackIndex(solution[i][3])
                  
-        for i in range(len(solution2)):
-            for j in range(self.getProblem().getSubmission(self.getProblem().getSubmissionIndex(solution2[i][4])).getSubmissionRequiredTimeSlots()):
-                ts = self.getSolution().getSolSubmissions()[self.getProblem().getSessionIndex(solution2[i][1])][self.getProblem().getRoomIndex(solution2[i][2])].index(-1)
-                self.getSolution().getSolSubmissions()[self.getProblem().getSessionIndex(solution2[i][1])][self.getProblem().getRoomIndex(solution2[i][2])][ts] = self.getProblem().getSubmissionIndex(solution2[i][4])
+        if len(solution2) > 0:
+            for i in range(len(solution2)):
+                for j in range(self.getProblem().getSubmission(self.getProblem().getSubmissionIndex(solution2[i][4])).getSubmissionRequiredTimeSlots()):
+                    ts = self.getSolution().getSolSubmissions()[self.getProblem().getSessionIndex(solution2[i][1])][self.getProblem().getRoomIndex(solution2[i][2])].index(-1)
+                    self.getSolution().getSolSubmissions()[self.getProblem().getSessionIndex(solution2[i][1])][self.getProblem().getRoomIndex(solution2[i][2])][ts] = self.getProblem().getSubmissionIndex(solution2[i][4])
         return t
     
 class HyperHeuristic(Optimisation):
@@ -469,15 +473,21 @@ class iHyperHeuristic(Optimisation):
         
     def improveFeasibility(self):
         LLHS = [lambda: self.SwapTrack(), lambda: self.SwapSubmission(), lambda: self.ReverseSubmission()]
-        feas = self.getSolution().EvaluateAllSubmissionsScheduled()
-        while feas == False:
+        feas = self.getSolution().EvaluateFeasibility()
+        while feas != 0:
             select = np.random.randint(len(LLHS))
+            sol_copy = self.getSolution().copyWholeSolution()
             LLHS[select]()
             self.getSolution().resetSolSubmissions()
             self.getSolution().convertSol()
-            feas = self.getSolution().EvaluateAllSubmissionsScheduled()
+            new_feas = self.getSolution().EvaluateFeasibility()
+            if new_feas <= feas:
+                feas = new_feas
+            else:
+                self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])           
     
     def solve(self, start_time, run_time):
+        self.improveFeasibility()
         LLHS = [lambda: self.SwapTrack(), lambda: self.SwapSubmission(), lambda: self.ReverseSubmission()]
         obj_best = self.getSolution().EvaluateSolution()
         obj = obj_best
@@ -510,7 +520,8 @@ class Matheuristic(Optimisation):
         
     def solve(self, start_time, run_time):
         self.TracksExactModel()
-        self.getSolution().convertSolFirstTime()
-        solver = HyperHeuristic(self.getProblem(), self.getSolution())
+        #self.getSolution().convertSolFirstTime()#Use with direct solution method
+        self.getSolution().convertSol()#Use with indirect solution method
+        solver = iHyperHeuristic(self.getProblem(), self.getSolution())
         solver.solve(start_time, run_time)
         

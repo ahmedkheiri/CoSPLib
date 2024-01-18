@@ -10,7 +10,7 @@ import sys
 import numpy as np
 
 #np.random.seed(4)
-f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\GECCO20.xlsx"
+f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\test.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
     p.ReadProblemInstance()
@@ -21,9 +21,8 @@ for i in range(1):
     sol = RandomInd(p)
     
     solver = iHyperHeuristic(p, sol)
-    solver.improveFeasibility() #Needs improvement
     s_time = time()
-    solver.solve(start_time = s_time, run_time = 10)
+    solver.solve(start_time = s_time, run_time = 3)
 
     print(sol.getSolTracks())
     print(sol.getSolSubmissions())

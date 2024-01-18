@@ -496,6 +496,15 @@ class Solution:
                 pen += 1000000000
         return pen
     
+    def EvaluateFeasibility(self) -> int:
+        pen = 0
+        temp = [self.getSolSubmissions()[session][room][ts] for session in range(len(self.getSolTracks())) for room in range(len(self.getSolTracks()[session])) for ts in range(len(self.getSolSubmissions()[session][room])) if self.getSolSubmissions()[session][room][ts] != -1]
+        for sub in range(self.getProblem().getNumberOfSubmissions()):
+            if (sub not in temp) or (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() != temp.count(sub)):
+                pen += 1
+        return pen
+        
+    
     def EvaluateAllSubmissionsScheduled(self) -> bool:
         temp = [self.getSolSubmissions()[session][room][ts] for session in range(len(self.getSolTracks())) for room in range(len(self.getSolTracks()[session])) for ts in range(len(self.getSolSubmissions()[session][room])) if self.getSolSubmissions()[session][room][ts] != -1]
         for sub in range(self.getProblem().getNumberOfSubmissions()):
@@ -555,7 +564,7 @@ class Solution:
                 print(self.getEvaluationName(self.getEvaluationsList()[i]), result)
         print('--------------------------------')
         
-    def convertSolFirstTime(self):
+    def convertSolFirstTime(self):#Use with direct solution method
         subs_ts = {str(sub): 0 for sub in range(self.getProblem().getNumberOfSubmissions()) if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() == 1}
         index = {str(track): 0 for track in range(self.getProblem().getNumberOfTracks())}
         for sub in range(self.getProblem().getNumberOfSubmissions()):
@@ -570,6 +579,7 @@ class Solution:
                             subs_ts[str(self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]])] += 1
                             if self.getProblem().getSubmission(self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]]).getSubmissionRequiredTimeSlots() == subs_ts[str(self.getIndSolSubmissions()[self.getSolTracks()[session][room]][index[str(self.getSolTracks()[session][room])]])]:
                                 index[str(self.getSolTracks()[session][room])] += 1
+        '''
         #Creating Ind sol
         temp = [[] for i in range(self.getProblem().getNumberOfTracks())]
         for i in range(len(self.getSolTracks())):
@@ -578,20 +588,35 @@ class Solution:
                     for x in range(len(self.getSolSubmissions()[i][j])):
                         temp[self.getSolTracks()[i][j]].append(self.getSolSubmissions()[i][j][x])
         self.setIndSolSubmissions(temp)
-        
-    def convertSol(self):
-        for track in range(len(self.getIndSolSubmissions())):
-            count = 0
-            for session in range(len(self.getSolTracks())):
-                if track in self.getSolTracks()[session]:
-                    for room in range(len(self.getSolTracks()[session])):
-                        if self.getSolTracks()[session][room] == track:
-                            if self.getProblem().getSubmission(self.getIndSolSubmissions()[track][count]).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1):
-                                for ts in range(len(self.getSolSubmissions()[session][room])):
-                                    for t in range(self.getProblem().getSubmission(self.getIndSolSubmissions()[track][count]).getSubmissionRequiredTimeSlots()):
-                                        self.getSolSubmissions()[session][room][ts] = self.getIndSolSubmissions()[track][count]
-                                    if (count + 1 < len(self.getIndSolSubmissions()[track])) and (self.getSolSubmissions()[session][room].count(self.getIndSolSubmissions()[track][count]) == self.getProblem().getSubmission(self.getIndSolSubmissions()[track][count]).getSubmissionRequiredTimeSlots()):
-                                        count += 1
+        '''
+    def convertSol(self):#Use with indirect solution method
+        temp = [self.getIndSolSubmissions()[track][sub] for track in range(len(self.getIndSolSubmissions())) for sub in range(len(self.getIndSolSubmissions()[track])) if self.getProblem().getSubmission(self.getIndSolSubmissions()[track][sub]).getSubmissionRequiredTimeSlots() > 1]
+        temp2 = [self.getIndSolSubmissions()[track][sub] for track in range(len(self.getIndSolSubmissions())) for sub in range(len(self.getIndSolSubmissions()[track])) if self.getProblem().getSubmission(self.getIndSolSubmissions()[track][sub]).getSubmissionRequiredTimeSlots() == 1]
+        for sub in temp:
+            stop = False
+            for session in range(self.getProblem().getNumberOfSessions()):
+                if stop == True:
+                    break
+                for room in range(self.getProblem().getNumberOfRooms()):
+                    if stop == True:
+                        break
+                    if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room]):
+                        for ts in range(self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots()):
+                            i = self.getSolSubmissions()[session][room].index(-1)
+                            self.getSolSubmissions()[session][room][i] = sub
+                        stop = True
+        for sub in temp2:
+            stop = False
+            for session in range(self.getProblem().getNumberOfSessions()):
+                if stop == True:
+                    break
+                for room in range(self.getProblem().getNumberOfRooms()):
+                    if stop == True:
+                        break
+                    if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room]):
+                        i = self.getSolSubmissions()[session][room].index(-1)
+                        self.getSolSubmissions()[session][room][i] = sub
+                        stop = True
     
     '''
     toExcel

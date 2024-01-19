@@ -218,35 +218,50 @@ class Solution:
     def EvaluateSubmissionsRelativeOrder(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        di2 = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
                 if self.getSolTracks()[session][room] != -1:
                     for ts in range(len(self.getSolSubmissions()[session][room])):
                         if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
                             di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
+                        if self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionRelativeOrder() != 0:
+                            di2[session].append(self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionRelativeOrder())
         for track in range(self.getProblem().getNumberOfTracks()):
             order = 1
             for sub in di[track]:
-                if (self.getProblem().getSubmission(sub).getSubmissionRelativeOrder() != order) and (self.getProblem().getSubmission(sub).getSubmissionRelativeOrder() != 0):
-                    pen += 1
-                order += 1
+                if self.getProblem().getSubmission(sub).getSubmissionRelativeOrder() != 0:
+                    if self.getProblem().getSubmission(sub).getSubmissionRelativeOrder() != order:
+                        pen += 1
+                        order += 1
+                    else:
+                        order += 1
+        for session in range(self.getProblem().getNumberOfSessions()):
+            if len(di2[session]) > self.getProblem().getSession(session).getSessionMaxTimeSlots():
+                pen += len(di2[session]) - self.getProblem().getSession(session).getSessionMaxTimeSlots()
         return pen
     
     def EvaluateSubmissionsActualOrder(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        di2 = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
                 if self.getSolTracks()[session][room] != -1:
                     for ts in range(len(self.getSolSubmissions()[session][room])):
                         if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
                             di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
+                        if self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionActualOrder() != 0:
+                            di2[session].append(self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionActualOrder())
         for track in range(self.getProblem().getNumberOfTracks()):
             order = 1
             for sub in di[track]:
                 if (self.getProblem().getSubmission(sub).getSubmissionActualOrder() != order) and (self.getProblem().getSubmission(sub).getSubmissionActualOrder() != 0):
                     pen += 1
                 order += 1
+        for session in range(self.getProblem().getNumberOfSessions()):
+            if len(di2[session]) > self.getProblem().getSession(session).getSessionMaxTimeSlots():
+                pen += len(di2[session]) - self.getProblem().getSession(session).getSessionMaxTimeSlots()
         return pen
     
     def EvaluateSubmissionsSessions(self) -> int:
@@ -590,33 +605,33 @@ class Solution:
         self.setIndSolSubmissions(temp)
         '''
     def convertSol(self):#Use with indirect solution method
-        temp = [self.getIndSolSubmissions()[track][sub] for track in range(len(self.getIndSolSubmissions())) for sub in range(len(self.getIndSolSubmissions()[track])) if self.getProblem().getSubmission(self.getIndSolSubmissions()[track][sub]).getSubmissionRequiredTimeSlots() > 1]
-        temp2 = [self.getIndSolSubmissions()[track][sub] for track in range(len(self.getIndSolSubmissions())) for sub in range(len(self.getIndSolSubmissions()[track])) if self.getProblem().getSubmission(self.getIndSolSubmissions()[track][sub]).getSubmissionRequiredTimeSlots() == 1]
+        temp = [self.getIndSolSubmissions()[track][sub] for track in range(len(self.getIndSolSubmissions())) for sub in range(len(self.getIndSolSubmissions()[track]))]
         for sub in temp:
-            stop = False
-            for session in range(self.getProblem().getNumberOfSessions()):
-                if stop == True:
-                    break
-                for room in range(self.getProblem().getNumberOfRooms()):
+            if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() > 1:
+                stop = False
+                for session in range(self.getProblem().getNumberOfSessions()):
                     if stop == True:
                         break
-                    if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room]):
-                        for ts in range(self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots()):
+                    for room in range(self.getProblem().getNumberOfRooms()):
+                        if stop == True:
+                            break
+                        if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room]):
+                            for ts in range(self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots()):
+                                i = self.getSolSubmissions()[session][room].index(-1)
+                                self.getSolSubmissions()[session][room][i] = sub
+                            stop = True
+            else:
+                stop = False
+                for session in range(self.getProblem().getNumberOfSessions()):
+                    if stop == True:
+                        break
+                    for room in range(self.getProblem().getNumberOfRooms()):
+                        if stop == True:
+                            break
+                        if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room]):
                             i = self.getSolSubmissions()[session][room].index(-1)
                             self.getSolSubmissions()[session][room][i] = sub
-                        stop = True
-        for sub in temp2:
-            stop = False
-            for session in range(self.getProblem().getNumberOfSessions()):
-                if stop == True:
-                    break
-                for room in range(self.getProblem().getNumberOfRooms()):
-                    if stop == True:
-                        break
-                    if (self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() <= self.getSolSubmissions()[session][room].count(-1)) and (self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName()) == self.getSolTracks()[session][room]):
-                        i = self.getSolSubmissions()[session][room].index(-1)
-                        self.getSolSubmissions()[session][room][i] = sub
-                        stop = True
+                            stop = True
     
     '''
     toExcel

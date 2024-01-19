@@ -9,7 +9,7 @@ from Optimisation import *
 import sys
 import numpy as np
 
-#np.random.seed(4)
+#np.random.seed(2)
 f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\test.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)

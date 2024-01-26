@@ -483,6 +483,7 @@ class iHyperHeuristic(Optimisation):
             new_feas = self.getSolution().EvaluateFeasibility()
             if new_feas <= feas:
                 feas = new_feas
+                print(feas)
             else:
                 self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])           
     
@@ -504,9 +505,9 @@ class iHyperHeuristic(Optimisation):
                 obj_new = self.getSolution().QuickEvaluateSolution(obj)
                 if obj_new <= obj:
                     obj = obj_new
-                if obj_new < obj_best:
-                    best_Sol = self.getSolution().copyWholeSolution()
-                    obj_best = obj_new
+                    if obj_new < obj_best:
+                        best_Sol = self.getSolution().copyWholeSolution()
+                        obj_best = obj_new
                 else:
                     self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
             else:

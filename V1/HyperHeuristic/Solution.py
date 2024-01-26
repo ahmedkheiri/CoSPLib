@@ -632,6 +632,10 @@ class Solution:
                             i = self.getSolSubmissions()[session][room].index(-1)
                             self.getSolSubmissions()[session][room][i] = sub
                             stop = True
+        for session in range(self.getProblem().getNumberOfSessions()):
+            for room in range(self.getProblem().getNumberOfRooms()):
+                if self.getSolSubmissions()[session][room].count(-1) == len(self.getSolSubmissions()[session][room]):
+                    self.getSolTracks()[session][room] = -1
     
     '''
     toExcel
@@ -693,6 +697,10 @@ class Random(InitialSolution):
             else:
                 self.resetSolTracks()
                 self.resetSolSubmissions()
+        for session in range(self.getProblem().getNumberOfSessions()):
+            for room in range(self.getProblem().getNumberOfRooms()):
+                if self.getSolSubmissions()[session][room].count(-1) == len(self.getSolSubmissions()[session][room]):
+                    self.getSolTracks()[session][room] = -1
                 
 class RandomInd(InitialSolution):
     def __init__(self, problem):
@@ -738,6 +746,10 @@ class RandomInd(InitialSolution):
                             self.getSolTracks()[session][room] = self.getProblem().getTrackIndex(self.getProblem().getSubmission(sub).getSubmissionTrack().getTrackName())
                             
             if self.EvaluateAllSubmissionsScheduled() == True:
+                for session in range(self.getProblem().getNumberOfSessions()):
+                    for room in range(self.getProblem().getNumberOfRooms()):
+                        if self.getSolSubmissions()[session][room].count(-1) == len(self.getSolSubmissions()[session][room]):
+                            self.getSolTracks()[session][room] = -1
                 self.resetSolSubmissions()
                 done = True
             else:

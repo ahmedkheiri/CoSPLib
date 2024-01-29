@@ -9,8 +9,8 @@ from Optimisation import *
 import sys
 import numpy as np
 
-#np.random.seed(2)
-f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\ISF22.xlsx"
+np.random.seed(1)
+f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\test.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
     p.ReadProblemInstance()
@@ -22,7 +22,7 @@ for i in range(1):
     
     solver = iHyperHeuristic(p, sol)
     s_time = time()
-    solver.solve(start_time = s_time, run_time = 600)
+    solver.solve(start_time = s_time, run_time = 0)
 
     print(sol.getSolTracks())
     print(sol.getSolSubmissions())
@@ -30,3 +30,4 @@ for i in range(1):
     sol.printViolations()
     print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
     print('Is solution valid? ', sol.ValidateSolution())
+    sol.toExcel()

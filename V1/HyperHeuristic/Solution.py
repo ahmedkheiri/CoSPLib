@@ -983,7 +983,7 @@ class Solution:
         p16_pen.insert(0, '')
         df34 = pd.DataFrame(p16_list)
         df35 = pd.DataFrame(p16_pen)
-        '''
+        
         #Preparing Tracks Buildings
         p17_list = ['Evaluate Tracks Buildings']
         p17_pen = []
@@ -992,14 +992,19 @@ class Solution:
             for j in range(len(self.getSolTracks()[i])):
                 if (self.getSolTracks()[i][j] in di.keys()) and (self.getProblem().getRoom(j).getRoomBuilding() not in di[self.getSolTracks()[i][j]]):
                     di[self.getSolTracks()[i][j]].append(self.getProblem().getRoom(j).getRoomBuilding())
-        for track in di.values():
-            pen += len(track) - 1
+        for track in range(self.getProblem().getNumberOfTracks()):
+            if len(di[track]) > 1:
+                output = self.getProblem().getTrack(track).getTrackName() + ':'
+                for building in di[track]:
+                    output += ' ' + building
+                p17_list.append(output)
+                p17_pen.append(self.getProblem().getParameters().getTracksBuildingsWeight() * (len(di[track]) - 1))
         p17_list.append('Total')
         p17_pen.append(sum(p17_pen))
         p17_pen.insert(0, '')
         df36 = pd.DataFrame(p17_list)
         df37 = pd.DataFrame(p17_pen)
-        '''
+        
         #Preparing Balance
         p18_list = ['Evaluate Balance']
         p18_pen = []
@@ -1177,7 +1182,7 @@ class Solution:
         p26_pen.insert(0, '')
         df54 = pd.DataFrame(p26_list)
         df55 = pd.DataFrame(p26_pen)
-        '''
+        
         #Preparing Tracks Same Building
         p27_list = ['Evaluate Tracks Same Building']
         p27_pen = []
@@ -1192,13 +1197,15 @@ class Solution:
                 temp1 = set(di[track])
                 temp2 = set(di[self.getProblem().getTrackIndex(self.getProblem().getTrack(track).getTrackSameBuilding(x).getTrackName())])
                 result = temp1.symmetric_difference(temp2)
-                pen += len(result)
+                if len(result) > 0:
+                    p27_list.append(self.getProblem().getTrack(track).getTrackName() + ' - ' + self.getProblem().getTrack(track).getTrackSameBuilding(x).getTrackName())
+                    p27_pen.append(self.getProblem().getParameters().getTracksSameBuildingWeight() * len(result))
         p27_list.append('Total')
         p27_pen.append(sum(p27_pen))
         p27_pen.insert(0, '')
         df56 = pd.DataFrame(p27_list)
         df57 = pd.DataFrame(p27_pen)
-        '''
+        
         #Preparing Preferred Number of Timeslots
         p28_list = ['Evaluate Preferred Number of Timeslots']
         p28_pen = []
@@ -1275,8 +1282,8 @@ class Solution:
             df34.to_excel(writer, sheet_name = 'violations', startcol = 31,index = False, header = False)
             df35.to_excel(writer, sheet_name = 'violations', startcol = 32,index = False, header = False)
             #Tracks Buildings
-            #df36.to_excel(writer, sheet_name = 'violations', startcol = 33,index = False, header = False)
-            #df37.to_excel(writer, sheet_name = 'violations', startcol = 34,index = False, header = False)
+            df36.to_excel(writer, sheet_name = 'violations', startcol = 33,index = False, header = False)
+            df37.to_excel(writer, sheet_name = 'violations', startcol = 34,index = False, header = False)
             #Balance
             df38.to_excel(writer, sheet_name = 'violations', startcol = 35,index = False, header = False)
             df39.to_excel(writer, sheet_name = 'violations', startcol = 36,index = False, header = False)
@@ -1305,14 +1312,54 @@ class Solution:
             df54.to_excel(writer, sheet_name = 'violations', startcol = 51,index = False, header = False)
             df55.to_excel(writer, sheet_name = 'violations', startcol = 52,index = False, header = False)
             #Tracks Same Building
-            #df56.to_excel(writer, sheet_name = 'violations', startcol = 53,index = False, header = False)
-            #df57.to_excel(writer, sheet_name = 'violations', startcol = 54,index = False, header = False)
+            df56.to_excel(writer, sheet_name = 'violations', startcol = 53,index = False, header = False)
+            df57.to_excel(writer, sheet_name = 'violations', startcol = 54,index = False, header = False)
             #Preferred Number of Timeslots
             df58.to_excel(writer, sheet_name = 'violations', startcol = 55,index = False, header = False)
             df59.to_excel(writer, sheet_name = 'violations', startcol = 56,index = False, header = False)
-    '''
-    ReadSolution
-    '''
+    
+    def ReadSolution(self, file_name = None):
+        #Creating temporary tracks solution
+        file = pd.read_excel(file_name, header = None, keep_default_na = False, na_filter = False)
+        temp2 = []
+        for session in range(1, self.getProblem().getNumberOfSessions() + 1):
+            temp = []
+            for room in range(1, len(file.keys())):
+                if file.iloc[session][room] != '':
+                    temp.append(self.getProblem().getTrackIndex(file.iloc[session][room]))
+                else:
+                    temp.append(-1)
+            temp2.append(temp)
+            
+        #Converting temporary tracks solution into permanent tracks solution
+        for session in range(len(temp2)):
+            for room in range(len(temp2[session])):
+                self.getSolTracks()[session][room] = temp2[session][room]
+                
+        #Creating temporary submissions solution
+        temp3 = []
+        sum_ts = 0
+        for session in range(self.getProblem().getNumberOfSessions()):
+            index = self.getProblem().getNumberOfSessions() + 1 + sum_ts
+            temp2 = []
+            for room in range(1, len(file.keys())):
+                temp = []
+                for ts in range(self.getProblem().getSession(session).getSessionMaxTimeSlots()):
+                    index += 1
+                    if file.iloc[index][room] != '':
+                        temp.append(self.getProblem().getSubmissionIndex(file.iloc[index][room]))
+                    else:
+                        temp.append(-1)
+                index = self.getProblem().getNumberOfSessions() + 1 + sum_ts
+                temp2.append(temp)
+            temp3.append(temp2)
+            sum_ts += self.getProblem().getSession(session).getSessionMaxTimeSlots()
+        
+        #Converting temporary submissions solution into permanent submissions solution
+        for session in range(len(temp3)):
+            for room in range(len(temp3[session])):
+                for ts in range(self.getProblem().getSession(session).getSessionMaxTimeSlots()):
+                    self.getSolSubmissions()[session][room][ts] = temp3[session][room][ts]
     
 class InitialSolution(Solution):
     def __init__(self, problem):

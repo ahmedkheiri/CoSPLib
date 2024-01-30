@@ -30,4 +30,3 @@ for i in range(1):
     sol.printViolations()
     print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
     print('Is solution valid? ', sol.ValidateSolution())
-    sol.toExcel()

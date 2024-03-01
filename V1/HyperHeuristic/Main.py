@@ -9,25 +9,25 @@ from Optimisation import *
 import sys
 import numpy as np
 
-np.random.seed(1)
-f_name = "..\\Dataset\\test.xlsx"
+#np.random.seed(1)
+f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\OR60.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
     p.ReadProblemInstance()
     p.FindConflicts()
     p.AssignTimezonesPenalties()
     
-    #sol = Solution(p)
-    sol = RandomInd(p)
+    sol = Solution(p)
+    #sol = RandomInd(p)
     
-    solver = iHyperHeuristic(p, sol)
+    solver = Matheuristic(p, sol)
     s_time = time()
-    solver.solve(start_time = s_time, run_time = 3)
-
+    solver.solve(start_time = s_time, run_time = 250)
+    
     print(sol.getSolTracks())
     print(sol.getSolSubmissions())
     print('Objective Value:', sol.EvaluateSolution())
     sol.printViolations()
     print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
     print('Is solution valid? ', sol.ValidateSolution())
-    sol.toExcel("..\\Dataset\\test_solution.xlsx")
+    

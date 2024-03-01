@@ -470,30 +470,15 @@ class HyperHeuristic(Optimisation):
 class iHyperHeuristic(Optimisation):
     def __init__(self, problem, solution):
         Optimisation.__init__(self, problem, solution)
-        
-    def improveFeasibility(self):
-        LLHS = [lambda: self.SwapTrack(), lambda: self.SwapSubmission(), lambda: self.ReverseSubmission()]
-        feas = self.getSolution().EvaluateFeasibility()
-        while feas != 0:
-            select = np.random.randint(len(LLHS))
-            sol_copy = self.getSolution().copyWholeSolution()
-            LLHS[select]()
-            self.getSolution().resetSolSubmissions()
-            self.getSolution().convertSol()
-            new_feas = self.getSolution().EvaluateFeasibility()
-            if new_feas <= feas:
-                feas = new_feas
-                print(feas)
-            else:
-                self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])           
-    
+          
     def solve(self, start_time, run_time):
-        self.improveFeasibility()
         LLHS = [lambda: self.SwapTrack(), lambda: self.SwapSubmission(), lambda: self.ReverseSubmission()]
         obj_best = self.getSolution().EvaluateSolution()
         obj = obj_best
         best_Sol = self.getSolution().copyWholeSolution()
         i = 0
+        t = time()
+        tt = 600
         while time() - start_time < run_time:
             i += 1
             select = np.random.randint(len(LLHS))
@@ -512,6 +497,20 @@ class iHyperHeuristic(Optimisation):
                     self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
             else:
                 self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
+            #Ruin & Recreate
+            if time() - t > tt:
+                s = 0
+                while s != 10:
+                    sol_copy = self.getSolution().copyWholeSolution()
+                    LLHS[0]()
+                    self.getSolution().resetSolSubmissions()
+                    self.getSolution().convertSol()
+                    if self.getSolution().EvaluateAllSubmissionsScheduled() == False:
+                        self.getSolution().restoreSolution(sol_copy[0], sol_copy[1], sol_copy[2])
+                    else:
+                        s += 1
+                obj = self.getSolution().EvaluateSolution()
+                tt += 600
         self.getSolution().setBestSolution(best_Sol[0], best_Sol[1])
         print('Number of iterations:', i)
 
@@ -522,7 +521,7 @@ class Matheuristic(Optimisation):
     def solve(self, start_time, run_time):
         self.TracksExactModel()
         #self.getSolution().convertSolFirstTime()#Use with direct solution method
-        self.getSolution().convertSol()#Use with indirect solution method
+        self.getSolution().convertIndSolFirstTime()#Use with indirect solution method
         solver = iHyperHeuristic(self.getProblem(), self.getSolution())
         solver.solve(start_time, run_time)
         

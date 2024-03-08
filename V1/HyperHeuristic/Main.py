@@ -9,20 +9,20 @@ from Optimisation import *
 import sys
 import numpy as np
 
-#np.random.seed(1)
-f_name = "C:\\Users\\pylya\\Desktop\\PhD\\PhD\\github\\CSPLib\\V1\\Dataset\\OR60.xlsx"
+f_name = "..\\Dataset\\N2OR.xlsx"
 for i in range(1):
     p = Problem(file_name = f_name)
-    p.ReadProblemInstance()
+    parameters = p.ReadProblemInstance()
     p.FindConflicts()
-    p.AssignTimezonesPenalties()
+    p.AssignTimezonesPenalties(parameters)
     
     sol = Solution(p)
     #sol = RandomInd(p)
     
     solver = Matheuristic(p, sol)
     s_time = time()
-    solver.solve(start_time = s_time, run_time = 250)
+    solver.solve(start_time = s_time, run_time = 1)
+    #solver.solve()
     
     print(sol.getSolTracks())
     print(sol.getSolSubmissions())
@@ -30,4 +30,4 @@ for i in range(1):
     sol.printViolations()
     print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
     print('Is solution valid? ', sol.ValidateSolution())
-    
+    #sol.toExcel()

@@ -333,7 +333,7 @@ class ExtendedModel(Optimisation):
         obj_function = [variables, add_variables, product_variables]
         all_names = [names, add_names, product_names]
         model += lpSum([coefficients[i] * obj_function[x][i] for x in range(len(obj_function)) for i in all_names[x]])
-                  
+
         #Creating Constraints Eq.2
         if len(submission_conflict_x_list) != 0:
             unique_conflicts = []
@@ -358,7 +358,7 @@ class ExtendedModel(Optimisation):
                                         if (submission_conflict_x_list[name].split('|')[4] == conflict.getSubmissionName() and submission_conflict_x_list[name].split('|')[2] != room_name and submission_conflict_x_list[name].split('|')[1] == session_name):
                                             temp2.append(submission_conflict_x_list[name])
                                     model += lpSum([M * variables[x] for x in temp]) + lpSum([variables[x] for x in temp2]) <= M
-   
+        
         #Creating constraints Eq.5
         all_constraints = []
         for session in range(self.getProblem().getNumberOfSessions()):
@@ -420,7 +420,7 @@ class ExtendedModel(Optimisation):
 
         for c in range(len(all_constraints)):
             model += all_constraints[c] <= 1
-                
+        
         #Creating constraints Eq.15
         all_constraints = []
         temp2 = []
@@ -489,7 +489,7 @@ class ExtendedModel(Optimisation):
         t_b = round((time() - t_b), 2)
         #Solving
         t_s = time()
-        model.solve(GUROBI(msg = 1, MIPGap = 0, timeLimit = 3600, IntegralityFocus = 1))
+        model.solve(GUROBI(msg = 1, MIPGap = 0, timeLimit = timelimit, IntegralityFocus = 1))
         print('Building time:', t_b)
         print('Solving time:', round((time() - t_s), 2))
         print(model.objective.value())

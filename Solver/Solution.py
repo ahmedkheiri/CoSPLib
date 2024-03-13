@@ -395,7 +395,7 @@ class Solution:
         df8 = pd.DataFrame(p3_list)
         df9 = pd.DataFrame(p3_pen)
         
-        #Preparing Tracks|Tracks penalty
+        #Preparing Similar tracks penalty
         p4_list = ['Evaluate Similar Tracks']
         p4_pen = []
         for i in range(len(self.getSolTracks())):        
@@ -404,7 +404,7 @@ class Solution:
                     if (self.getSolTracks()[i][j] != self.getSolTracks()[i][x]) and (self.getSolTracks()[i][j] != -1) and (self.getSolTracks()[i][x] != -1):
                         if self.getProblem().getTracksTracksPenaltybyIndex(self.getSolTracks()[i][j], self.getSolTracks()[i][x]) != 0:
                             p4_list.append(self.getProblem().getTrack(self.getSolTracks()[i][j]).getTrackName() + ' - ' + self.getProblem().getTrack(self.getSolTracks()[i][x]).getTrackName() + ' - ' + self.getProblem().getSession(i).getSessionName())
-                            p4_pen.append(self.getProblem().getParameters().getTracksTracksPenaltyWeight() * self.getProblem().getTracksTracksPenaltybyIndex(self.getSolTracks()[i][j], self.getSolTracks()[i][x]))
+                            p4_pen.append(self.getProblem().getParameters().getSimilarTracksPenaltyWeight() * self.getProblem().getTracksTracksPenaltybyIndex(self.getSolTracks()[i][j], self.getSolTracks()[i][x]))
         p4_list.append('Total')
         p4_pen.append(sum(p4_pen))
         p4_pen.insert(0, '')

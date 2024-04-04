@@ -153,24 +153,18 @@ class Solution:
     def EvaluateSubmissionsOrder(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
-        di2 = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
                 if self.getSolTracks()[session][room] != -1:
                     for ts in range(len(self.getSolSubmissions()[session][room])):
                         if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
                             di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
-                        if self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionOrder() != 0:
-                            di2[session].append(self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionOrder())
         for track in range(self.getProblem().getNumberOfTracks()):
             order = 1
             for sub in di[track]:
                 if (self.getProblem().getSubmission(sub).getSubmissionOrder() != order) and (self.getProblem().getSubmission(sub).getSubmissionOrder() != 0):
                     pen += 1
                 order += 1
-        for session in range(self.getProblem().getNumberOfSessions()):
-            if len(di2[session]) > self.getProblem().getSession(session).getSessionMaxTimeSlots():
-                pen += len(di2[session]) - self.getProblem().getSession(session).getSessionMaxTimeSlots()
         return pen
     
     def EvaluateSubmissionsSessions(self) -> int:
@@ -487,15 +481,12 @@ class Solution:
         p11_list = ['Evaluate Submissions Order']
         p11_pen = []
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
-        di2 = {session:[] for session in range(self.getProblem().getNumberOfSessions())}
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
                 if self.getSolTracks()[session][room] != -1:
                     for ts in range(len(self.getSolSubmissions()[session][room])):
                         if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
                             di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
-                        if self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionOrder() != 0:
-                            di2[session].append(self.getProblem().getSubmission(self.getSolSubmissions()[session][room][ts]).getSubmissionOrder())
         for track in range(self.getProblem().getNumberOfTracks()):
             order = 1
             for sub in di[track]:
@@ -503,10 +494,6 @@ class Solution:
                     p11_list.append(self.getProblem().getSubmission(sub).getSubmissionName())
                     p11_pen.append(self.getProblem().getParameters().getSubmissionsOrderWeight())
                 order += 1
-        for session in range(self.getProblem().getNumberOfSessions()):
-            if len(di2[session]) > self.getProblem().getSession(session).getSessionMaxTimeSlots():
-                p11_list.append('Parallel submissions in session ' + self.getProblem().getSession(session).getSessionName())
-                p11_pen.append(self.getProblem().getParameters().getSubmissionsOrderWeight() * (len(di2[session]) - self.getProblem().getSession(session).getSessionMaxTimeSlots()))
         p11_list.append('Total')
         p11_pen.append(sum(p11_pen))
         p11_pen.insert(0, '')

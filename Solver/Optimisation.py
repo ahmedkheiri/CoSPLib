@@ -185,7 +185,8 @@ class ExactModel(Optimisation):
         t_b = round((time() - t_b), 2)
         #Solving
         t_s = time()
-        model.solve(GUROBI(msg = 1, MIPGap = 0, timeLimit = timelimit))
+        model.solve(GUROBI(msg = 0, MIPGap = 0, timeLimit = timelimit))
+        #model.solve(GLPK_CMD(msg = 0))
         print('Building time:', t_b)
         print('Solving time:', round((time() - t_s), 2))
         print(model.objective.value())
@@ -193,10 +194,9 @@ class ExactModel(Optimisation):
         if LpStatus[model.status] == 'Infeasible':
             sys.exit(print('Model is Infeasible.'))
         solution = []
-        gur_vars = model.solverModel.getVars()
-        for i in gur_vars:
-            if i.X > 0:
-                solution.append(i.varName)
+        for i in model.variables():
+            if i.varValue > 0:
+                solution.append(i.name)
         to_remove = []
         for i in range(len(solution)):
             if solution[i].split('|')[0] != 'Variables_':
@@ -490,6 +490,7 @@ class ExtendedModel(Optimisation):
         #Solving
         t_s = time()
         model.solve(GUROBI(msg = 1, MIPGap = 0, timeLimit = timelimit, IntegralityFocus = 1))
+        #model.solve(GLPK_CMD(msg = 0))
         print('Building time:', t_b)
         print('Solving time:', round((time() - t_s), 2))
         print(model.objective.value())
@@ -497,10 +498,9 @@ class ExtendedModel(Optimisation):
         if LpStatus[model.status] == 'Infeasible':
             sys.exit(print('Model is Infeasible.'))
         solution = []
-        gur_vars = model.solverModel.getVars()
-        for i in gur_vars:
-            if i.X > 0:
-                solution.append(i.varName)
+        for i in model.variables():
+            if i.varValue > 0:
+                solution.append(i.name)
         to_remove = []
         for i in range(len(solution)):
             if solution[i].split('|')[0] != 'Variables_':

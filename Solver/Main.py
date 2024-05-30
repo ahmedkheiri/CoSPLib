@@ -6,8 +6,6 @@ Created on Tue Mar 14 19:16:16 2023
 """
 
 from Optimisation import *
-import sys
-import numpy as np
 
 instance = 'N2OR'
 f_name = '..\\Dataset\\'+str(instance)+'.xlsx'
@@ -17,14 +15,11 @@ parameters = p.ReadProblemInstance()
 p.FindConflicts()
 p.AssignTimezonesPenalties(parameters)
 sol = Solution(p)
-    
+
 solver = ExactModel(p, sol) #Available models: ExactModel(), ExtendedModel()
 solver.solve(timelimit = 3600)
-    
-print(sol.getSolTracks())
-print(sol.getSolSubmissions())
+
 print('Objective Value:', sol.EvaluateSolution())
-sol.printViolations()
 print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
-print('Is solution valid? ', sol.ValidateSolution())
-#sol.toExcel(file_name = 'Solution'+str(instance)+'.xlsx')
+sol.printViolations()
+sol.toExcel(file_name = 'Solution'+str(instance)+'.xlsx')

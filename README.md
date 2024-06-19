@@ -1,1 +1,3 @@
 # CSPLib - A Benchmark Library for Conference Scheduling Problems
+
+The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution to automated conference scheduling that is easily customised to fit the needs of different conferences.

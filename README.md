@@ -380,13 +380,13 @@ For more information, visit [How to Configure Solvers](https://coin-or.github.io
 
 Suppose the conference scheduler has generated the N2OR schedule, *SolutionN2OR.xlsx*, which is located in the *Solutions* folder. To manually edit the schedule, follow these steps:
 
-**Step 1:** Open the *SolutionN2OR.xlsx* file (e.g., see [Figure 1](#fig:1)).
+**Step 1:** Open the *SolutionN2OR.xlsx* file.
 
-![N2OR initial schedule](Figures/1.png){width=100%}
+![N2OR initial schedule](Figures/1.png)
 
 **Step 2:** Proceed with editing and save the file. For example, swap the rooms of Education track and Big Data and AI track in session Wed1. Due to this change, the following submissions must also be swapped rooms: NEW19A3758 and NEW19A3759 with NEW19A3728 and NEW19A3735. This will result in a new schedule as shown below.
 
-![N2OR initial schedule](Figures/2.png){width=100%}
+![N2OR initial schedule](Figures/2.png)
 
 **Step 3:** Open the *Solver_Checker_v1.1.py* file, edit as needed, and run it to obtain the new schedule with the updated violations. You can view the impact of the changes directly by printing on the console or by generating a new Excel file (violations sheet). Below is the code for the N2OR example:
 

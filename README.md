@@ -281,8 +281,8 @@ solver = ExactModel(p, sol)
 solver.solve(timelimit = 3600)
 print("Objective Value:", sol.EvaluateSolution())
 print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
-sol.printViolations()```
-
+sol.printViolations()
+```
 
 
 

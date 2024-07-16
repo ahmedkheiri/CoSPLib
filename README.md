@@ -214,7 +214,7 @@ We welcome contributions! Please read our [contributing guidelines](CONTRIBUTING
 
 ## Citation
 
-If you use the Conference Scheduler in your research or conference planning, please cite the relevant publications:
+If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
 
 - Ahmed Kheiri, Yaroslav Pylyavskyy, and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
 

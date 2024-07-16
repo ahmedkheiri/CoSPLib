@@ -361,7 +361,49 @@ print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
 sol.printViolations()
 ```
 
+### How to configure the GLPK_CMD free solver in integer programming models
 
+To configure the GLPK_CMD solver, follow these steps:
+
+**Step 1:** Open the `Optimisation.py` file.
+
+**Step 2:** Go to line 470 and comment it out, then uncomment line 471 as shown next for the exact model. Similarly, comment out line 774 and uncomment line 775 for the extended model.
+
+```python
+#model.solve(GUROBI(msg = 0, MIPGap = 0, timeLimit = timelimit))
+model.solve(GLPK_CMD(msg = 0))
+```
+
+For more information, visit [How to Configure Solvers](https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html).
+
+### How to Manually Edit an Obtained Schedule and Observe the Impact on Schedule's Quality
+
+Suppose the conference scheduler has generated the N2OR schedule, *SolutionN2OR.xlsx*, which is located in the *Solutions* folder. To manually edit the schedule, follow these steps:
+
+**Step 1:** Open the *SolutionN2OR.xlsx* file (e.g., see [Figure 1](#fig:1)).
+
+![N2OR initial schedule](Figures/1.png){width=100%}
+
+**Step 2:** Proceed with editing and save the file. For example, swap the rooms of Education track and Big Data and AI track in session Wed1. Due to this change, the following submissions must also be swapped rooms: NEW19A3758 and NEW19A3759 with NEW19A3728 and NEW19A3735. This will result in a new schedule as shown below.
+
+![N2OR initial schedule](Figures/2.png){width=100%}
+
+**Step 3:** Open the *Solver_Checker_v1.1.py* file, edit as needed, and run it to obtain the new schedule with the updated violations. You can view the impact of the changes directly by printing on the console or by generating a new Excel file (violations sheet). Below is the code for the N2OR example:
+
+```python
+from Solution import *
+p = Problem(file_name = "..\\Dataset\\N2OR.xlsx")
+parameters = p.ReadProblemInstance()
+p.FindConflicts()
+p.AssignTimezonesPenalties(parameters)
+sol = Solution(p)
+sol.ReadSolution(file_name = "..\\Solutions\\SolutionN2OR.xlsx")
+print("Objective Value:", sol.EvaluateSolution())
+print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
+print("Is Solution Valid?", sol.ValidateSolution())
+sol.printViolations()
+sol.toExcel(file_name = "New_Solution.xlsx")
+```
 
 
 

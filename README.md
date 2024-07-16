@@ -177,7 +177,7 @@ Users are able to select which optimisation method they prefer to optimise the c
 
 The Excel file containing the input data needs to follow the specific format as described in the following sections. Many examples are available in the [Dataset](https://github.com/ahmedkheiri/CSPLib/tree/main/Dataset) folder on GitHub. The Excel file contains the necessary inputs for the Conference Scheduler and allows the user to make configurations. It consists of the following sheets: submissions, tracks, sessions, rooms, tracks_sessions penalty, tracks_rooms penalty, similar tracks, and sessions_rooms penalty, and parameters.
 
-Note that all string type inputs are **case sensitive** and **must exactly match each other across all sheets**, otherwise an error will occur. **Users are strongly suggested to avoid using special characters such as -, *, etc. as this may cause errors.**
+Note that all string type inputs are **case sensitive** and **must exactly match each other across all sheets**, otherwise an error will occur. **Users are strongly suggested to avoid using special characters such as -, !, etc. as this may cause errors.**
 
 ### Submissions
 The submissions sheet contains information and constraints for each submission. It consists of the following fields:
@@ -189,7 +189,12 @@ The submissions sheet contains information and constraints for each submission. 
 - **Presenters (optional):** Authors of the submission. Multiple authors separated by comma and space.
 - **Attendees (optional):** Attendees of the submission. Multiple attendees separated by comma and space.
 
-In addition, each submission requires columns for each session and each room (see [Figure](Figures/subs.PNG)). Columns beyond the session in each session
+In addition to these fields, separate columns must be used for each session followed by columns for each room as shown below. The next number of columns is determined by the total number of available sessions, where each column corresponds to a session (from column {H} to column {K} in this example). Under these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding session. For instance, Submission_7 must be ideally scheduled in Session_1 or in Session_2 so we keep these values empty. Additionally, we do not want to schedule Submission_7 in Session_3 or Session_4, but if that cannot be fully satisfied then we prefer Session_3. To do so, we set a penalty value of 1 for Session_3 and a penalty value of 10 for Session_4.
+
+Then, the number of the remaining columns is determined by the total number of available rooms, where each column corresponds to a room (from column {L} to column {O} in this example). Within these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding room. For example, if we want Submission_9 scheduled in Room_2, we penalize all rooms except for Room_2.
+
+![Submissions sheet example](Figures/subs.PNG)
+
 
 
 

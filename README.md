@@ -9,8 +9,8 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 ## Table of Contents
 
 1. [Installation](#installation)
-2. [Usage](#usage)
-3. [Features](#features)
+2. [Features](#features)
+3. [Benefits](#benefits)
 4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
@@ -43,22 +43,57 @@ To install CSPLib and its dependencies, follow these steps:
 - Python >= 3.8.16
 - pytz >= 2022.2
 
-## Usage
-
-To use the Conference Scheduler, follow these steps:
-
-1. Prepare your input data in the provided Excel template.
-2. Run the scheduler script:
-    ```sh
-    python scheduler.py
-    ```
-3. The generated conference schedule will be outputted to a specified location.
-
 ## Features
 
-- **Automated Scheduling**: Automatically generates conference schedules based on input data.
-- **Excel Integration**: Utilizes an Excel template for easy data input.
-- **Optimization Algorithms**: Implements sophisticated algorithms to optimize scheduling.
+1. **User-Friendly Data Input:**
+   Users can easily input and manage their data using Excel. An Excel template along with data examples are provided to standardise the data entry process, minimise errors and offer flexibility.
+
+2. **Automated Scheduling:**
+   Automatically assigns tracks to sessions and rooms, and submissions to sessions, time slots and rooms based on the input data and optimisation criteria. It also detects and resolves potential conflicts, ensuring a smooth and conflict-free conference schedule.
+
+3. **Constraints Management:**
+   Contains a pool of constraints to select from and allows weight assignment for each constraint based on user's preferences.
+
+4. **Advanced Optimisation Techniques:**
+   Advanced optimisation algorithms are included in the scheduler to ensure quick schedule generation, even for large-scale conferences with thousands of submissions.
+
+5. **Hybrid & Online Conferences:**
+   Suitable for hybrid and online conferences where submissions need to be scheduled in appropriate sessions considering timezone information.
+
+6. **Output and Reporting:**
+   Generates comprehensive optimised schedules in Excel format that can be easily reviewed and shared with stakeholders. The user can view a detailed report of violations for each constraint and can manually edit the solution to observe the impact of changes on solution quality.
+
+## Benefits
+
+- **Time-Saving:**
+  Automates the arduous and time-consuming manual process of conference scheduling, saving significant time and effort for conference organisers.
+
+- **Optimisation:**
+  Uses advanced optimisation techniques to deliver high-quality conference schedules considering numerous preferences and constraints.
+
+- **Flexibility:**
+  Adaptable to different types of conferences and can handle a wide range of scheduling requirements.
+
+- **Accuracy:**
+  Reduces the likelihood of human error through automated checks and optimisations.
+
+- **Scalability:**
+  Suitable for managing both small and large conferences.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Configuration
 

@@ -103,7 +103,7 @@ To effectively use the Conference Scheduler, follow these steps:
 
 ## Constraints Available
 
-Users are able to select the constraints to include during the schedule optimisation by assigning a weight value to each constraint (see [Parameters](#parameters)). The following constraints are available to select from:
+Users are able to select the constraints to include during the schedule optimisation by assigning a weight value to each constraint. The following constraints are available to select from:
 
 - **Presenters' conflicts:** In many conferences, authors are allowed to present more than one submission. This is resolved by either scheduling such submissions within the same room of a session or within different sessions (or time slots). Users can select between session or time slot level conflict resolution (see [Submissions](#submissions)).
 

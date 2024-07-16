@@ -13,6 +13,7 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 - [Terminology](#terminology)
 - [Constraints Available](#constraints-available)
 - [Optimisation Methods Available](#optimisation-methods-available)
+- [Data Format](#data-format)
 4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
@@ -172,6 +173,23 @@ Users are able to select which optimisation method they prefer to optimise the c
 |                     | Suitable for conferences of any size including large scale instances.     |                                             |
 |                     | No license is required.                                                   |                                             |
 
+## Data Format
+
+The Excel file containing the input data needs to follow the specific format as described in the following sections. Many examples are available in the [Dataset](https://github.com/ahmedkheiri/CSPLib/tree/main/Dataset) folder on GitHub. The Excel file contains the necessary inputs for the Conference Scheduler and allows the user to make configurations. It consists of the following sheets: submissions, tracks, sessions, rooms, tracks_sessions penalty, tracks_rooms penalty, similar tracks, and sessions_rooms penalty, and parameters.
+
+Note that all string type inputs are **case sensitive** and **must exactly match each other across all sheets**, otherwise an error will occur. **Users are strongly suggested to avoid using special characters such as -, *, etc. as this may cause errors.**
+
+### Submissions
+The submissions sheet contains information and constraints for each submission. It consists of the following fields:
+- **Reference:** Unique name or ID of submission. Each value is case sensitive, unique, and of string type.
+- **Track:** Name of the track to which the submission belongs. Each value is case sensitive and must be a string.
+- **Required Timeslots:** The number of time slots required for the submission. Must be an integer.
+- **Order (optional):** The order in which the submission should be scheduled within its track. Must be an integer.
+- **Time Zone:** The time zone of the main presenter's location in the format GMT+/-#. Must be a string.
+- **Presenters (optional):** Authors of the submission. Multiple authors separated by comma and space.
+- **Attendees (optional):** Attendees of the submission. Multiple attendees separated by comma and space.
+
+In addition, each submission requires columns for each session and each room (see [Figure](Figures/subs.PNG)). Columns beyond the session in each session
 
 
 

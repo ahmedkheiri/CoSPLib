@@ -164,11 +164,12 @@ Users are able to select which optimisation method they prefer to optimise the c
 |                     | Handles numerous constraints.                                             |                                             |
 |                     | Suitable for both session and time slot level constraints.                |                                             |
 |                     | Suitable for conferences of any size including large scale instances.     |                                             |
-| Hyper-heuristic     | Decent solutions.                                                        | Sub-optimal solutions.                      |
+| Hyper-heuristic     | Decent solutions.                                                        | Optimality is not guaranteed.                      |
 |                     | Always finds solutions.                                                   | Slower than Matheuristic.                   |
 |                     | Handles numerous constraints.                                             |                                             |
 |                     | Suitable for both session and time slot level constraints.                |                                             |
 |                     | Suitable for conferences of any size including large scale instances.     |                                             |
+|                     | No license is required.                                                   |                                             |
 
 
 

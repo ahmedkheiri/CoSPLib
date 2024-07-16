@@ -227,6 +227,24 @@ The Tracks-Rooms Penalty sheet is used to control the scheduling process of trac
 
 ![Tracks-Rooms Penalty sheet](Figures/tr.png)
 
+### Similar Tracks
+
+The Similar Tracks sheet allows defining which pair of tracks should not be scheduled in parallel as shown below. Column A includes all tracks, and the number of next columns is given by the total number of tracks, where each column corresponds to a track (from column B to column I in this example). Different penalty values can be used to express preferences. Note that penalty values must be **integers**. Suppose Track_3 is similar to Track_6 and Track_8 and we do not want to schedule Track_3 and Track_6 or Track_3 and Track_8 in parallel. This can be defined by simply setting a penalty value for those pairs of tracks.
+
+![Similar Tracks sheet](Figures/tt.png)
+
+### Sessions-Rooms Penalty
+
+The Sessions-Rooms Penalty sheet is used to define unavailability of rooms for certain sessions as presented below. Column A contains all sessions, and the number of next columns is given by the total number of available rooms, where each column corresponds to a room (from column B to column E in this example). Different penalty values can be used to express preferences. Note that penalty values must be **integers**. For instance, if Room_3 is unavailable during Session_4, then we add a penalty value for that session-room pair.
+
+![Sessions-Rooms Penalty sheet](Figures/sr.png)
+
+### Parameters
+
+The Parameters sheet includes settings for hybrid or online conferences and allows setting weight values for penalties as shown below. Columns A and B are associated with settings regarding hybrid or online conferences. The "Local Timezone" field refers to the timezone that applies at the location of the conference. "Suitable Scheduling Times" fields indicate the ideal scheduling time window for which submissions are not penalised. "Less Suitable Scheduling Times" fields create a new time window for which submissions are slightly penalised, while "Unsuitable Scheduling Times" heavily penalise submissions. All times are converted into local times of online presenters. For instance, a submission would be penalised by 1 if the converted local time of the presenter is between 7:00 and 9:30 or between 21:30 and 23:00. If the converted local time is between 23:00 and 7:00 then a penalty of 10 will apply, otherwise if the converted local time is between 9:30 and 21:30 then no penalty applies. These settings along with defined session's start and end time are used to identify suitable sessions that are convenient for online presenters. Lastly, columns D and E are used to set weight values. Setting different weight values allows the prioritisation of the listed types of penalties. Note that the "Time Zone" field is **case sensitive** and must be in the following **string** format: GMT+/-\# (e.g., GMT+2, GMT-4, etc.). The "Time" field must be in the following time format **HH:MM** (e.g., 10:30, 19:15, etc.). Penalty and weight fields must be **integers**.
+
+![Parameters sheet](Figures/parameters.png)
+
 
 
 

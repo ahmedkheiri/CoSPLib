@@ -215,6 +215,19 @@ The Sessions sheet contains all the necessary information regarding sessions and
 The Rooms sheet contains the names of the rooms and consists of the following field:
 - **Rooms:** Unique name or ID of room. Each value is **case sensitive**, it must be **unique** and of **string** type. For example, Room 1, RoomA, etc.
 
+### Tracks-Sessions Penalty
+
+The Tracks-Sessions Penalty sheet is used to define penalty values to avoid scheduling a specified track into a specified session as presented in \autoref{fig:ts}. Column A includes all tracks, and the number of next columns is given by the total number of sessions available, where each column corresponds to a session (from column B to column E in this example). Different penalty values can be used to express preferences. Note that penalty values must be **integers**. For instance, Track\_5 must be ideally scheduled in Session\_3 and/or in Session\_4 so we keep these values empty. Additionally, we do not want to schedule Track\_5 in Session\_1 or Session\_2, but if that cannot be fully satisfied then we prefer Session\_2. To do so, we just set a small penalty value for Session\_2 and a high penalty value for Session\_1.
+
+![Tracks-Sessions Penalty sheet](Figures/ts.png)
+
+### Tracks-Rooms Penalty
+
+The Tracks-Rooms Penalty sheet is used to control the scheduling process of tracks into rooms as displayed in \autoref{fig:tr}. Column A contains all tracks, and the number of next columns is given by the total number of rooms available, where each column corresponds to a room (from column B to column E in this example). Different penalty values can be used to express preferences. Note that penalty values must be **integers**. For instance, if we want Track\_1 and Track\_2 scheduled in Room\_4, then we set a penalty value for all rooms except for Room\_4.
+
+![Tracks-Rooms Penalty sheet](Figures/tr.png)
+
+
 
 
 

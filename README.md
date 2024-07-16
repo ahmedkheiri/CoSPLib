@@ -193,7 +193,7 @@ In addition to these fields, separate columns must be used for each session foll
 
 Then, the number of the remaining columns is determined by the total number of available rooms, where each column corresponds to a room (from column {L} to column {O} in this example). Within these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding room. For example, if we want Submission_9 scheduled in Room_2, we penalize all rooms except for Room_2.
 
-![Submissions sheet example](Figures/subs.PNG)
+![Submissions sheet example](Figures/subs.png)
 
 
 

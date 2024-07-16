@@ -1,6 +1,4 @@
-# CSPLib User Guides
-
-## Version 0.1
+# CSPLib User Guides (Version 0.1)
 
 ## Overview
 

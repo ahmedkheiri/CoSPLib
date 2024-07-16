@@ -12,6 +12,7 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 - [Using the Conference Scheduler](#using-the-conference-scheduler)
 - [Terminology](#terminology)
 - [Constraints Available](#constraints-available)
+- [Optimisation Methods Available](#optimisation-methods-available)
 4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
@@ -133,7 +134,41 @@ Users are able to select the constraints to include during the schedule optimisa
 
 - **Submission's Order:** Users can define the scheduling order of submissions within their tracks.
 
+## Optimisation Methods Available
 
+Users are able to select which optimisation method they prefer to optimise the conference schedule (see [User Control](#user-control)). Each optimisation method has its benefits and limitations which are summarised in [Benefits and Limitations Table](#benefits-and-limitations-table).
+
+### Integer Programming
+
+- **Description:** Two mathematical models are available, an exact model including basic constraints and an extended model including additional constraints.
+- **More Information:** [Integer Programming Paper](https://doi.org/10.1016/j.ejor.2024.04.001)
+
+### Matheuristic
+
+- **Description:** A decomposed robust matheuristic solution approach that consists of two phases. In phase one, an integer programming model is used to build the high-level schedule by assigning tracks into sessions and rooms. Based on this solution, the low-level schedule is created where submissions are allocated into sessions, rooms, and time slots. In phase two, a selection perturbative hyper-heuristic is used to further optimise both levels of the schedule.
+
+### Hyper-heuristic
+
+- **Description:** A selection perturbative hyper-heuristic consisting of four low-level heuristics, specifically two swap heuristics, a reverse heuristic, and a ruin and recreate heuristic. Its framework involves a two-step iterative process during scheduling optimisation where, in the first step, a low-level heuristic is selected randomly and is applied to the schedule. Then, in the second step, if the modified schedule is not worse than the previous, it is accepted. Otherwise, it is rejected and the previous schedule is restored.
+
+### Benefits and Limitations Table
+
+| Method              | Benefits                                                                 | Drawbacks                                   |
+|---------------------|--------------------------------------------------------------------------|---------------------------------------------|
+| Integer Programming | Optimal solutions.                                                        | May fail to return solution.                |
+|                     | Best for small to medium conferences with few constraints.                | Unsuitable for time slot level constraints. |
+|                     | Best for instances where hard constraints can be satisfied.               | Unsuitable for large scale instances.       |
+|                     |                                                                          | Commercial software license required.       |
+| Matheuristic        | Fast and decent solutions.                                                | Sub-optimal solutions.                      |
+|                     | Always finds solutions.                                                   | Commercial software license required.       |
+|                     | Handles numerous constraints.                                             |                                             |
+|                     | Suitable for both session and time slot level constraints.                |                                             |
+|                     | Suitable for conferences of any size including large scale instances.     |                                             |
+| Hyper-heuristic     | Decent solutions.                                                        | Sub-optimal solutions.                      |
+|                     | Always finds solutions.                                                   | Slower than Matheuristic.                   |
+|                     | Handles numerous constraints.                                             |                                             |
+|                     | Suitable for both session and time slot level constraints.                |                                             |
+|                     | Suitable for conferences of any size including large scale instances.     |                                             |
 
 
 

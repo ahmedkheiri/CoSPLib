@@ -181,13 +181,13 @@ Note that all string type inputs are **case sensitive** and **must exactly match
 
 ### Submissions
 The submissions sheet contains information and constraints for each submission. It consists of the following fields:
-- **Reference:** Unique name or ID of submission. Each value is case sensitive, unique, and of string type.
-- **Track:** Name of the track to which the submission belongs. Each value is case sensitive and must be a string.
-- **Required Timeslots:** The number of time slots required for the submission. Must be an integer.
-- **Order (optional):** The order in which the submission should be scheduled within its track. Must be an integer.
-- **Time Zone:** The time zone of the main presenter's location in the format GMT+/-#. Must be a string.
-- **Presenters (optional):** Authors of the submission. Multiple authors separated by comma and space.
-- **Attendees (optional):** Attendees of the submission. Multiple attendees separated by comma and space.
+- **Reference:** Unique name or ID of submission. Each value is **case sensitive**, it must be **unique** and of **string** type. For example, NEW19A19, submission1, PaperOne, etc.
+- **Track:** Name of the track to which the submission belongs. It refers to a group which contains similar submissions. Each value is **case sensitive** and must be a **string**. For instance, Analytics, Optimisation, Big Data and AI, etc.
+- **Required Timeslots:** The number of time slots required for the submission. Each value must be an **integer**.
+- **Order (optional):** The order in which the submission should be scheduled within its respective track. Each value must be an **integer**. If irrelevant, use 0.
+- **Time Zone:** The time zone of the main presenter's location. The range of GMT is between -12 to +12 (inclusive) and is used to determine the time zone. Half-hour differences are not supported. Each value is **case sensitive** and must be in the format: GMT+/-#. For example, GMT+0, GMT+2, GMT-4, etc. If irrelevant, fill in the time zone of the conference's location.
+- **Presenters (optional):** The author or authors of the respective submission. Multiple authors can be used. Each value is **case sensitive** and must be a **string**. Note that if multiple authors are used, each author must be separated by a comma followed by a space. For example, Author1, Author2, Author3. If irrelevant, leave empty.
+- **Attendees (optional):** The attendee or attendees of the respective submission. Multiple attendees can be used. Each value is **case sensitive** and must be a **string**. Note that if multiple attendees are used, each attendee must be separated by a comma followed by a space. For example, Attendee1, Attendee2, Attendee3. If irrelevant, leave empty.
 
 In addition to these fields, separate columns must be used for each session followed by columns for each room as shown below. The next number of columns is determined by the total number of available sessions, where each column corresponds to a session (from column {H} to column {K} in this example). Under these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding session. For instance, Submission_7 must be ideally scheduled in Session_1 or in Session_2 so we keep these values empty. Additionally, we do not want to schedule Submission_7 in Session_3 or Session_4, but if that cannot be fully satisfied then we prefer Session_3. To do so, we set a penalty value of 1 for Session_3 and a penalty value of 10 for Session_4.
 

@@ -201,6 +201,19 @@ The tracks sheet contains information for each track and consists of the followi
 - **Tracks:** Unique name or ID of track which contains submissions of similar subject. Each value is **case sensitive**, it must be **unique** and of **string** type. For instance, Analytics, Optimisation, Big Data and AI, etc.
 - **Chairs (optional):** The chair or chairs of the respective track. Multiple chairs can be used. Each value is **case sensitive** and must be a **string**. Note that if multiple chairs are used, each chair must be separated by a comma followed by a space. For example, Chair1, Chair2, Chair3. If irrelevant, leave empty.
 
+### Sessions
+
+The Sessions sheet contains all the necessary information regarding sessions and consists of the following fields:
+- **Sessions:** Unique name or ID of session. Each value is **case sensitive**, it must be **unique** and of **string** type. For example, Wed1, MonMorning, Thursday2, etc.
+- **Max Number of Timeslots:** The maximum number of time slots in the respective session. Each value must be an **integer**.
+- **Date:** The date that each session corresponds to. Each value must follow the format **MM/DD/YYYY**.
+- **Start Time:** The time at which the session begins. Each value must be in the format **HH:MM**. For instance, 12:00, 16:30, etc.
+- **End Time:** The time at which the session ends. Each value must be in the format **HH:MM**. For example, 12:00, 16:30, etc.
+
+### Rooms
+
+The Rooms sheet contains the names of the rooms and consists of the following field:
+- **Rooms:** Unique name or ID of room. Each value is **case sensitive**, it must be **unique** and of **string** type. For example, Room 1, RoomA, etc.
 
 
 

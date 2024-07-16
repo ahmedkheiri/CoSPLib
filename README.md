@@ -195,6 +195,15 @@ Then, the number of the remaining columns is determined by the total number of a
 
 ![Submissions sheet example](Figures/subs.png)
 
+### Tracks
+
+The tracks sheet contains information for each track and consists of the following two fields:
+- **Tracks:** Unique name or ID of track which contains submissions of similar subject. Each value is **case sensitive**, it must be **unique** and of **string** type. For instance, Analytics, Optimisation, Big Data and AI, etc.
+- **Chairs (optional):** The chair or chairs of the respective track. Multiple chairs can be used. Each value is **case sensitive** and must be a **string**. Note that if multiple chairs are used, each chair must be separated by a comma followed by a space. For example, Chair1, Chair2, Chair3. If irrelevant, leave empty.
+
+
+
+
 
 
 

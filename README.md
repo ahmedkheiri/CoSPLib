@@ -4,6 +4,17 @@
 
 The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless, and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution for scheduling conferences with minimal manual intervention.
 
+## Citation
+
+If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
+
+- Ahmed Kheiri, Yaroslav Pylyavskyy, and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
+
+- Yaroslav Pylyavskyy, Ahmed Kheiri, and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
+
+- Yaroslav Pylyavskyy, Peter Jacko, and Ahmed Kheiri. *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499, 2024. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -14,10 +25,10 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 - [Constraints Available](#constraints-available)
 - [Optimisation Methods Available](#optimisation-methods-available)
 - [Data Format](#data-format)
+- [Use Cases](#use-cases)
 4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
-- [Citation](#citation)
 - [License](#license)
 
 ## Installation
@@ -191,7 +202,7 @@ The submissions sheet contains information and constraints for each submission. 
 
 In addition to these fields, separate columns must be used for each session followed by columns for each room as shown below. The next number of columns is determined by the total number of available sessions, where each column corresponds to a session (from column {H} to column {K} in this example). Under these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding session. For instance, Submission_7 must be ideally scheduled in Session_1 or in Session_2 so we keep these values empty. Additionally, we do not want to schedule Submission_7 in Session_3 or Session_4, but if that cannot be fully satisfied then we prefer Session_3. To do so, we set a penalty value of 1 for Session_3 and a penalty value of 10 for Session_4.
 
-Then, the number of the remaining columns is determined by the total number of available rooms, where each column corresponds to a room (from column {L} to column {O} in this example). Within these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding room. For example, if we want Submission_9 scheduled in Room_2, we penalize all rooms except for Room_2.
+Then, the number of the remaining columns is determined by the total number of available rooms, where each column corresponds to a room (from column {L} to column {O} in this example). Within these columns, a penalty value may be set accordingly so as not to schedule the corresponding submission into the corresponding room. For example, if we want Submission_9 scheduled in Room_2, we penalise all rooms except for Room_2.
 
 ![Submissions sheet example](Figures/subs.png)
 
@@ -245,6 +256,17 @@ The Parameters sheet includes settings for hybrid or online conferences and allo
 
 ![Parameters sheet](Figures/parameters.png)
 
+## Use Cases
+
+The Conference Scheduler consists of the following modules: Main, Optimisation, Parameters, Problem, Room, Session, Solution, Solver_Checker_v1.1, Submission, and Track. To run the solver, the user should open and run the Main.py file. Some example use cases are presented in the sections below.
+
+### Integer Programming
+
+Two integer programming models are available: an exact model and an extended model. For best results, we recommend the GUROBI solver, which requires a license. Alternatively, the "GLPK_CMD" solver can be used, which is free. Note that both models only handle constraints on a session level, and if any model is infeasible, then either some constraints need to be relaxed, or another method should be selected to schedule the conference.
+
+The exact model handles the following constraints: presenters' conflicts, presenters' preferences, presenters' time zones, room preferences, room capacities, parallel tracks, session hopping, track scheduling preferences, and room unavailability.
+
+The extended model includes all the constraints of the exact model and the following additional constraints: attendees' conflicts, similar tracks, track chairs' conflicts, and consecutive tracks.
 
 
 
@@ -288,15 +310,6 @@ We welcome contributions! Please read our [contributing guidelines](CONTRIBUTING
 
 
 
-## Citation
-
-If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
-
-- Ahmed Kheiri, Yaroslav Pylyavskyy, and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
-
-- Yaroslav Pylyavskyy, Ahmed Kheiri, and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
-
-- Yaroslav Pylyavskyy, Peter Jacko, and Ahmed Kheiri. *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499, 2024. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
 
 ## License
 

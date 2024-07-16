@@ -4,11 +4,15 @@
 
 If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
 
-- Ahmed Kheiri, Yaroslav Pylyavskyy, and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
 
-- Yaroslav Pylyavskyy, Ahmed Kheiri, and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
+- Yaroslav Pylyavskyy, Ahmed Kheiri and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
 
-- Yaroslav Pylyavskyy, Peter Jacko, and Ahmed Kheiri. *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499, 2024. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+- Yaroslav Pylyavskyy, Peter Jacko and Ahmed Kheiri (2024) *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *Efficient scheduling of GECCO conferences using hyper-heuristic algorithms.* . In Proceedings of the Genetic and Evolutionary Computation Conference Companion, GECCO '24, New York, NY, USA. ACM. URL: [pre-print](https://ahmedkheiri.github.io/publications/GECCO2024.pdf).
+
+  
 
 ## Overview
 

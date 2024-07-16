@@ -12,8 +12,6 @@ If you use any materials, data, or software from this repository in your researc
 
 - Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *Efficient scheduling of GECCO conferences using hyper-heuristic algorithms.* . In Proceedings of the Genetic and Evolutionary Computation Conference Companion, GECCO '24, New York, NY, USA. ACM. URL: [pre-print](https://ahmedkheiri.github.io/publications/GECCO2024.pdf).
 
-  
-
 ## Overview
 
 The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless, and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution for scheduling conferences with minimal manual intervention.
@@ -30,7 +28,7 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 - [Data Format](#data-format)
 - [Use Cases](#use-cases)
 - [Support](#support)
-6. [Contributing](#contributing)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
@@ -423,7 +421,7 @@ We look forward to hearing from you and assisting with your conference schedulin
 
 ## Contributing
 
-We welcome contributions! Please read our [contributing guidelines](CONTRIBUTING.md) for more details.
+We welcome contributions from the community! If you have ideas for new features, improvements, or bug fixes, we'd love to hear from you. Ideas like providing us with new data, new algorithms, updating codes, etc., are highly appreciated.
 
 ## License
 

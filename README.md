@@ -6,9 +6,10 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Features](#features)
-3. [Benefits](#benefits)
+- [Installation](#installation)
+- [Features](#features)
+- [Benefits](#benefits)
+- [Using the Conference Scheduler](#using-the-conference-scheduler)
 4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
@@ -78,6 +79,18 @@ To install CSPLib and its dependencies, follow these steps:
 - **Scalability:**
   Suitable for managing both small and large conferences.
 
+## Using the Conference Scheduler
+
+To effectively use the Conference Scheduler, follow these steps:
+
+1. **Excel file configuration:**
+   Users enter their data into the provided Excel template, set scheduling requirements, and specify preferences.
+
+2. **Optimisation Process:**
+   The Excel data is imported into the system, and users select their preferred algorithm for scheduling optimisation.
+
+3. **Review and Adjustments:**
+   The system generates the optimised schedule, which is then exported back into Excel. Users can easily review the generated schedule, make any necessary adjustments, observe the impact on the schedule quality, and finalise the conference plan.
 
 
 

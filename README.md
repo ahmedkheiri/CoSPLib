@@ -284,6 +284,24 @@ print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
 sol.printViolations()
 ```
 
+#### Schedule GECCO21 conference (online) using the extended model and save solution in Excel file
+
+```python
+from Optimisation import *
+instance = "GECCO21"
+f_name = "..\\Dataset\\"+str(instance)+".xlsx"
+p = Problem(file_name = f_name)
+parameters = p.ReadProblemInstance()
+p.FindConflicts()
+p.AssignTimezonesPenalties(parameters)
+sol = Solution(p)
+solver = ExtendedModel(p, sol)
+solver.solve(timelimit = 3600)
+sol.toExcel(file_name = "Solution"+str(instance)+".xlsx")
+\end{lstlisting}
+```
+
+
 
 
 

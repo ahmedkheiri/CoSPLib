@@ -16,6 +16,7 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
+- [Citation](#citation)
 - [License](#license)
 
 ## Installation
@@ -197,8 +198,32 @@ For support, please open an issue on the [GitHub repository](https://github.com/
 
 We welcome contributions! Please read our [contributing guidelines](CONTRIBUTING.md) for more details.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Citation
+
+If you use the Conference Scheduler in your research or conference planning, please cite the relevant publications:
+
+- Ahmed Kheiri, Yaroslav Pylyavskyy, and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
+
+- Yaroslav Pylyavskyy, Ahmed Kheiri, and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
+
+- Yaroslav Pylyavskyy, Peter Jacko, and Ahmed Kheiri. *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499, 2024. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+
 ## License
 
-The Conference Scheduler is licensed under the [MIT License](https://github.com/ahmedkheiri/CSPLib/blob/main/LICENSE.txt).
+This software is licensed under the [MIT License](https://github.com/ahmedkheiri/CSPLib/blob/main/LICENSE.txt).
 
 Note: If you intend to use the GUROBI solver for Integer Programming and Matheuristic algorithms, a separate license from GUROBI Optimisation is required. Please ensure GUROBI is installed and licensed according to their terms. The hyper-heuristic approach does not require GUROBI.

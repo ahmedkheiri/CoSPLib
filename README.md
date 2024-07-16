@@ -136,7 +136,7 @@ Users are able to select the constraints to include during the schedule optimisa
 
 ## Optimisation Methods Available
 
-Users are able to select which optimisation method they prefer to optimise the conference schedule (see [User Control](#user-control)). Each optimisation method has its benefits and limitations which are summarised in [Benefits and Limitations Table](#benefits-and-limitations-table).
+Users are able to select which optimisation method they prefer to optimise the conference schedule. Each optimisation method has its benefits and limitations which are summarised in [Benefits and Limitations Table](#benefits-and-limitations-table).
 
 ### Integer Programming
 

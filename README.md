@@ -301,7 +301,65 @@ sol.toExcel(file_name = "Solution"+str(instance)+".xlsx")
 \end{lstlisting}
 ```
 
+### Matheuristic
 
+The matheuristic algorithm consists of two phases and handles all available constraints including time slot level. In phase one, an integer programming model is used to build the high-level schedule by assigning tracks into sessions and rooms (either requires GUROBI license or you could use free solvers such as GLPK). Based on this solution, the low-level schedule is created where submissions are allocated into sessions, rooms, and time slots. In phase two, a selection perturbative hyper-heuristic is used to further optimise both levels of the schedule.
+
+#### Schedule ISF22 conference using the matheuristic with a 300 seconds time limit overall and save solution in Excel file
+
+```python
+from Optimisation import *
+instance = "ISF22"
+f_name = "..\\Dataset\\"+str(instance)+".xlsx"
+p = Problem(file_name = f_name)
+parameters = p.ReadProblemInstance()
+p.FindConflicts()
+p.AssignTimezonesPenalties(parameters) 
+sol = Solution(p) 
+solver = Matheuristic(p, sol)
+s_time = time()
+solver.solve(s_time, run_time = 300)
+sol.toExcel(file_name = "..\\Solution"+str(instance)+".xlsx")
+```
+
+#### Schedule OR60 conference using the matheuristic with a 90 seconds time limit for phase one and 500 seconds time limit overall
+
+```python
+from Optimisation import *
+instance = "OR60"
+f_name = "..\\Dataset\\"+str(instance)+".xlsx"
+p = Problem(file_name = f_name)
+parameters = p.ReadProblemInstance()
+p.FindConflicts()
+p.AssignTimezonesPenalties(parameters) 
+sol = Solution(p)
+solver = Matheuristic(p, sol)
+s_time = time()
+solver.solve(s_time, run_time = 500, timelimit = 90)
+```
+
+### Hyper-heuristic
+
+The hyper-heuristic algorithm does not require a software license and it handles all available constraints including time slot level. It consists of four low-level heuristics, specifically two swap heuristics, a reverse heuristic, and a ruin and recreate heuristic. Its framework involves a two-step iterative process during scheduling optimisation where, in the first step, a low-level heuristic is selected randomly and is applied to the schedule. Then, in the second step, if the modified schedule is not worse than the previous, it is accepted. Otherwise, it is rejected and the previous schedule is restored.
+
+#### Schedule GECCO22 conference using the hyper-heuristic with a 3600 seconds time limit and apply ruin and recreate every 600 seconds
+
+```python
+from Optimisation import *
+instance = "GECCO22"
+f_name = "..\\Dataset\\"+str(instance)+".xlsx"
+p = Problem(file_name = f_name)
+parameters = p.ReadProblemInstance()
+p.FindConflicts()
+p.AssignTimezonesPenalties(parameters)
+sol = RandomInd(p)
+solver = HyperHeuristic(p, sol)
+s_time = time()
+solver.solve(s_time, run_time = 3600, rr = 600)
+print("Objective Value:", sol.EvaluateSolution())
+print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
+sol.printViolations()
+```
 
 
 

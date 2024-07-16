@@ -1,10 +1,8 @@
-# Conference Scheduler User Guides
+# CSPLib User Guides
 
 ## Version 0.1
 
-## Project Description
-
-### Overview
+## Overview
 
 The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless, and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution for scheduling conferences with minimal manual intervention.
 
@@ -20,20 +18,30 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 
 ## Installation
 
-To install the Conference Scheduler, follow these steps:
+To install CSPLib and its dependencies, follow these steps:
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/conference-scheduler.git
+    git clone https://github.com/ahmedkheiri/CSPLib.git
     ```
+
 2. Navigate to the project directory:
     ```sh
-    cd conference-scheduler
+    cd CSPLib
     ```
+
 3. Install the required dependencies:
     ```sh
     pip install -r requirements.txt
     ```
+
+### Requirements
+
+- NumPy >= 1.24.2
+- pandas >= 2.2.2
+- PuLP >= 2.8.0
+- Python >= 3.8.16
+- pytz >= 2022.2
 
 ## Usage
 

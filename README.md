@@ -1,9 +1,5 @@
 # CSPLib User Guides (Version 0.1)
 
-## Overview
-
-The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless, and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution for scheduling conferences with minimal manual intervention.
-
 ## Citation
 
 If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
@@ -14,6 +10,9 @@ If you use any materials, data, or software from this repository in your researc
 
 - Yaroslav Pylyavskyy, Peter Jacko, and Ahmed Kheiri. *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499, 2024. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
 
+## Overview
+
+The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless, and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution for scheduling conferences with minimal manual intervention.
 
 ## Table of Contents
 
@@ -26,7 +25,6 @@ If you use any materials, data, or software from this repository in your researc
 - [Optimisation Methods Available](#optimisation-methods-available)
 - [Data Format](#data-format)
 - [Use Cases](#use-cases)
-4. [Configuration](#configuration)
 5. [Support](#support)
 6. [Contributing](#contributing)
 - [License](#license)
@@ -268,6 +266,22 @@ The exact model handles the following constraints: presenters' conflicts, presen
 
 The extended model includes all the constraints of the exact model and the following additional constraints: attendees' conflicts, similar tracks, track chairs' conflicts, and consecutive tracks.
 
+#### Schedule N2OR conference using the exact model and print solution's information
+
+```python
+from Optimisation import *
+instance = "N2OR"
+f_name = "..\\Dataset\\" + str(instance) + ".xlsx"
+p = Problem(file_name = f_name)
+parameters = p.ReadProblemInstance()
+p.FindConflicts()
+p.AssignTimezonesPenalties(parameters)
+sol = Solution(p)
+solver = ExactModel(p, sol)
+solver.solve(timelimit = 3600)
+print("Objective Value:", sol.EvaluateSolution())
+print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
+sol.printViolations()
 
 
 
@@ -280,13 +294,6 @@ The extended model includes all the constraints of the exact model and the follo
 
 
 
-## Configuration
-
-To configure the Conference Scheduler, modify the `config.json` file with your preferred settings. Here are the key configuration options:
-
-- **input_file**: Path to the Excel file containing the input data.
-- **output_file**: Path where the generated schedule will be saved.
-- **algorithm**: The optimization algorithm to use (e.g., `genetic`, `greedy`).
 
 ## Support
 

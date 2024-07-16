@@ -25,7 +25,7 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 - [Optimisation Methods Available](#optimisation-methods-available)
 - [Data Format](#data-format)
 - [Use Cases](#use-cases)
-5. [Support](#support)
+- [Support](#support)
 6. [Contributing](#contributing)
 - [License](#license)
 
@@ -405,36 +405,21 @@ sol.printViolations()
 sol.toExcel(file_name = "New_Solution.xlsx")
 ```
 
-
-
-
-
-
-
-
-
 ## Support
 
-For support, please open an issue on the [GitHub repository](https://github.com/yourusername/conference-scheduler/issues).
+This software is free and open-source. We are also committed to providing consultancy support to assist you in utilising it effectively if needed. Whether you need help with configuration, customisation, or troubleshooting, we are here to help.
+
+Feel free to contact us:
+
+- **Dr Ahmed Kheiri** [https://ahmedkheiri.github.io/](https://ahmedkheiri.github.io/)
+
+- **Dr Yaroslav Pylyavskyy** [https://www.linkedin.com/in/yaroslav-pylyavskyy-aba25014b/](https://www.linkedin.com/in/yaroslav-pylyavskyy-aba25014b/)
+
+We look forward to hearing from you and assisting with your conference scheduling needs!
 
 ## Contributing
 
 We welcome contributions! Please read our [contributing guidelines](CONTRIBUTING.md) for more details.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## License
 

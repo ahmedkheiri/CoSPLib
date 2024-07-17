@@ -300,7 +300,6 @@ sol = Solution(p)
 solver = ExtendedModel(p, sol)
 solver.solve(timelimit = 3600)
 sol.toExcel(file_name = "Solution"+str(instance)+".xlsx")
-\end{lstlisting}
 ```
 
 ### Matheuristic

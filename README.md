@@ -412,9 +412,11 @@ This software is free and open-source. We are also committed to providing consul
 
 Feel free to contact us:
 
-- **Dr Ahmed Kheiri** [https://ahmedkheiri.github.io/](https://ahmedkheiri.github.io/)
+- **Dr Ahmed Kheiri** [https://ahmedkheiri.github.io](https://ahmedkheiri.github.io)
 
-- **Dr Yaroslav Pylyavskyy** [https://www.linkedin.com/in/yaroslav-pylyavskyy-aba25014b/](https://www.linkedin.com/in/yaroslav-pylyavskyy-aba25014b/)
+- **Dr Yaroslav Pylyavskyy** [https://www.linkedin.com/in/yaroslav-pylyavskyy-aba25014b](https://www.linkedin.com/in/yaroslav-pylyavskyy-aba25014b)
+
+- **Dr Peter Jacko** [https://www.lancaster.ac.uk/lums/people/peter-jacko](https://www.lancaster.ac.uk/lums/people/peter-jacko)
 
 We look forward to hearing from you and assisting with your conference scheduling needs!
 

@@ -8,9 +8,9 @@ If you use any materials, data, or software from this repository in your researc
 
 - Yaroslav Pylyavskyy, Ahmed Kheiri and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
 
-- Yaroslav Pylyavskyy, Peter Jacko and Ahmed Kheiri (2024) *A Generic Approach to Conference Scheduling with Integer Programming.* European Journal of Operational Research, 317(2):487-499. ISSN 0377-2217. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+- Yaroslav Pylyavskyy, Peter Jacko and Ahmed Kheiri (2024) A generic approach to conference scheduling with integer programming. European Journal of Operational Research, 317(2):487-499. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
 
-- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *Efficient scheduling of GECCO conferences using hyper-heuristic algorithms.* . In Proceedings of the Genetic and Evolutionary Computation Conference Companion, GECCO '24, New York, NY, USA. ACM. URL: [pre-print](https://ahmedkheiri.github.io/publications/GECCO2024.pdf).
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) Efficient scheduling of GECCO conferences using hyper-heuristic algorithms. In Proceedings of the Genetic and Evolutionary Computation Conference Companion (GECCO '24 Companion). Association for Computing Machinery, New York, NY, USA, 1732-1737. doi: [10.1145/3638530.3664186](https://doi.org/10.1145/3638530.3664186).
 
 ## Overview
 

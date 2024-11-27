@@ -1,10 +1,10 @@
-# CSPLib User Guides (Version 0.1)
+# CoSPLib User Guides (Version 0.1)
 
 ## Citation
 
 If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
 
-- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *CSPLib – A Benchmark Library for Conference Scheduling Problems.*
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *CoSPLib – A Benchmark Library for Conference Scheduling Problems.*
 
 - Yaroslav Pylyavskyy, Ahmed Kheiri and Peter Jacko (2024) *A Two-phase Matheuristic Approach to Conference Scheduling Problems.*
 
@@ -33,16 +33,16 @@ The Conference Scheduler is an advanced tool designed to optimise the process of
 
 ## Installation
 
-To install CSPLib and its dependencies, follow these steps:
+To install CoSPLib and its dependencies, follow these steps:
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/ahmedkheiri/CSPLib.git
+    git clone https://github.com/ahmedkheiri/CoSPLib.git
     ```
 
 2. Navigate to the project directory:
     ```sh
-    cd CSPLib
+    cd CoSPLib
     ```
 
 3. Install the required dependencies:
@@ -186,7 +186,7 @@ Users are able to select which optimisation method they prefer to optimise the c
 
 ## Data Format
 
-The Excel file containing the input data needs to follow the specific format as described in the following sections. Many examples are available in the [Dataset](https://github.com/ahmedkheiri/CSPLib/tree/main/Dataset) folder on GitHub. The Excel file contains the necessary inputs for the Conference Scheduler and allows the user to make configurations. It consists of the following sheets: submissions, tracks, sessions, rooms, tracks_sessions penalty, tracks_rooms penalty, similar tracks, and sessions_rooms penalty, and parameters.
+The Excel file containing the input data needs to follow the specific format as described in the following sections. Many examples are available in the [Dataset](https://github.com/ahmedkheiri/CoSPLib/tree/main/Dataset) folder on GitHub. The Excel file contains the necessary inputs for the Conference Scheduler and allows the user to make configurations. It consists of the following sheets: submissions, tracks, sessions, rooms, tracks_sessions penalty, tracks_rooms penalty, similar tracks, and sessions_rooms penalty, and parameters.
 
 Note that all string type inputs are **case sensitive** and **must exactly match each other across all sheets**, otherwise an error will occur. **Users are strongly suggested to avoid using special characters such as -, !, etc. as this may cause errors.**
 
@@ -426,6 +426,6 @@ We welcome contributions from the community! If you have ideas for new features,
 
 ## License
 
-This software is licensed under the [MIT License](https://github.com/ahmedkheiri/CSPLib/blob/main/LICENSE.txt).
+This software is licensed under the [MIT License](https://github.com/ahmedkheiri/CoSPLib/blob/main/LICENSE.txt).
 
 Note: If you intend to use the GUROBI solver for Integer Programming and Matheuristic algorithms, a separate license from GUROBI Optimisation is required. Please ensure GUROBI is installed and licensed according to their terms. The hyper-heuristic approach does not require GUROBI.

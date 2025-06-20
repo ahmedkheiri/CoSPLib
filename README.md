@@ -4,7 +4,7 @@
 
 If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
 
-- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2025) *CoSPLib – A Benchmark Library for Conference Scheduling Problems.*
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2025) *CoSPLib - A benchmark library for conference scheduling problems.*
 
 - Yaroslav Pylyavskyy, Peter Jacko and Ahmed Kheiri (2024) A generic approach to conference scheduling with integer programming. European Journal of Operational Research, 317(2):487-499. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
 

@@ -10,6 +10,10 @@ If you use any materials, data, or software from this repository in your researc
 
 - Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) Efficient scheduling of GECCO conferences using hyper-heuristic algorithms. In Proceedings of the Genetic and Evolutionary Computation Conference Companion (GECCO '24 Companion). Association for Computing Machinery, New York, NY, USA, 1732-1737. doi: [10.1145/3638530.3664186](https://doi.org/10.1145/3638530.3664186).
 
+## Conferences Scheduled to Date
+
+![Scheduled Conferences](./Conferences%20Scheduled%20to%20date.png)
+
 ## Overview
 
 The Conference Scheduler is an advanced tool designed to optimise the process of scheduling conferences in an autonomous, effortless, and fully automated manner. This tool uses Excel, which follows a specific template, to store input data and Python for the implementation of optimisation algorithms, ensuring that conference schedules are created efficiently and effectively. The primary goal is to provide a complete solution for scheduling conferences with minimal manual intervention.

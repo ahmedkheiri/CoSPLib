@@ -178,12 +178,22 @@ class Solution:
     def EvaluateSubmissionsOrder(self) -> int:
         pen = 0
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        session_ts = {self.getProblem().getSession(session).getSessionName()+str(ts): [] for session in range(len(self.getSolTracks())) for ts in range(self.getProblem().getSession(session).getSessionMaxTimeSlots())}
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
                 if self.getSolTracks()[session][room] != -1:
                     for ts in range(len(self.getSolSubmissions()[session][room])):
                         if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
                             di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
+                        if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in session_ts[self.getProblem().getSession(session).getSessionName()+str(ts)]):
+                            session_ts[self.getProblem().getSession(session).getSessionName()+str(ts)].append(self.getSolSubmissions()[session][room][ts])
+        
+        for ts in session_ts.values():
+            for this_sub in range(len(ts) - 1):
+                for other_sub in range(this_sub + 1, len(ts)):
+                    if (self.getProblem().getSubmission(ts[this_sub]).getSubmissionTrack().getTrackName() == self.getProblem().getSubmission(ts[other_sub]).getSubmissionTrack().getTrackName()) and ((self.getProblem().getSubmission(ts[this_sub]).getSubmissionOrder() != 0) and (self.getProblem().getSubmission(ts[other_sub]).getSubmissionOrder() != 0)):
+                        pen += 1
+
         for track in range(self.getProblem().getNumberOfTracks()):
             order = 1
             for sub in di[track]:
@@ -598,12 +608,24 @@ class Solution:
         p11_list = ['Evaluate Submissions Order']
         p11_pen = []
         di = {track:[] for track in range(self.getProblem().getNumberOfTracks())}
+        session_ts = {self.getProblem().getSession(session).getSessionName()+str(ts): [] for session in range(len(self.getSolTracks())) for ts in range(self.getProblem().getSession(session).getSessionMaxTimeSlots())}
+
         for session in range(len(self.getSolTracks())):
             for room in range(len(self.getSolTracks()[session])):
                 if self.getSolTracks()[session][room] != -1:
                     for ts in range(len(self.getSolSubmissions()[session][room])):
                         if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in di[self.getSolTracks()[session][room]]):
                             di[self.getSolTracks()[session][room]].append(self.getSolSubmissions()[session][room][ts])
+                        if (self.getSolSubmissions()[session][room][ts] != -1) and (self.getSolSubmissions()[session][room][ts] not in session_ts[self.getProblem().getSession(session).getSessionName()+str(ts)]):
+                            session_ts[self.getProblem().getSession(session).getSessionName()+str(ts)].append(self.getSolSubmissions()[session][room][ts])
+        
+        for ts in session_ts.values():
+            for this_sub in range(len(ts) - 1):
+                for other_sub in range(this_sub + 1, len(ts)):
+                    if (self.getProblem().getSubmission(ts[this_sub]).getSubmissionTrack().getTrackName() == self.getProblem().getSubmission(ts[other_sub]).getSubmissionTrack().getTrackName()) and ((self.getProblem().getSubmission(ts[this_sub]).getSubmissionOrder() != 0) and (self.getProblem().getSubmission(ts[other_sub]).getSubmissionOrder() != 0)):
+                        p11_list.append(self.getProblem().getSubmission(ts[this_sub]).getSubmissionName())
+                        p11_pen.append(self.getProblem().getParameters().getSubmissionsOrderWeight())
+        
         for track in range(self.getProblem().getNumberOfTracks()):
             order = 1
             for sub in di[track]:

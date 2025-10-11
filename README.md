@@ -4,11 +4,13 @@
 
 If you use any materials, data, or software from this repository in your research or conference planning, please cite the relevant publications:
 
-- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2025) *CoSPLib - A benchmark library for conference scheduling problems.*
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2025) *CoSPLib - A benchmark library for conference scheduling problems.* In Proceedings of the Genetic and Evolutionary Computation Conference Companion (GECCO '25 Companion). Association for Computing Machinery, New York, NY, USA, 131-134. doi: [10.1145/3712255.3726570](http://dx.doi.org/10.1145/3712255.3726570).
 
-- Yaroslav Pylyavskyy, Peter Jacko and Ahmed Kheiri (2024) A generic approach to conference scheduling with integer programming. European Journal of Operational Research, 317(2):487-499. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2025) *Automated scheduling of GECCO 2023.* SIGEVOlution 17, 3, Article 2 (September 2024), 7 pages. doi: [10.1145/3717408.3717410](https://doi.org/10.1145/3717408.3717410).
 
-- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) Efficient scheduling of GECCO conferences using hyper-heuristic algorithms. In Proceedings of the Genetic and Evolutionary Computation Conference Companion (GECCO '24 Companion). Association for Computing Machinery, New York, NY, USA, 1732-1737. doi: [10.1145/3638530.3664186](https://doi.org/10.1145/3638530.3664186).
+- Yaroslav Pylyavskyy, Peter Jacko and Ahmed Kheiri (2024) *A generic approach to conference scheduling with integer programming.* European Journal of Operational Research, 317(2):487-499. doi: [10.1016/j.ejor.2024.04.001](https://doi.org/10.1016/j.ejor.2024.04.001).
+
+- Ahmed Kheiri, Yaroslav Pylyavskyy and Peter Jacko (2024) *Efficient scheduling of GECCO conferences using hyper-heuristic algorithms.* In Proceedings of the Genetic and Evolutionary Computation Conference Companion (GECCO '24 Companion). Association for Computing Machinery, New York, NY, USA, 1732-1737. doi: [10.1145/3638530.3664186](https://doi.org/10.1145/3638530.3664186).
 
 ## Conferences Scheduled to Date
 

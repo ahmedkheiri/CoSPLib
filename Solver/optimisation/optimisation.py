@@ -610,13 +610,13 @@ class Optimisation:
 
         df = pd.DataFrame(solution)
         df.replace(to_replace="_", value=" ", regex=True, inplace=True)
-        df = df.applymap(lambda x: x.split("|"))
+        df = df.map(lambda x: x.split("|"))
         solution = df.iloc[:, 0].to_list()
 
         if len(solution2) > 0:
             df = pd.DataFrame(solution2)
             df.replace(to_replace="_", value=" ", regex=True, inplace=True)
-            df = df.applymap(lambda x: x.split("|"))
+            df = df.map(lambda x: x.split("|"))
             solution2 = df.iloc[:, 0].to_list()
 
         for i in range(len(solution)):
@@ -1286,7 +1286,7 @@ class ExactModel(Optimisation):
                 solution.remove(i)
         df = pd.DataFrame(solution)
         df.replace(to_replace="_", value=" ", regex=True, inplace=True)
-        df = df.applymap(lambda x: x.split("|"))
+        df = df.map(lambda x: x.split("|"))
         solution = df.iloc[:, 0].to_list()
         for i in range(len(solution)):
             self.getSolution().getSolTracks()[
@@ -2189,7 +2189,7 @@ class ExtendedModel(Optimisation):
                 solution.remove(i)
         df = pd.DataFrame(solution)
         df.replace(to_replace="_", value=" ", regex=True, inplace=True)
-        df = df.applymap(lambda x: x.split("|"))
+        df = df.map(lambda x: x.split("|"))
         solution = df.iloc[:, 0].to_list()
         for i in range(len(solution)):
             self.getSolution().getSolTracks()[

@@ -7,16 +7,14 @@ Created on Tue Mar 14 19:16:16 2023
 
 from optimisation.optimisation import *
 from domain.problem import Problem
-import solution
+from solution import Solution
 
 instance = "N2OR"
-f_name = "Dataset\\" + str(instance) + ".xlsx"
+f_name = "Dataset/" + str(instance) + ".xlsx"
 
 p = Problem(file_name=f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = solution.Solution(p)
+parameters = p.build()
+sol = Solution(p)
 
 solver = ExactModel(p, sol)  # Available models: ExactModel(), ExtendedModel()
 solver.solve(timelimit=3600)

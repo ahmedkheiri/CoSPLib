@@ -9,7 +9,8 @@ from domain.submission import Submission
 from domain.track import Track
 from domain.room import Room
 from domain.session import Session
-import parameters
+from parameters import Parameters
+import config
 import pandas as pd
 import datetime as dt
 import pytz
@@ -19,6 +20,7 @@ import sys
 class Problem:
     def __init__(self, file_name="N2OR.xlsx"):
         self.__file_name = file_name
+        self.__file = pd.read_excel(file_name, None)
 
         self.__rooms = []
         self.__sessions = []
@@ -138,7 +140,7 @@ class Problem:
     def setParameters(self, parameters_object):
         self.__parameters = parameters_object
 
-    def getParameters(self) -> parameters:
+    def getParameters(self) -> Parameters:
         return self.__parameters
 
     # Submissions_sessions|penalty
@@ -236,114 +238,12 @@ class Problem:
             + self.getRoom(room_index).getRoomName()
         ]
 
-    def ReadProblemInstance(self):
-        # Begin checking All Sheets Exist
-        file = pd.read_excel(self.getFileName(), None)
-        existing_sheets = file.keys()
-        required_sheets = [
-            "parameters",
-            "submissions",
-            "tracks",
-            "sessions",
-            "rooms",
-            "tracks_sessions|penalty",
-            "tracks_rooms|penalty",
-            "similar tracks",
-            "sessions_rooms|penalty",
-        ]
-        for i in required_sheets:
-            if i not in existing_sheets:
-                sys.exit(print("Missing Sheet Error! \nMissing Sheet:", i))
-        # End of checking
+    def build(self):
+        self.__check_all_sheets_exist()
+        self.__check_for_duplicates()
 
-        # Begin checking for Duplicates
-        cols = list(
-            pd.read_excel(
-                self.getFileName(), sheet_name="submissions", header=None, nrows=1
-            ).values[0]
-        )
-        if len(cols) != len(set(cols)):
-            sys.exit(
-                print(
-                    "Duplicates Error! \nColumn names duplicate in sheet submissions!"
-                )
-            )
-        duplicates_check = ["submissions", "tracks", "sessions", "rooms"]
-        for i in duplicates_check:
-            duplicates = file[i].duplicated(subset=file[i].columns[0])
-            if duplicates.any() == True:
-                duplicate_indexes = duplicates[duplicates].index
-                sys.exit(
-                    print(
-                        "Duplicates Error! \nThe following duplicates were found in sheet",
-                        i,
-                        ":\n",
-                        file[i][file[i].columns[0]][duplicate_indexes],
-                    )
-                )
-        # End of checking
-
-        # Begin checking for Duplicates in penalty sheets
-        duplicates_check = [
-            "tracks_sessions|penalty",
-            "tracks_rooms|penalty",
-            "similar tracks",
-            "sessions_rooms|penalty",
-        ]
-        for i in duplicates_check:
-            cols = list(
-                pd.read_excel(
-                    self.getFileName(), sheet_name=i, header=None, nrows=1
-                ).values[0]
-            )
-            if len(cols) != len(set(cols)):
-                sys.exit(
-                    print("Duplicates Error! \nColumn names duplicate in sheet", i, "!")
-                )
-            duplicate_row = file[i].iloc[:, 0].duplicated()
-            if duplicate_row.any() == True:
-                duplicate_indexes = duplicate_row[duplicate_row].index
-                sys.exit(
-                    print(
-                        "Duplicates Error! \nThe following duplicates were found in sheet",
-                        i,
-                        ":\n",
-                        file[i][file[i].columns[0]][duplicate_indexes],
-                    )
-                )
-        # End of checking
-
-        # Reading Sessions
-        file = pd.read_excel(
-            self.getFileName(),
-            sheet_name="sessions",
-            keep_default_na=False,
-            na_filter=False,
-        )
-        for i in range(len(file)):
-            temp1 = str(file.iloc[i, 3]).split(":")
-            temp2 = str(file.iloc[i, 4]).split(":")
-            start_time = dt.datetime(2021, 7, 21, int(temp1[0]), int(temp1[1]))
-            end_time = dt.datetime(2021, 7, 21, int(temp2[0]), int(temp2[1]))
-            self.setSession(
-                Session(
-                    file.iloc[i, 0],
-                    file.iloc[i, 1],
-                    file.iloc[i, 2],
-                    start_time,
-                    end_time,
-                )
-            )
-
-        # Reading Rooms
-        file = pd.read_excel(
-            self.getFileName(),
-            sheet_name="rooms",
-            keep_default_na=False,
-            na_filter=False,
-        )
-        for i in range(len(file)):
-            self.setRoom(Room(file.iloc[i, 0]))
+        self.__build_sessions()
+        self.__build_rooms()
 
         # Reading Submissions part 1
         file = pd.read_excel(
@@ -353,35 +253,8 @@ class Problem:
             na_filter=False,
         )
         columns = list(file.columns)
-        timezones_format = {
-            "GMT-12": "Etc/GMT+12",
-            "GMT-11": "Etc/GMT+11",
-            "GMT-10": "Etc/GMT+10",
-            "GMT-9": "Etc/GMT+9",
-            "GMT-8": "Etc/GMT+8",
-            "GMT-7": "Etc/GMT+7",
-            "GMT-6": "Etc/GMT+6",
-            "GMT-5": "Etc/GMT+5",
-            "GMT-4": "Etc/GMT+4",
-            "GMT-3": "Etc/GMT+3",
-            "GMT-2": "Etc/GMT+2",
-            "GMT-1": "Etc/GMT+1",
-            "GMT+0": "Etc/GMT+0",
-            "GMT+12": "Etc/GMT-12",
-            "GMT+11": "Etc/GMT-11",
-            "GMT+10": "Etc/GMT-10",
-            "GMT+9": "Etc/GMT-9",
-            "GMT+8": "Etc/GMT-8",
-            "GMT+7": "Etc/GMT-7",
-            "GMT+6": "Etc/GMT-6",
-            "GMT+5": "Etc/GMT-5",
-            "GMT+4": "Etc/GMT-4",
-            "GMT+3": "Etc/GMT-3",
-            "GMT+2": "Etc/GMT-2",
-            "GMT+1": "Etc/GMT-1",
-        }
         df1 = file.iloc[:, :7]
-        df1 = df1.replace({"Time Zone": timezones_format})
+        df1 = df1.replace({"Time Zone": config.TIMEZONE_MAPPING})
         df2 = file.iloc[:, 7:]
         df2.replace(to_replace="", value=0, inplace=True)
         file = df1.join(df2)
@@ -393,96 +266,12 @@ class Problem:
             na_filter=False,
         )
 
-        # Begin checking for Track of zero size
-        for i in file2["Tracks"].values:
-            if i not in freq.keys():
-                sys.exit(
-                    print(
-                        "Track Error!\n[ Track Name:", i, "]", " has none submissions!"
-                    )
-                )
-        # End of checking
+        self.__check_number_of_items_in_submissions_sheet(file)
+        self.__check_for_invalid_tracks(file2, freq)
+        self.__check_number_of_items_in_penalty_sheets()
+        self.__check_naming_is_valid(file)
 
-        # Begin checking number of items
-        file3 = pd.read_excel(self.getFileName(), None, header=None)
-        if (
-            len(file3["tracks_sessions|penalty"].iloc[0, :]) != len(file3["sessions"])
-        ) or (len(file3["tracks_sessions|penalty"].iloc[:, 0]) != len(file3["tracks"])):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_sessions|penalty."
-                )
-            )
-        if (len(file3["tracks_rooms|penalty"].iloc[0, :]) != len(file3["rooms"])) or (
-            len(file3["tracks_rooms|penalty"].iloc[:, 0]) != len(file3["tracks"])
-        ):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_rooms|penalty."
-                )
-            )
-        if (len(file3["similar tracks"].iloc[0, :]) != len(file3["tracks"])) or (
-            len(file3["similar tracks"].iloc[:, 0]) != len(file3["tracks"])
-        ):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_tracks|penalty."
-                )
-            )
-        if (len(file3["sessions_rooms|penalty"].iloc[0, :]) != len(file3["rooms"])) or (
-            len(file3["sessions_rooms|penalty"].iloc[:, 0]) != len(file3["sessions"])
-        ):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet sessions_rooms|penalty."
-                )
-            )
-        # End of checking
-
-        # Reading Tracks
-        for i in range(len(file2)):
-            self.setTrack(
-                Track(file2.iloc[i, 0], list(file2.iloc[i, 1].split(", ")), [], [])
-            )
-
-        # Begin checking for number of items between submissions and sessions & rooms
-        if len(columns[7:]) != self.getNumberOfSessions() + self.getNumberOfRooms():
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nEnsure that number of sessions and rooms in sheet submissions match with number of itmes in sessions and rooms sheets."
-                )
-            )
-        # End of checking
-
-        # Begin checking for matching names between submissions and sessions sheets
-        for i in range(self.getNumberOfSessions()):
-            if (
-                self.getSession(i).getSessionName()
-                not in columns[7 : 7 + self.getNumberOfSessions()]
-            ):
-                sys.exit(
-                    print(
-                        "Sessions Error!\nSessions names in submissions sheet must match those in sessions sheet."
-                    )
-                )
-        # End of checking
-
-        # Begin checking for matching names between submissions and rooms sheets
-        for i in range(self.getNumberOfRooms()):
-            if (
-                self.getRoom(i).getRoomName()
-                not in columns[
-                    7 + self.getNumberOfSessions() : 7
-                    + self.getNumberOfSessions()
-                    + self.getNumberOfRooms()
-                ]
-            ):
-                sys.exit(
-                    print(
-                        "Rooms Error!\nRooms names in submissions sheet must match those in rooms sheet."
-                    )
-                )
-        # End of checking
+        self.__build_tracks(file2)
 
         # Reading Submissions part 2
         for i in range(len(file)):
@@ -541,7 +330,203 @@ class Problem:
                 track_ts.append(sub.getSubmissionRequiredTimeSlots())
             self.getTrack(track).setTrackRequiredTimeSlots(sum(track_ts))
 
-        # Reading 'tracks_sessions|penalty' sheet
+        file2 = pd.read_excel(self.getFileName(), None)
+        self.__set_track_session_penalties()
+        self.__set_track_room_penalties()
+        self.__set_track_track_penalties()
+        self.__set_session_room_penalties()
+        self.__set_parameters()
+
+        self.__check_feasibility_of_problem()
+        self.__set_conflicts()
+        self.__set_timezone_penalties()
+
+        return self.getParameters()
+
+    def __check_all_sheets_exist(self) -> None:
+        existing_sheets = self.__file.keys()
+        for i in config.REQUIRED_SHEETS:
+            if i not in existing_sheets:
+                sys.exit(print("Missing Sheet Error! \nMissing Sheet:", i))
+
+    def __check_for_duplicates(self) -> None:
+        cols = list(
+            pd.read_excel(
+                self.getFileName(), sheet_name="submissions", header=None, nrows=1
+            ).values[0]
+        )
+        if len(cols) != len(set(cols)):
+            sys.exit(
+                print(
+                    "Duplicates Error! \nColumn names duplicate in sheet submissions!"
+                )
+            )
+        duplicates_check = ["submissions", "tracks", "sessions", "rooms"]
+        for i in duplicates_check:
+            duplicates = self.__file[i].duplicated(subset=self.__file[i].columns[0])
+            if duplicates.any() == True:
+                duplicate_indexes = duplicates[duplicates].index
+                sys.exit(
+                    print(
+                        "Duplicates Error! \nThe following duplicates were found in sheet",
+                        i,
+                        ":\n",
+                        self.__file[i][self.__file[i].columns[0]][duplicate_indexes],
+                    )
+                )
+
+        duplicates_check = [
+            "tracks_sessions|penalty",
+            "tracks_rooms|penalty",
+            "similar tracks",
+            "sessions_rooms|penalty",
+        ]
+        for i in duplicates_check:
+            cols = list(
+                pd.read_excel(
+                    self.getFileName(), sheet_name=i, header=None, nrows=1
+                ).values[0]
+            )
+            if len(cols) != len(set(cols)):
+                sys.exit(
+                    print("Duplicates Error! \nColumn names duplicate in sheet", i, "!")
+                )
+            duplicate_row = self.__file[i].iloc[:, 0].duplicated()
+            if duplicate_row.any() == True:
+                duplicate_indexes = duplicate_row[duplicate_row].index
+                sys.exit(
+                    print(
+                        "Duplicates Error! \nThe following duplicates were found in sheet",
+                        i,
+                        ":\n",
+                        self.__file[i][self.__file[i].columns[0]][duplicate_indexes],
+                    )
+                )
+
+    def __check_for_invalid_tracks(
+        self, file: dict[str, pd.DataFrame], frequency: pd.Series
+    ) -> None:
+        for i in file["Tracks"].values:
+            if i not in frequency.keys():
+                sys.exit(
+                    print(
+                        "Track Error!\n[ Track Name:", i, "]", " has none submissions!"
+                    )
+                )
+
+    def __check_number_of_items_in_penalty_sheets(self) -> None:
+        file = pd.read_excel(self.getFileName(), None, header=None)
+        if (
+            len(file["tracks_sessions|penalty"].iloc[0, :]) != len(file["sessions"])
+        ) or (len(file["tracks_sessions|penalty"].iloc[:, 0]) != len(file["tracks"])):
+            sys.exit(
+                print(
+                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_sessions|penalty."
+                )
+            )
+        if (len(file["tracks_rooms|penalty"].iloc[0, :]) != len(file["rooms"])) or (
+            len(file["tracks_rooms|penalty"].iloc[:, 0]) != len(file["tracks"])
+        ):
+            sys.exit(
+                print(
+                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_rooms|penalty."
+                )
+            )
+        if (len(file["similar tracks"].iloc[0, :]) != len(file["tracks"])) or (
+            len(file["similar tracks"].iloc[:, 0]) != len(file["tracks"])
+        ):
+            sys.exit(
+                print(
+                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_tracks|penalty."
+                )
+            )
+        if (len(file["sessions_rooms|penalty"].iloc[0, :]) != len(file["rooms"])) or (
+            len(file["sessions_rooms|penalty"].iloc[:, 0]) != len(file["sessions"])
+        ):
+            sys.exit(
+                print(
+                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet sessions_rooms|penalty."
+                )
+            )
+
+    def __check_number_of_items_in_submissions_sheet(
+        self, file: dict[str, pd.DataFrame]
+    ) -> None:
+        columns = list(file.columns)
+        if len(columns[7:]) != self.getNumberOfSessions() + self.getNumberOfRooms():
+            sys.exit(
+                print(
+                    "Incorrect Number of Items Error! \nEnsure that number of sessions and rooms in sheet submissions match with number of itmes in sessions and rooms sheets."
+                )
+            )
+
+    def __check_naming_is_valid(self, file: dict[str, pd.DataFrame]) -> None:
+        columns = list(file.columns)
+        for i in range(self.getNumberOfSessions()):
+            if (
+                self.getSession(i).getSessionName()
+                not in columns[7 : 7 + self.getNumberOfSessions()]
+            ):
+                sys.exit(
+                    print(
+                        "Sessions Error!\nSessions names in submissions sheet must match those in sessions sheet."
+                    )
+                )
+
+        for i in range(self.getNumberOfRooms()):
+            if (
+                self.getRoom(i).getRoomName()
+                not in columns[
+                    7 + self.getNumberOfSessions() : 7
+                    + self.getNumberOfSessions()
+                    + self.getNumberOfRooms()
+                ]
+            ):
+                sys.exit(
+                    print(
+                        "Rooms Error!\nRooms names in submissions sheet must match those in rooms sheet."
+                    )
+                )
+
+    def __build_sessions(self) -> None:
+        file = pd.read_excel(
+            self.getFileName(),
+            sheet_name="sessions",
+            keep_default_na=False,
+            na_filter=False,
+        )
+        for i in range(len(file)):
+            temp1 = str(file.iloc[i, 3]).split(":")
+            temp2 = str(file.iloc[i, 4]).split(":")
+            start_time = dt.datetime(2021, 7, 21, int(temp1[0]), int(temp1[1]))
+            end_time = dt.datetime(2021, 7, 21, int(temp2[0]), int(temp2[1]))
+            self.setSession(
+                Session(
+                    file.iloc[i, 0],
+                    file.iloc[i, 1],
+                    file.iloc[i, 2],
+                    start_time,
+                    end_time,
+                )
+            )
+
+    def __build_rooms(self) -> None:
+        file = pd.read_excel(
+            self.getFileName(),
+            sheet_name="rooms",
+            keep_default_na=False,
+            na_filter=False,
+        )
+        for i in range(len(file)):
+            self.setRoom(Room(file.iloc[i, 0]))
+
+    def __build_tracks(self, file: dict[str, pd.DataFrame]) -> None:
+        for i in range(len(file)):
+            self.setTrack(
+                Track(file.iloc[i, 0], list(file.iloc[i, 1].split(", ")), [], [])
+            )
+
+    def __set_track_session_penalties(self) -> None:
         file = pd.read_excel(
             self.getFileName(),
             sheet_name="tracks_sessions|penalty",
@@ -578,20 +563,22 @@ class Problem:
                     file.iloc[i, j + 1],
                 )
 
-        # Reading 'tracks_rooms|penalty' sheet
+    def __set_track_room_penalties(self) -> None:
         file = pd.read_excel(
             self.getFileName(),
             sheet_name="tracks_rooms|penalty",
             keep_default_na=False,
             na_filter=False,
         )
+        file2 = pd.read_excel(self.getFileName(), None)
+        tracks_list = file2["tracks"]["Tracks"].values
         file.replace(to_replace="", value=0, inplace=True)
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
         for i in range(len(file)):
             for j in range(len(columns)):
                 # Begin checking Misspelling
-                if file.iloc[i, 0] not in file2["tracks"]["Tracks"].values:
+                if file.iloc[i, 0] not in tracks_list:
                     sys.exit(
                         print(
                             "Misspelling Error!\nIn sheet tracks_rooms|penalty [",
@@ -614,6 +601,7 @@ class Problem:
                     file.iloc[i, j + 1],
                 )
 
+    def __set_track_track_penalties(self) -> None:
         # Reading 'similar tracks' sheet
         file = pd.read_excel(
             self.getFileName(),
@@ -621,6 +609,7 @@ class Problem:
             keep_default_na=False,
             na_filter=False,
         )
+        file2 = pd.read_excel(self.getFileName(), None)
         file.replace(to_replace="", value=0, inplace=True)
         temp = file.values.tolist()
         for i in range(len(temp)):
@@ -647,13 +636,14 @@ class Problem:
                         temp[y][i + 1],
                     )
 
-        # Reading 'sessions_rooms|penalty' sheet
+    def __set_session_room_penalties(self) -> None:
         file = pd.read_excel(
             self.getFileName(),
             sheet_name="sessions_rooms|penalty",
             keep_default_na=False,
             na_filter=False,
         )
+        file2 = pd.read_excel(self.getFileName(), None)
         file.replace(to_replace="", value=0, inplace=True)
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
@@ -685,16 +675,16 @@ class Problem:
                     file.iloc[i, j + 1],
                 )
 
-        # Reading 'parameters' sheet
+    def __set_parameters(self) -> None:
         file = pd.read_excel(
             self.getFileName(),
             sheet_name="parameters",
             keep_default_na=False,
             na_filter=False,
         )
-        file = file.replace({"Unnamed: 1": timezones_format})
-        file = file.applymap(lambda x: str(x).split(":"))
-        par = parameters.Parameters(
+        file = file.replace({"Unnamed: 1": config.TIMEZONE_MAPPING})
+        file = file.map(lambda x: str(x).split(":"))
+        par = Parameters(
             local_time_zone=file.iloc[0, 1][0],
             suitable_schedule_time_from=file.iloc[2, 1],
             suitable_schedule_time_to=file.iloc[3, 1],
@@ -721,7 +711,7 @@ class Problem:
         )
         self.setParameters(par)
 
-        # Feasibility Checking
+    def __check_feasibility_of_problem(self) -> None:
         if (
             self.getSumOfAvailableTimeSlots() * self.getNumberOfRooms()
             < self.getSumOfRequiredTimeSlots()
@@ -732,84 +722,7 @@ class Problem:
                 )
             )
 
-        return par
-
-    def FindConflictsNoAttendees(self):
-        for i in range(self.getNumberOfSubmissions()):
-            for y in range(self.getNumberOfSubmissions()):
-                if y != i:
-                    for x in range(
-                        len(self.getSubmission(i).getSubmissionPresentersList())
-                    ):
-                        if self.getSubmission(i).getSubmissionPresentersList()[x] != "":
-                            for z in range(
-                                len(self.getSubmission(y).getSubmissionPresentersList())
-                            ):
-                                if (
-                                    self.getSubmission(i).getSubmissionPresentersList()[
-                                        x
-                                    ]
-                                    == self.getSubmission(
-                                        y
-                                    ).getSubmissionPresentersList()[z]
-                                ):
-                                    self.getSubmission(
-                                        i
-                                    ).setSubmissionPresenterConflicts(
-                                        self.getSubmission(y)
-                                    )
-                                    self.getSubmission(
-                                        y
-                                    ).setSubmissionPresenterConflicts(
-                                        self.getSubmission(i)
-                                    )
-                            for z in range(
-                                len(
-                                    self.getSubmission(y)
-                                    .getSubmissionTrack()
-                                    .getTrackChairsList()
-                                )
-                            ):
-                                if (
-                                    self.getSubmission(i).getSubmissionPresentersList()[
-                                        x
-                                    ]
-                                    == self.getSubmission(y)
-                                    .getSubmissionTrack()
-                                    .getTrackChairsList()[z]
-                                ) and (
-                                    self.getSubmission(i).getSubmissionTrack()
-                                    != self.getSubmission(y).getSubmissionTrack()
-                                ):
-                                    self.getSubmission(
-                                        i
-                                    ).setSubmissionPresenterConflicts(
-                                        self.getSubmission(y)
-                                    )
-                                    self.getSubmission(
-                                        y
-                                    ).setSubmissionPresenterConflicts(
-                                        self.getSubmission(i)
-                                    )
-        for i in range(self.getNumberOfTracks()):
-            for y in range(self.getNumberOfTracks()):
-                if y != i:
-                    for x in range(len(self.getTrack(i).getTrackChairsList())):
-                        if self.getTrack(i).getTrackChairsList()[x] != "":
-                            for z in range(len(self.getTrack(y).getTrackChairsList())):
-                                if (
-                                    self.getTrack(i).getTrackChairsList()[x]
-                                    == self.getTrack(y).getTrackChairsList()[z]
-                                ):
-                                    self.getTrack(i).setTrackChairConflicts(
-                                        self.getTrack(y)
-                                    )
-                                    self.getTrack(y).setTrackChairConflicts(
-                                        self.getTrack(i)
-                                    )
-
-    def FindAllConflicts(self):
-        self.FindConflictsNoAttendees()
+    def __set_conflicts(self):
         for i in range(self.getNumberOfSubmissions()):
             for y in range(self.getNumberOfSubmissions()):
                 if y != i:
@@ -896,13 +809,8 @@ class Problem:
                                         self.getSubmission(i)
                                     )
 
-    def FindConflicts(self, attendees=True):
-        if attendees == True:
-            self.FindAllConflicts()
-        else:
-            self.FindConflictsNoAttendees()
-
-    def AssignTimezonesPenalties(self, parameters):
+    def __set_timezone_penalties(self):
+        parameters = self.getParameters()
         suitable_from = dt.datetime(
             2021,
             7,

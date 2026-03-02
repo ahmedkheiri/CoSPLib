@@ -884,7 +884,7 @@ class Solution:
                 for r in range(self.getProblem().getNumberOfRooms())
             ],
         )
-        df = df.applymap(
+        df = df.map(
             lambda x: self.getProblem().getTrack(x).getTrackName() if x != -1 else ""
         )
 

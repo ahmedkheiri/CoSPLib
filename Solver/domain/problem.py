@@ -10,327 +10,68 @@ from domain.track import Track
 from domain.room import Room
 from domain.session import Session
 from parameters import Parameters
+from typing import List, Dict
+from pathlib import Path
+import logging
 import config
 import pandas as pd
 import datetime as dt
 import pytz
-import sys
 
 
 class Problem:
-    def __init__(self, file_name="N2OR.xlsx"):
-        self.__file_name = file_name
-        self.__file = pd.read_excel(file_name, None)
-
-        self.__rooms = []
-        self.__sessions = []
-        self.__tracks = []
-        self.__submissions = []
-
-        self.__rooms_map = {}
-        self.__sessions_map = {}
-        self.__tracks_map = {}
-        self.__submissions_map = {}
-
-        self.__submissions_sessions_penalty_map = {}
-        self.__submissions_timezones_penalty_map = {}
-        self.__submissions_rooms_penalty_map = {}
-        self.__tracks_sessions_penalty_map = {}
-        self.__tracks_rooms_penalty_map = {}
-        self.__tracks_tracks_penalty_map = {}
-        self.__sessions_rooms_penalty_map = {}
-
-    def getFileName(self) -> str:
-        return self.__file_name
-
-    def setFileName(self, file_name):
-        self.__file_name = file_name
-
-    # Rooms
-    def getNumberOfRooms(self) -> int:
-        return len(self.__rooms)
-
-    def getRoom(self, room_index) -> Room:
-        return self.__rooms[room_index]
-
-    def getRoomList(self) -> list:
-        return self.__rooms
-
-    def setRoom(self, room_object):
-        self.__rooms.append(room_object)
-        self.__rooms_map[room_object.getRoomName()] = len(self.__rooms_map)
-
-    def getRoomIndex(self, room_name) -> int:
-        return self.__rooms_map[room_name]
-
-    # Sessions
-    def getNumberOfSessions(self) -> int:
-        return len(self.__sessions)
-
-    def getSession(self, session_index) -> Session:
-        return self.__sessions[session_index]
-
-    def getSessionList(self) -> list:
-        return self.__sessions
-
-    def setSession(self, session_object):
-        self.__sessions.append(session_object)
-        self.__sessions_map[session_object.getSessionName()] = len(self.__sessions_map)
-
-    def getSessionIndex(self, session_name) -> int:
-        return self.__sessions_map[session_name]
-
-    def getSumOfAvailableTimeSlots(self) -> int:
-        self.__sum_of_time_slots = 0
-        for i in range(len(self.__sessions)):
-            self.__sum_of_time_slots += self.__sessions[i].getSessionMaxTimeSlots()
-        return self.__sum_of_time_slots
-
-    def getLargestSessionTimeSlots(self):
-        temp = []
-        for i in range(len(self.__sessions)):
-            temp.append(self.getSession(i).getSessionMaxTimeSlots())
-        return max(temp)
-
-    # Tracks
-    def getNumberOfTracks(self) -> int:
-        return len(self.__tracks)
-
-    def getTrack(self, track_index) -> Track:
-        return self.__tracks[track_index]
-
-    def getTrackList(self) -> list:
-        return self.__tracks
-
-    def setTrack(self, track_object):
-        self.__tracks.append(track_object)
-        self.__tracks_map[track_object.getTrackName()] = len(self.__tracks_map)
-
-    def getTrackIndex(self, track_name) -> int:
-        return self.__tracks_map[track_name]
-
-    # Submissions
-    def getNumberOfSubmissions(self) -> int:
-        return len(self.__submissions)
-
-    def getSubmission(self, submission_index) -> Submission:
-        return self.__submissions[submission_index]
-
-    def getSubmissionList(self) -> list:
-        return self.__submissions
-
-    def setSubmission(self, submission_object):
-        self.__submissions.append(submission_object)
-        self.__submissions_map[submission_object.getSubmissionName()] = len(
-            self.__submissions_map
-        )
-
-    def getSubmissionIndex(self, submission_name) -> int:
-        return self.__submissions_map[submission_name]
-
-    def getSumOfRequiredTimeSlots(self):
-        self.__total_required_time_slots = 0
-        for i in range(len(self.__submissions)):
-            self.__total_required_time_slots += self.__submissions[
-                i
-            ].getSubmissionRequiredTimeSlots()
-        return self.__total_required_time_slots
-
-    # Parameters
-    def setParameters(self, parameters_object):
-        self.__parameters = parameters_object
-
-    def getParameters(self) -> Parameters:
-        return self.__parameters
-
-    # Submissions_sessions|penalty
-    def setSubmissionsSessionsPenalty(self, submission_name, session_name, penalty):
-        self.__submissions_sessions_penalty_map[submission_name + session_name] = (
-            penalty
-        )
-
-    def getSubmissionsSessionsPenalty(self, submission_name, session_name):
-        return self.__submissions_sessions_penalty_map[submission_name + session_name]
-
-    def getSubmissionsSessionsPenaltybyIndex(self, submission_index, session_index):
-        return self.__submissions_sessions_penalty_map[
-            self.getSubmission(submission_index).getSubmissionName()
-            + self.getSession(session_index).getSessionName()
-        ]
-
-    # Submissions_Timezones|penalty
-    def setSubmissionsTimezonesPenalty(self, submission_name, session_name, penalty):
-        self.__submissions_timezones_penalty_map[submission_name + session_name] = (
-            penalty
-        )
-
-    def getSubmissionsTimezonesPenalty(self, submission_name, session_name):
-        return self.__submissions_timezones_penalty_map[submission_name + session_name]
-
-    def getSubmissionsTimezonesPenaltybyIndex(self, submission_index, session_index):
-        return self.__submissions_timezones_penalty_map[
-            self.getSubmission(submission_index).getSubmissionName()
-            + self.getSession(session_index).getSessionName()
-        ]
-
-    # Submissions_rooms|penalty
-    def setSubmissionsRoomsPenalty(self, submission_name, room_name, penalty):
-        self.__submissions_rooms_penalty_map[submission_name + room_name] = penalty
-
-    def getSubmissionsRoomsPenalty(self, submission_name, room_name):
-        return self.__submissions_rooms_penalty_map[submission_name + room_name]
-
-    def getSubmissionsRoomsPenaltybyIndex(self, submission_index, room_index):
-        return self.__submissions_rooms_penalty_map[
-            self.getSubmission(submission_index).getSubmissionName()
-            + self.getRoom(room_index).getRoomName()
-        ]
-
-    # Tracks_sessions|penalty
-    def setTracksSessionsPenalty(self, track_name, session_name, penalty):
-        self.__tracks_sessions_penalty_map[track_name + session_name] = penalty
-
-    def getTracksSessionsPenalty(self, track_name, session_name):
-        return self.__tracks_sessions_penalty_map[track_name + session_name]
-
-    def getTracksSessionsPenaltybyIndex(self, track_index, session_index):
-        return self.__tracks_sessions_penalty_map[
-            self.getTrack(track_index).getTrackName()
-            + self.getSession(session_index).getSessionName()
-        ]
-
-    # Tracks_rooms|penalty
-    def setTracksRoomsPenalty(self, track_name, room_name, penalty):
-        self.__tracks_rooms_penalty_map[track_name + room_name] = penalty
-
-    def getTracksRoomsPenalty(self, track_name, room_name):
-        return self.__tracks_rooms_penalty_map[track_name + room_name]
-
-    def getTracksRoomsPenaltybyIndex(self, track_index, room_index):
-        return self.__tracks_rooms_penalty_map[
-            self.getTrack(track_index).getTrackName()
-            + self.getRoom(room_index).getRoomName()
-        ]
-
-    # Tracks_tracks|penalty
-    def setTracksTracksPenalty(self, track_name1, track_name2, penalty):
-        self.__tracks_tracks_penalty_map[track_name1 + track_name2] = penalty
-
-    def getTracksTracksPenalty(self, track1_name, track2_name):
-        return self.__tracks_tracks_penalty_map[track1_name + track2_name]
-
-    def getTracksTracksPenaltybyIndex(self, track1_index, track2_index):
-        return self.__tracks_tracks_penalty_map[
-            self.getTrack(track1_index).getTrackName()
-            + self.getTrack(track2_index).getTrackName()
-        ]
-
-    # Sessions_rooms|penalty
-    def setSessionsRoomsPenalty(self, session_name, room_name, penalty):
-        self.__sessions_rooms_penalty_map[session_name + room_name] = penalty
-
-    def getSessionsRoomsPenalty(self, session_name, room_name):
-        return self.__sessions_rooms_penalty_map[session_name + room_name]
-
-    def getSessionsRoomsPenaltybyIndex(self, session_index, room_index):
-        return self.__sessions_rooms_penalty_map[
-            self.getSession(session_index).getSessionName()
-            + self.getRoom(room_index).getRoomName()
-        ]
-
-    def build(self):
+    def __init__(self, file_path: Path) -> None:
+        self.__file_name: str = file_path.stem
+        self.__file_path: Path = file_path
+        self.__file: dict[str, pd.DataFrame] = pd.read_excel(file_path, None)
         self.__check_all_sheets_exist()
-        self.__check_for_duplicates()
-
-        self.__build_sessions()
-        self.__build_rooms()
-
-        # Reading Submissions part 1
-        file = pd.read_excel(
-            self.getFileName(),
+        self.__submissions_file: pd.DataFrame = pd.read_excel(
+            file_path,
             sheet_name="submissions",
             keep_default_na=False,
             na_filter=False,
         )
-        columns = list(file.columns)
-        df1 = file.iloc[:, :7]
-        df1 = df1.replace({"Time Zone": config.TIMEZONE_MAPPING})
-        df2 = file.iloc[:, 7:]
-        df2.replace(to_replace="", value=0, inplace=True)
-        file = df1.join(df2)
-        freq = file["Track"].value_counts(sort=False)
-        file2 = pd.read_excel(
-            self.getFileName(),
+        self.__tracks_file: pd.DataFrame = pd.read_excel(
+            file_path,
             sheet_name="tracks",
             keep_default_na=False,
             na_filter=False,
         )
+        self.__processed_submissions_file: pd.DataFrame = None
+        self.__parameters: Parameters = None
 
-        self.__check_number_of_items_in_submissions_sheet(file)
-        self.__check_for_invalid_tracks(file2, freq)
-        self.__check_number_of_items_in_penalty_sheets()
-        self.__check_naming_is_valid(file)
+        self.__rooms: List[Room] = list()
+        self.__sessions: List[Session] = list()
+        self.__tracks: List[Track] = list()
+        self.__submissions: List[Submission] = list()
 
-        self.__build_tracks(file2)
+        self.__rooms_map: Dict[str, int] = dict()
+        self.__sessions_map: Dict[str, int] = dict()
+        self.__tracks_map: Dict[str, int] = dict()
+        self.__submissions_map: Dict[str, int] = dict()
 
-        # Reading Submissions part 2
-        for i in range(len(file)):
-            # Begin checking for Unknown Track
-            if file.iloc[i, 1] not in file2["Tracks"].values:
-                sys.exit(
-                    print(
-                        "Track Error! \nUnknown track for",
-                        file.iloc[i, 0],
-                        "[ Track name:",
-                        file.iloc[i, 1],
-                        "].",
-                    )
-                )
-            # End of checking
+        self.__submissions_sessions_penalty_map: Dict[str, int] = dict()
+        self.__submissions_timezones_penalty_map: Dict[str, int] = dict()
+        self.__submissions_rooms_penalty_map: Dict[str, int] = dict()
+        self.__tracks_sessions_penalty_map: Dict[str, int] = dict()
+        self.__tracks_rooms_penalty_map: Dict[str, int] = dict()
+        self.__tracks_tracks_penalty_map: Dict[str, int] = dict()
+        self.__sessions_rooms_penalty_map: Dict[str, int] = dict()
 
-            self.setSubmission(
-                Submission(
-                    file.iloc[i, 0],
-                    self.getTrack(self.getTrackIndex(file.iloc[i, 1])),
-                    file.iloc[i, 2],
-                    file.iloc[i, 3],
-                    file.iloc[i, 4],
-                    list(file.iloc[i, 5].split(", ")),
-                    list(file.iloc[i, 6].split(", ")),
-                    [],
-                    [],
-                )
-            )
-            self.getTrack(self.getTrackIndex(file.iloc[i, 1])).setTrackSubmissions(
-                self.getSubmission(self.getSubmissionIndex(file.iloc[i, 0]))
-            )
-            for j in range(7, 7 + self.getNumberOfSessions()):
-                self.setSubmissionsSessionsPenalty(
-                    self.getSubmission(
-                        self.getSubmissionIndex(file.iloc[i, 0])
-                    ).getSubmissionName(),
-                    self.getSession(self.getSessionIndex(columns[j])).getSessionName(),
-                    file.iloc[i, j],
-                )
-            for y in range(
-                7 + self.getNumberOfSessions(),
-                7 + self.getNumberOfSessions() + self.getNumberOfRooms(),
-            ):
-                self.setSubmissionsRoomsPenalty(
-                    self.getSubmission(
-                        self.getSubmissionIndex(file.iloc[i, 0])
-                    ).getSubmissionName(),
-                    self.getRoom(self.getRoomIndex(columns[y])).getRoomName(),
-                    file.iloc[i, y],
-                )
+    def getFileName(self) -> str:
+        return self.__file_name
 
-        for track in range(self.getNumberOfTracks()):
-            track_ts = []
-            for sub in self.getTrack(track).getTrackSubmissionsList():
-                track_ts.append(sub.getSubmissionRequiredTimeSlots())
-            self.getTrack(track).setTrackRequiredTimeSlots(sum(track_ts))
+    def getFilePath(self) -> Path:
+        return self.__file_path
 
-        file2 = pd.read_excel(self.getFileName(), None)
+    def build(self) -> None:
+        logging.info(f"Building instance {self.__file_name}")
+        self.__check_for_duplicates()
+
+        self.__build_sessions()
+        self.__build_rooms()
+        self.__build_submissions()
+
         self.__set_track_session_penalties()
         self.__set_track_room_penalties()
         self.__set_track_track_penalties()
@@ -341,170 +82,177 @@ class Problem:
         self.__set_conflicts()
         self.__set_timezone_penalties()
 
-        return self.getParameters()
+    def getNumberOfRooms(self) -> int:
+        return len(self.__rooms)
 
-    def __check_all_sheets_exist(self) -> None:
-        existing_sheets = self.__file.keys()
-        for i in config.REQUIRED_SHEETS:
-            if i not in existing_sheets:
-                sys.exit(print("Missing Sheet Error! \nMissing Sheet:", i))
+    def getRoom(self, index: int) -> Room:
+        return self.__rooms[index]
 
-    def __check_for_duplicates(self) -> None:
-        cols = list(
-            pd.read_excel(
-                self.getFileName(), sheet_name="submissions", header=None, nrows=1
-            ).values[0]
-        )
-        if len(cols) != len(set(cols)):
-            sys.exit(
-                print(
-                    "Duplicates Error! \nColumn names duplicate in sheet submissions!"
-                )
-            )
-        duplicates_check = ["submissions", "tracks", "sessions", "rooms"]
-        for i in duplicates_check:
-            duplicates = self.__file[i].duplicated(subset=self.__file[i].columns[0])
-            if duplicates.any() == True:
-                duplicate_indexes = duplicates[duplicates].index
-                sys.exit(
-                    print(
-                        "Duplicates Error! \nThe following duplicates were found in sheet",
-                        i,
-                        ":\n",
-                        self.__file[i][self.__file[i].columns[0]][duplicate_indexes],
-                    )
-                )
+    def getRoomList(self) -> List[Room]:
+        return self.__rooms
 
-        duplicates_check = [
-            "tracks_sessions|penalty",
-            "tracks_rooms|penalty",
-            "similar tracks",
-            "sessions_rooms|penalty",
+    def getRoomIndex(self, room_name: str) -> int:
+        return self.__rooms_map[room_name]
+
+    def getNumberOfSessions(self) -> int:
+        return len(self.__sessions)
+
+    def getSession(self, index: int) -> Session:
+        return self.__sessions[index]
+
+    def getSessionList(self) -> List[Session]:
+        return self.__sessions
+
+    def getSessionIndex(self, session_name: str) -> int:
+        return self.__sessions_map[session_name]
+
+    def getSumOfAvailableTimeSlots(self) -> int:
+        sum_of_time_slots = 0
+        for session in self.__sessions:
+            sum_of_time_slots += session.getSessionMaxTimeSlots()
+        return sum_of_time_slots
+
+    def getLargestSessionTimeSlots(self) -> int:
+        time_slots_list = []
+        for session in self.__sessions:
+            time_slots_list.append(session.getSessionMaxTimeSlots())
+        return max(time_slots_list)
+
+    def getNumberOfTracks(self) -> int:
+        return len(self.__tracks)
+
+    def getTrack(self, index: int) -> Track:
+        return self.__tracks[index]
+
+    def getTrackList(self) -> List[Track]:
+        return self.__tracks
+
+    def getTrackIndex(self, track_name: str) -> int:
+        return self.__tracks_map[track_name]
+
+    def getNumberOfSubmissions(self) -> int:
+        return len(self.__submissions)
+
+    def getSubmission(self, index) -> Submission:
+        return self.__submissions[index]
+
+    def getSubmissionList(self) -> List[Submission]:
+        return self.__submissions
+
+    def getSubmissionIndex(self, submission_name: str) -> int:
+        return self.__submissions_map[submission_name]
+
+    def getSumOfRequiredTimeSlots(self) -> int:
+        sum_of_required_time_slots = 0
+        for submission in self.__submissions:
+            sum_of_required_time_slots += submission.getSubmissionRequiredTimeSlots()
+        return sum_of_required_time_slots
+
+    def getParameters(self) -> Parameters:
+        return self.__parameters
+
+    def getSubmissionsSessionsPenalty(
+        self, submission_name: str, session_name: str
+    ) -> int:
+        return self.__submissions_sessions_penalty_map[submission_name + session_name]
+
+    def getSubmissionsSessionsPenaltybyIndex(
+        self, submission_index: int, session_index: int
+    ) -> int:
+        return self.__submissions_sessions_penalty_map[
+            self.getSubmission(submission_index).getSubmissionName()
+            + self.getSession(session_index).getSessionName()
         ]
-        for i in duplicates_check:
-            cols = list(
-                pd.read_excel(
-                    self.getFileName(), sheet_name=i, header=None, nrows=1
-                ).values[0]
-            )
-            if len(cols) != len(set(cols)):
-                sys.exit(
-                    print("Duplicates Error! \nColumn names duplicate in sheet", i, "!")
-                )
-            duplicate_row = self.__file[i].iloc[:, 0].duplicated()
-            if duplicate_row.any() == True:
-                duplicate_indexes = duplicate_row[duplicate_row].index
-                sys.exit(
-                    print(
-                        "Duplicates Error! \nThe following duplicates were found in sheet",
-                        i,
-                        ":\n",
-                        self.__file[i][self.__file[i].columns[0]][duplicate_indexes],
-                    )
-                )
 
-    def __check_for_invalid_tracks(
-        self, file: dict[str, pd.DataFrame], frequency: pd.Series
-    ) -> None:
-        for i in file["Tracks"].values:
-            if i not in frequency.keys():
-                sys.exit(
-                    print(
-                        "Track Error!\n[ Track Name:", i, "]", " has none submissions!"
-                    )
-                )
+    def getSubmissionsTimezonesPenalty(
+        self, submission_name: str, session_name: str
+    ) -> int:
+        return self.__submissions_timezones_penalty_map[submission_name + session_name]
 
-    def __check_number_of_items_in_penalty_sheets(self) -> None:
-        file = pd.read_excel(self.getFileName(), None, header=None)
-        if (
-            len(file["tracks_sessions|penalty"].iloc[0, :]) != len(file["sessions"])
-        ) or (len(file["tracks_sessions|penalty"].iloc[:, 0]) != len(file["tracks"])):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_sessions|penalty."
-                )
-            )
-        if (len(file["tracks_rooms|penalty"].iloc[0, :]) != len(file["rooms"])) or (
-            len(file["tracks_rooms|penalty"].iloc[:, 0]) != len(file["tracks"])
-        ):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_rooms|penalty."
-                )
-            )
-        if (len(file["similar tracks"].iloc[0, :]) != len(file["tracks"])) or (
-            len(file["similar tracks"].iloc[:, 0]) != len(file["tracks"])
-        ):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_tracks|penalty."
-                )
-            )
-        if (len(file["sessions_rooms|penalty"].iloc[0, :]) != len(file["rooms"])) or (
-            len(file["sessions_rooms|penalty"].iloc[:, 0]) != len(file["sessions"])
-        ):
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nIncorrect number of items in sheet sessions_rooms|penalty."
-                )
-            )
+    def getSubmissionsTimezonesPenaltybyIndex(
+        self, submission_index: int, session_index: int
+    ) -> int:
+        return self.__submissions_timezones_penalty_map[
+            self.getSubmission(submission_index).getSubmissionName()
+            + self.getSession(session_index).getSessionName()
+        ]
 
-    def __check_number_of_items_in_submissions_sheet(
-        self, file: dict[str, pd.DataFrame]
-    ) -> None:
-        columns = list(file.columns)
-        if len(columns[7:]) != self.getNumberOfSessions() + self.getNumberOfRooms():
-            sys.exit(
-                print(
-                    "Incorrect Number of Items Error! \nEnsure that number of sessions and rooms in sheet submissions match with number of itmes in sessions and rooms sheets."
-                )
-            )
+    def getSubmissionsRoomsPenalty(self, submission_name: str, room_name: str) -> int:
+        return self.__submissions_rooms_penalty_map[submission_name + room_name]
 
-    def __check_naming_is_valid(self, file: dict[str, pd.DataFrame]) -> None:
-        columns = list(file.columns)
-        for i in range(self.getNumberOfSessions()):
-            if (
-                self.getSession(i).getSessionName()
-                not in columns[7 : 7 + self.getNumberOfSessions()]
-            ):
-                sys.exit(
-                    print(
-                        "Sessions Error!\nSessions names in submissions sheet must match those in sessions sheet."
-                    )
-                )
+    def getSubmissionsRoomsPenaltybyIndex(
+        self, submission_index: int, room_index: int
+    ) -> int:
+        return self.__submissions_rooms_penalty_map[
+            self.getSubmission(submission_index).getSubmissionName()
+            + self.getRoom(room_index).getRoomName()
+        ]
 
-        for i in range(self.getNumberOfRooms()):
-            if (
-                self.getRoom(i).getRoomName()
-                not in columns[
-                    7 + self.getNumberOfSessions() : 7
-                    + self.getNumberOfSessions()
-                    + self.getNumberOfRooms()
-                ]
-            ):
-                sys.exit(
-                    print(
-                        "Rooms Error!\nRooms names in submissions sheet must match those in rooms sheet."
-                    )
-                )
+    def getTracksSessionsPenalty(self, track_name: str, session_name: str) -> int:
+        return self.__tracks_sessions_penalty_map[track_name + session_name]
+
+    def getTracksSessionsPenaltybyIndex(
+        self, track_index: int, session_index: int
+    ) -> int:
+        return self.__tracks_sessions_penalty_map[
+            self.getTrack(track_index).getTrackName()
+            + self.getSession(session_index).getSessionName()
+        ]
+
+    def getTracksRoomsPenalty(self, track_name: str, room_name: str) -> int:
+        return self.__tracks_rooms_penalty_map[track_name + room_name]
+
+    def getTracksRoomsPenaltybyIndex(self, track_index: int, room_index: int) -> int:
+        return self.__tracks_rooms_penalty_map[
+            self.getTrack(track_index).getTrackName()
+            + self.getRoom(room_index).getRoomName()
+        ]
+
+    def getTracksTracksPenalty(
+        self, this_track_name: str, other_track_name: str
+    ) -> int:
+        return self.__tracks_tracks_penalty_map[this_track_name + other_track_name]
+
+    def getTracksTracksPenaltybyIndex(
+        self, this_track_index: int, other_track_index: int
+    ) -> int:
+        return self.__tracks_tracks_penalty_map[
+            self.getTrack(this_track_index).getTrackName()
+            + self.getTrack(other_track_index).getTrackName()
+        ]
+
+    def getSessionsRoomsPenalty(self, session_name: str, room_name: str) -> int:
+        return self.__sessions_rooms_penalty_map[session_name + room_name]
+
+    def getSessionsRoomsPenaltybyIndex(
+        self, session_index: int, room_index: int
+    ) -> int:
+        return self.__sessions_rooms_penalty_map[
+            self.getSession(session_index).getSessionName()
+            + self.getRoom(room_index).getRoomName()
+        ]
 
     def __build_sessions(self) -> None:
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="sessions",
             keep_default_na=False,
             na_filter=False,
         )
-        for i in range(len(file)):
-            temp1 = str(file.iloc[i, 3]).split(":")
-            temp2 = str(file.iloc[i, 4]).split(":")
-            start_time = dt.datetime(2021, 7, 21, int(temp1[0]), int(temp1[1]))
-            end_time = dt.datetime(2021, 7, 21, int(temp2[0]), int(temp2[1]))
-            self.setSession(
+        for row_index in range(len(file)):
+            raw_start_time = str(file.iloc[row_index, 3]).split(":")
+            raw_end_time = str(file.iloc[row_index, 4]).split(":")
+            start_time = dt.datetime(
+                2021, 7, 21, int(raw_start_time[0]), int(raw_start_time[1])
+            )
+            end_time = dt.datetime(
+                2021, 7, 21, int(raw_end_time[0]), int(raw_end_time[1])
+            )
+            self.__setSession(
                 Session(
-                    file.iloc[i, 0],
-                    file.iloc[i, 1],
-                    file.iloc[i, 2],
+                    file.iloc[row_index, 0],
+                    file.iloc[row_index, 1],
+                    file.iloc[row_index, 2],
                     start_time,
                     end_time,
                 )
@@ -512,23 +260,129 @@ class Problem:
 
     def __build_rooms(self) -> None:
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="rooms",
             keep_default_na=False,
             na_filter=False,
         )
-        for i in range(len(file)):
-            self.setRoom(Room(file.iloc[i, 0]))
+        for row_index in range(len(file)):
+            self.__setRoom(Room(file.iloc[row_index, 0]))
 
-    def __build_tracks(self, file: dict[str, pd.DataFrame]) -> None:
-        for i in range(len(file)):
-            self.setTrack(
-                Track(file.iloc[i, 0], list(file.iloc[i, 1].split(", ")), [], [])
+    def __build_tracks(self) -> None:
+        for row_index in range(len(self.__tracks_file)):
+            self.__setTrack(
+                Track(
+                    self.__tracks_file.iloc[row_index, 0],
+                    list(self.__tracks_file.iloc[row_index, 1].split(", ")),
+                    list(),
+                    list(),
+                )
+            )
+
+    def __build_submissions(self) -> None:
+        first_chunk = self.__submissions_file.iloc[:, : config.COLUMNS_TO_INCLUDE]
+        first_chunk = first_chunk.replace({"Time Zone": config.TIMEZONE_MAPPING})
+        second_chunk = self.__submissions_file.iloc[:, config.COLUMNS_TO_INCLUDE :]
+        second_chunk.replace(to_replace="", value=0, inplace=True)
+
+        self.__processed_submissions_file = first_chunk.join(second_chunk)
+        tracks_frequency = self.__processed_submissions_file["Track"].value_counts(
+            sort=False
+        )
+
+        self.__check_number_of_items_in_submissions_sheet()
+        self.__check_for_invalid_tracks(tracks_frequency)
+        self.__check_number_of_items_in_penalty_sheets()
+        self.__check_naming_is_valid()
+
+        self.__build_tracks()
+
+        for row_index in range(len(self.__processed_submissions_file)):
+            if self.__is_track_unknown(row_index):
+                raise ValueError(
+                    f"Track Error! \nUnknown track for {self.__processed_submissions_file.iloc[row_index, 0]} [ Track name: {self.__processed_submissions_file.iloc[row_index, 1]} ]."
+                )
+
+            self.__setSubmission(
+                Submission(
+                    self.__processed_submissions_file.iloc[row_index, 0],
+                    self.getTrack(
+                        self.getTrackIndex(
+                            self.__processed_submissions_file.iloc[row_index, 1]
+                        )
+                    ),
+                    self.__processed_submissions_file.iloc[row_index, 2],
+                    self.__processed_submissions_file.iloc[row_index, 3],
+                    self.__processed_submissions_file.iloc[row_index, 4],
+                    list(
+                        self.__processed_submissions_file.iloc[row_index, 5].split(", ")
+                    ),
+                    list(
+                        self.__processed_submissions_file.iloc[row_index, 6].split(", ")
+                    ),
+                    list(),
+                    list(),
+                )
+            )
+            self.getTrack(
+                self.getTrackIndex(self.__processed_submissions_file.iloc[row_index, 1])
+            ).setTrackSubmissions(
+                self.getSubmission(
+                    self.getSubmissionIndex(
+                        self.__processed_submissions_file.iloc[row_index, 0]
+                    )
+                )
+            )
+
+            for column_index in range(
+                config.COLUMNS_TO_INCLUDE,
+                config.COLUMNS_TO_INCLUDE + self.getNumberOfSessions(),
+            ):
+                self.__setSubmissionsSessionsPenalty(
+                    self.getSubmission(
+                        self.getSubmissionIndex(
+                            self.__processed_submissions_file.iloc[row_index, 0]
+                        )
+                    ).getSubmissionName(),
+                    self.getSession(
+                        self.getSessionIndex(
+                            self.__processed_submissions_file.columns[column_index]
+                        )
+                    ).getSessionName(),
+                    self.__processed_submissions_file.iloc[row_index, column_index],
+                )
+
+            for column_index in range(
+                config.COLUMNS_TO_INCLUDE + self.getNumberOfSessions(),
+                config.COLUMNS_TO_INCLUDE
+                + self.getNumberOfSessions()
+                + self.getNumberOfRooms(),
+            ):
+                self.__setSubmissionsRoomsPenalty(
+                    self.getSubmission(
+                        self.getSubmissionIndex(
+                            self.__processed_submissions_file.iloc[row_index, 0]
+                        )
+                    ).getSubmissionName(),
+                    self.getRoom(
+                        self.getRoomIndex(
+                            self.__processed_submissions_file.columns[column_index]
+                        )
+                    ).getRoomName(),
+                    self.__processed_submissions_file.iloc[row_index, column_index],
+                )
+
+        for track_index in range(self.getNumberOfTracks()):
+            required_time_slots = []
+            for submission in self.getTrack(track_index).getTrackSubmissionsList():
+                required_time_slots.append(submission.getSubmissionRequiredTimeSlots())
+            self.getTrack(track_index).setTrackRequiredTimeSlots(
+                sum(required_time_slots)
             )
 
     def __set_track_session_penalties(self) -> None:
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="tracks_sessions|penalty",
             keep_default_na=False,
             na_filter=False,
@@ -536,155 +390,108 @@ class Problem:
         file.replace(to_replace="", value=0, inplace=True)
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
-        file2 = pd.read_excel(self.getFileName(), None)
-        for i in range(len(file)):
-            for j in range(len(columns)):
-                # Begin checking Misspelling
-                if file.iloc[i, 0] not in file2["tracks"]["Tracks"].values:
-                    sys.exit(
-                        print(
-                            "Misspelling Error!\nIn sheet tracks_sessions|penalty [",
-                            file.iloc[i, 0],
-                            "] is misspelled!",
-                        )
-                    )
-                elif columns[j] not in file2["sessions"]["Sessions"].values:
-                    sys.exit(
-                        print(
-                            "Misspelling Error!\nIn sheet tracks_sessions|penalty [",
-                            columns[j],
-                            "] is misspelled!",
-                        )
-                    )
-                # End of checking
-                self.setTracksSessionsPenalty(
-                    self.getTrack(self.getTrackIndex(file.iloc[i, 0])).getTrackName(),
-                    self.getSession(self.getSessionIndex(columns[j])).getSessionName(),
-                    file.iloc[i, j + 1],
+
+        for row_index in range(len(file)):
+            for column_index in range(len(columns)):
+                self.__setTracksSessionsPenalty(
+                    self.getTrack(
+                        self.getTrackIndex(file.iloc[row_index, 0])
+                    ).getTrackName(),
+                    self.getSession(
+                        self.getSessionIndex(columns[column_index])
+                    ).getSessionName(),
+                    file.iloc[row_index, column_index + 1],
                 )
 
     def __set_track_room_penalties(self) -> None:
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="tracks_rooms|penalty",
             keep_default_na=False,
             na_filter=False,
         )
-        file2 = pd.read_excel(self.getFileName(), None)
-        tracks_list = file2["tracks"]["Tracks"].values
         file.replace(to_replace="", value=0, inplace=True)
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
-        for i in range(len(file)):
-            for j in range(len(columns)):
-                # Begin checking Misspelling
-                if file.iloc[i, 0] not in tracks_list:
-                    sys.exit(
-                        print(
-                            "Misspelling Error!\nIn sheet tracks_rooms|penalty [",
-                            file.iloc[i, 0],
-                            "] is misspelled!",
-                        )
-                    )
-                elif columns[j] not in file2["rooms"]["Rooms"].values:
-                    sys.exit(
-                        print(
-                            "Misspelling Error!\nIn sheet tracks_rooms|penalty [",
-                            columns[j],
-                            "] is misspelled!",
-                        )
-                    )
-                # End of checking
-                self.setTracksRoomsPenalty(
-                    self.getTrack(self.getTrackIndex(file.iloc[i, 0])).getTrackName(),
-                    self.getRoom(self.getRoomIndex(columns[j])).getRoomName(),
-                    file.iloc[i, j + 1],
+
+        for row_index in range(len(file)):
+            for column_index in range(len(columns)):
+                self.__setTracksRoomsPenalty(
+                    self.getTrack(
+                        self.getTrackIndex(file.iloc[row_index, 0])
+                    ).getTrackName(),
+                    self.getRoom(
+                        self.getRoomIndex(columns[column_index])
+                    ).getRoomName(),
+                    file.iloc[row_index, column_index + 1],
                 )
 
     def __set_track_track_penalties(self) -> None:
-        # Reading 'similar tracks' sheet
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="similar tracks",
             keep_default_na=False,
             na_filter=False,
         )
-        file2 = pd.read_excel(self.getFileName(), None)
         file.replace(to_replace="", value=0, inplace=True)
-        temp = file.values.tolist()
-        for i in range(len(temp)):
-            # Begin checking Misspelling (Only for rows, because only rows are used here)
-            if temp[i][0] not in file2["tracks"]["Tracks"].values:
-                sys.exit(
-                    print(
-                        "Misspelling Error!\nIn sheet similar tracks [",
-                        temp[i][0],
-                        "] is misspelled!",
-                    )
-                )
-            # End of checking
-            for y in range(len(temp)):
+        penalty_list = file.values.tolist()
+
+        for i in range(len(penalty_list)):
+            for y in range(len(penalty_list)):
                 if y != i:
-                    self.setTracksTracksPenalty(
-                        self.getTrack(self.getTrackIndex(temp[i][0])).getTrackName(),
-                        self.getTrack(self.getTrackIndex(temp[y][0])).getTrackName(),
-                        temp[y][i + 1],
+                    self.__setTracksTracksPenalty(
+                        self.getTrack(
+                            self.getTrackIndex(penalty_list[i][0])
+                        ).getTrackName(),
+                        self.getTrack(
+                            self.getTrackIndex(penalty_list[y][0])
+                        ).getTrackName(),
+                        penalty_list[y][i + 1],
                     )
-                    self.setTracksTracksPenalty(
-                        self.getTrack(self.getTrackIndex(temp[y][0])).getTrackName(),
-                        self.getTrack(self.getTrackIndex(temp[i][0])).getTrackName(),
-                        temp[y][i + 1],
+                    self.__setTracksTracksPenalty(
+                        self.getTrack(
+                            self.getTrackIndex(penalty_list[y][0])
+                        ).getTrackName(),
+                        self.getTrack(
+                            self.getTrackIndex(penalty_list[i][0])
+                        ).getTrackName(),
+                        penalty_list[y][i + 1],
                     )
 
     def __set_session_room_penalties(self) -> None:
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="sessions_rooms|penalty",
             keep_default_na=False,
             na_filter=False,
         )
-        file2 = pd.read_excel(self.getFileName(), None)
         file.replace(to_replace="", value=0, inplace=True)
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
-        for i in range(len(file)):
-            for j in range(len(columns)):
-                # Begin checking Misspelling
-                if file.iloc[i, 0] not in file2["sessions"]["Sessions"].values:
-                    sys.exit(
-                        print(
-                            "Misspelling Error!\nIn sheet sessions_rooms|penalty [",
-                            file.iloc[i, 0],
-                            "] is misspelled!",
-                        )
-                    )
-                elif columns[j] not in file2["rooms"]["Rooms"].values:
-                    sys.exit(
-                        print(
-                            "Misspelling Error!\nIn sheet sessions_rooms|penalty [",
-                            columns[j],
-                            "] is misspelled!",
-                        )
-                    )
-                # End of checking
-                self.setSessionsRoomsPenalty(
+
+        for row_index in range(len(file)):
+            for column_index in range(len(columns)):
+                self.__setSessionsRoomsPenalty(
                     self.getSession(
-                        self.getSessionIndex(file.iloc[i, 0])
+                        self.getSessionIndex(file.iloc[row_index, 0])
                     ).getSessionName(),
-                    self.getRoom(self.getRoomIndex(columns[j])).getRoomName(),
-                    file.iloc[i, j + 1],
+                    self.getRoom(
+                        self.getRoomIndex(columns[column_index])
+                    ).getRoomName(),
+                    file.iloc[row_index, column_index + 1],
                 )
 
     def __set_parameters(self) -> None:
         file = pd.read_excel(
-            self.getFileName(),
+            self.getFilePath(),
             sheet_name="parameters",
             keep_default_na=False,
             na_filter=False,
         )
         file = file.replace({"Unnamed: 1": config.TIMEZONE_MAPPING})
         file = file.map(lambda x: str(x).split(":"))
-        par = Parameters(
+
+        self.__parameters = Parameters(
             local_time_zone=file.iloc[0, 1][0],
             suitable_schedule_time_from=file.iloc[2, 1],
             suitable_schedule_time_to=file.iloc[3, 1],
@@ -709,20 +516,70 @@ class Problem:
             small_tz_penalty=int(file.iloc[7, 1][0]),
             big_tz_penalty=int(file.iloc[9, 1][0]),
         )
-        self.setParameters(par)
+
+    def __setTrack(self, track: Track):
+        self.__tracks.append(track)
+        self.__tracks_map[track.getTrackName()] = len(self.__tracks_map)
+
+    def __setSubmission(self, submission: Submission):
+        self.__submissions.append(submission)
+        self.__submissions_map[submission.getSubmissionName()] = len(
+            self.__submissions_map
+        )
+
+    def __setSubmissionsSessionsPenalty(
+        self, submission_name: str, session_name: str, penalty_value: int
+    ) -> None:
+        self.__submissions_sessions_penalty_map[submission_name + session_name] = (
+            penalty_value
+        )
+
+    def __setSubmissionsTimezonesPenalty(
+        self, submission_name: str, session_name: str, penalty_value: int
+    ) -> None:
+        self.__submissions_timezones_penalty_map[submission_name + session_name] = (
+            penalty_value
+        )
+
+    def __setSubmissionsRoomsPenalty(
+        self, submission_name: str, room_name: str, penalty_value: int
+    ) -> None:
+        self.__submissions_rooms_penalty_map[submission_name + room_name] = (
+            penalty_value
+        )
+
+    def __setTracksSessionsPenalty(
+        self, track_name: str, session_name: str, penalty_value: int
+    ) -> None:
+        self.__tracks_sessions_penalty_map[track_name + session_name] = penalty_value
+
+    def __setTracksRoomsPenalty(
+        self, track_name: str, room_name: str, penalty_value: int
+    ) -> None:
+        self.__tracks_rooms_penalty_map[track_name + room_name] = penalty_value
+
+    def __setTracksTracksPenalty(
+        self, this_track_name: str, other_track_name: str, penalty_value: int
+    ) -> None:
+        self.__tracks_tracks_penalty_map[this_track_name + other_track_name] = (
+            penalty_value
+        )
+
+    def __setSessionsRoomsPenalty(
+        self, session_name: str, room_name: str, penalty_value: int
+    ) -> None:
+        self.__sessions_rooms_penalty_map[session_name + room_name] = penalty_value
 
     def __check_feasibility_of_problem(self) -> None:
         if (
             self.getSumOfAvailableTimeSlots() * self.getNumberOfRooms()
             < self.getSumOfRequiredTimeSlots()
         ):
-            sys.exit(
-                print(
-                    "Infeasible!: Not Enough Time Slots Available!\nConsider to add an extra session or room."
-                )
+            raise ValueError(
+                "Infeasible!: Not Enough Time Slots Available!\nConsider to add an extra session or room."
             )
 
-    def __set_conflicts(self):
+    def __set_conflicts(self) -> None:
         for i in range(self.getNumberOfSubmissions()):
             for y in range(self.getNumberOfSubmissions()):
                 if y != i:
@@ -809,7 +666,7 @@ class Problem:
                                         self.getSubmission(i)
                                     )
 
-    def __set_timezone_penalties(self):
+    def __set_timezone_penalties(self) -> None:
         parameters = self.getParameters()
         suitable_from = dt.datetime(
             2021,
@@ -839,22 +696,22 @@ class Problem:
             int(parameters.getLessSuitableScheduleTimeTo()[0]),
             int(parameters.getLessSuitableScheduleTimeTo()[1]),
         ).time()
-        for i in range(self.getNumberOfSessions()):
+        for session_index in range(self.getNumberOfSessions()):
             # Defining session's local time zone
             loc_tz_st = (
-                self.getSession(i)
+                self.getSession(session_index)
                 .getSessionStartTime()
                 .replace(tzinfo=pytz.timezone(parameters.getLocalTimeZone()))
             )
             loc_tz_et = (
-                self.getSession(i)
+                self.getSession(session_index)
                 .getSessionEndTime()
                 .replace(tzinfo=pytz.timezone(parameters.getLocalTimeZone()))
             )
-            for j in range(self.getNumberOfSubmissions()):
+            for submission_index in range(self.getNumberOfSubmissions()):
                 # Defining submission's time zone
                 submission_tz = pytz.timezone(
-                    self.getSubmission(j).getSubmissionTimezone()
+                    self.getSubmission(submission_index).getSubmissionTimezone()
                 )
                 # Removing dates
                 start_time = loc_tz_st.astimezone(submission_tz).time()
@@ -865,22 +722,157 @@ class Problem:
                     or end_time > less_suitable_to
                     or end_time < less_suitable_from
                 ):
-                    self.setSubmissionsTimezonesPenalty(
-                        self.getSubmission(j).getSubmissionName(),
-                        self.getSession(i).getSessionName(),
+                    self.__setSubmissionsTimezonesPenalty(
+                        self.getSubmission(submission_index).getSubmissionName(),
+                        self.getSession(session_index).getSessionName(),
                         parameters.getBigTimeZonePenalty(),
                     )
                 elif (
                     start_time >= less_suitable_from and start_time < suitable_from
                 ) or (end_time > suitable_to and end_time <= less_suitable_to):
-                    self.setSubmissionsTimezonesPenalty(
-                        self.getSubmission(j).getSubmissionName(),
-                        self.getSession(i).getSessionName(),
+                    self.__setSubmissionsTimezonesPenalty(
+                        self.getSubmission(submission_index).getSubmissionName(),
+                        self.getSession(session_index).getSessionName(),
                         parameters.getSmallTimeZonePenalty(),
                     )
                 else:
-                    self.setSubmissionsTimezonesPenalty(
-                        self.getSubmission(j).getSubmissionName(),
-                        self.getSession(i).getSessionName(),
+                    self.__setSubmissionsTimezonesPenalty(
+                        self.getSubmission(submission_index).getSubmissionName(),
+                        self.getSession(session_index).getSessionName(),
                         0,
                     )
+
+    def __setSession(self, session: Session) -> None:
+        self.__sessions.append(session)
+        self.__sessions_map[session.getSessionName()] = len(self.__sessions_map)
+
+    def __setRoom(self, room: Room) -> None:
+        self.__rooms.append(room)
+        self.__rooms_map[room.getRoomName()] = len(self.__rooms_map)
+
+    def __check_all_sheets_exist(self) -> None:
+        existing_sheets = self.__file.keys()
+        for sheet in config.REQUIRED_SHEETS:
+            if sheet not in existing_sheets:
+                raise ValueError(f"Missing Sheet Error! \nMissing Sheet: {sheet}")
+
+    def __check_for_duplicates(self) -> None:
+        cols = list(
+            pd.read_excel(
+                self.getFilePath(), sheet_name="submissions", header=None, nrows=1
+            ).values[0]
+        )
+        if len(cols) != len(set(cols)):
+            raise ValueError(
+                "Duplicates Error! \nDuplicate column names found in submissions sheet!"
+            )
+
+        duplicates_check = ["submissions", "tracks", "sessions", "rooms"]
+        for sheet in duplicates_check:
+            duplicates = self.__file[sheet].duplicated(
+                subset=self.__file[sheet].columns[0]
+            )
+            if duplicates.any() == True:
+                duplicate_indexes = duplicates[duplicates].index
+                raise ValueError(
+                    f"Duplicates Error! \nThe following duplicates were found in sheet {sheet}: \n{self.__file[sheet][self.__file[sheet].columns[0]][duplicate_indexes]}"
+                )
+
+        duplicates_check = [
+            "tracks_sessions|penalty",
+            "tracks_rooms|penalty",
+            "similar tracks",
+            "sessions_rooms|penalty",
+        ]
+        for sheet in duplicates_check:
+            cols = list(
+                pd.read_excel(
+                    self.getFilePath(), sheet_name=sheet, header=None, nrows=1
+                ).values[0]
+            )
+            if len(cols) != len(set(cols)):
+                raise ValueError(
+                    "Duplicates Error! \nDuplicate column names found in submissions sheet!"
+                )
+            duplicate_row = self.__file[sheet].iloc[:, 0].duplicated()
+            if duplicate_row.any() == True:
+                duplicate_indexes = duplicate_row[duplicate_row].index
+                raise ValueError(
+                    f"Duplicates Error! \nThe following duplicates were found in sheet {sheet}: \n{self.__file[sheet][self.__file[sheet].columns[0]][duplicate_indexes]}"
+                )
+
+    def __check_for_invalid_tracks(self, tracks_frequency: pd.Series) -> None:
+        for track in self.__tracks_file["Tracks"].values:
+            if track not in tracks_frequency.keys():
+                raise ValueError(
+                    f"Track Error!\nTrack Name: {track} has none submissions!"
+                )
+
+    def __check_number_of_items_in_penalty_sheets(self) -> None:
+        file = pd.read_excel(self.getFilePath(), None, header=None)
+        if (
+            len(file["tracks_sessions|penalty"].iloc[0, :]) != len(file["sessions"])
+        ) or (len(file["tracks_sessions|penalty"].iloc[:, 0]) != len(file["tracks"])):
+            raise ValueError(
+                "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_sessions|penalty."
+            )
+        if (len(file["tracks_rooms|penalty"].iloc[0, :]) != len(file["rooms"])) or (
+            len(file["tracks_rooms|penalty"].iloc[:, 0]) != len(file["tracks"])
+        ):
+            raise ValueError(
+                "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_rooms|penalty."
+            )
+        if (len(file["similar tracks"].iloc[0, :]) != len(file["tracks"])) or (
+            len(file["similar tracks"].iloc[:, 0]) != len(file["tracks"])
+        ):
+            raise ValueError(
+                "Incorrect Number of Items Error! \nIncorrect number of items in sheet tracks_tracks|penalty."
+            )
+        if (len(file["sessions_rooms|penalty"].iloc[0, :]) != len(file["rooms"])) or (
+            len(file["sessions_rooms|penalty"].iloc[:, 0]) != len(file["sessions"])
+        ):
+            raise ValueError(
+                "Incorrect Number of Items Error! \nIncorrect number of items in sheet sessions_rooms|penalty."
+            )
+
+    def __check_number_of_items_in_submissions_sheet(self) -> None:
+        if (
+            len(self.__processed_submissions_file.columns[config.COLUMNS_TO_INCLUDE :])
+            != self.getNumberOfSessions() + self.getNumberOfRooms()
+        ):
+            raise ValueError(
+                "Incorrect Number of Items Error! \nEnsure that number of sessions and rooms in sheet submissions match with number of itmes in sessions and rooms sheets."
+            )
+
+    def __check_naming_is_valid(self) -> None:
+        for session_index in range(self.getNumberOfSessions()):
+            if (
+                self.getSession(session_index).getSessionName()
+                not in self.__processed_submissions_file.columns[
+                    config.COLUMNS_TO_INCLUDE : config.COLUMNS_TO_INCLUDE
+                    + self.getNumberOfSessions()
+                ]
+            ):
+                raise ValueError(
+                    "Sessions Error!\nSessions names in submissions sheet must match those in sessions sheet."
+                )
+
+        for room_index in range(self.getNumberOfRooms()):
+            if (
+                self.getRoom(room_index).getRoomName()
+                not in self.__processed_submissions_file.columns[
+                    config.COLUMNS_TO_INCLUDE
+                    + self.getNumberOfSessions() : config.COLUMNS_TO_INCLUDE
+                    + self.getNumberOfSessions()
+                    + self.getNumberOfRooms()
+                ]
+            ):
+                raise ValueError(
+                    "Rooms Error!\nRooms names in submissions sheet must match those in rooms sheet."
+                )
+
+    def __is_track_unknown(self, row_index: int) -> bool:
+        return (
+            self.__processed_submissions_file.iloc[row_index, 1]
+            not in self.__tracks_file["Tracks"].values
+        )

@@ -8,18 +8,21 @@ Created on Tue Mar 14 19:16:16 2023
 from optimisation.optimisation import *
 from domain.problem import Problem
 from solution import Solution
+from pathlib import Path
+import config
+import logging
 
-instance = "N2OR"
-f_name = "Dataset/" + str(instance) + ".xlsx"
 
-p = Problem(file_name=f_name)
-parameters = p.build()
-sol = Solution(p)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    problem = Problem(file_path=Path(config.INPUT_PATH))
+    problem.build()
+    sol = Solution(problem)
 
-solver = ExactModel(p, sol)  # Available models: ExactModel(), ExtendedModel()
-solver.solve(timelimit=3600)
+    solver = ExactModel(problem, sol)  # Available models: ExactModel(), ExtendedModel()
+    solver.solve(timelimit=3600)
 
-print("Objective Value:", sol.EvaluateSolution())
-print("All submissions scheduled? ", sol.EvaluateAllSubmissionsScheduled())
-sol.printViolations()
-sol.toExcel(file_name="Solution" + str(instance) + ".xlsx")
+    print("Objective Value:", sol.EvaluateSolution())
+    print("All submissions scheduled? ", sol.EvaluateAllSubmissionsScheduled())
+    sol.printViolations()
+    sol.toExcel(file_name="Solution" + config.INSTANCE_NAME + ".xlsx")

@@ -1,4 +1,6 @@
 # Input file
+INSTANCE_NAME = "N2OR"
+INPUT_PATH = "Dataset/" + INSTANCE_NAME + ".xlsx"
 REQUIRED_SHEETS = [
     "parameters",
     "submissions",
@@ -12,6 +14,7 @@ REQUIRED_SHEETS = [
 ]
 
 # Utils
+# Timezone values are inversed intentionally
 TIMEZONE_MAPPING = {
     "GMT-12": "Etc/GMT+12",
     "GMT-11": "Etc/GMT+11",
@@ -39,3 +42,4 @@ TIMEZONE_MAPPING = {
     "GMT+2": "Etc/GMT-2",
     "GMT+1": "Etc/GMT-1",
 }
+COLUMNS_TO_INCLUDE = 7

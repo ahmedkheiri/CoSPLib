@@ -31,86 +31,46 @@ class Submission:
         self.__presenter_conflicts = presenter_conflicts
         self.__attendee_conflicts = attendee_conflicts
 
-    def getSubmissionName(self) -> str:
+    def get_submission_name(self) -> str:
         return self.__name
 
-    def setSubmissionName(self, name: str) -> None:
-        self.__name = name
-
-    def getSubmissionTrack(self):
+    def get_submission_track(self):
         return self.__track
 
-    def setSubmissionTrack(self, track) -> None:
-        self.__track = track
-
-    def getSubmissionRequiredTimeSlots(self) -> int:
+    def get_submission_required_time_slots(self) -> int:
         return self.__required_time_slots
 
-    def setSubmissionRequiredTimeSlots(self, required_time_slots: int) -> None:
-        self.__required_time_slots = required_time_slots
-
-    def getSubmissionOrder(self) -> int:
+    def get_submission_order(self) -> int:
         return self.__order
 
-    def setSubmissionOrder(self, order) -> None:
-        self.__order = order
-
-    def getSubmissionTimezone(self) -> str:
+    def get_submission_timezone(self) -> str:
         return self.__timezone
 
-    def setSubmissionTimezone(self, timezone: str) -> None:
-        self.__timezone = timezone
-
-    def getSubmissionPresenters(self, index) -> str:
+    def get_submission_presenters(self, index) -> str:
         return self.__presenters[index]
 
-    def getSubmissionPresentersList(self) -> List[str]:
+    def get_submission_prsenters_list(self) -> List[str]:
         return self.__presenters
 
-    def setSubmissionPresenters(self, presenter: str) -> None:
-        self.__presenters.append(presenter)
-
-    def setSubmissionPresentersList(self, presenters_list: List[str]) -> None:
-        self.__presenters = presenters_list
-
-    def getNumberOfSubmissionAttendees(self) -> int:
-        return len(self.__attendees)
-
-    def getSubmissionAttendees(self, index) -> str:
+    def get_submission_attendees(self, index) -> str:
         return self.__attendees[index]
 
-    def getSubmissionAttendeesList(self) -> List[str]:
+    def get_submission_attendees_list(self) -> List[str]:
         return self.__attendees
 
-    def setSubmissionAttendees(self, attendee: str) -> None:
-        self.__attendees.append(attendee)
-
-    def setSubmissionAttendeesList(self, attendees_list: List[str]) -> None:
-        self.__attendees = attendees_list
-
-    def getNumberOfSubmissionPresenterConflicts(self) -> int:
-        return len(self.__presenter_conflicts)
-
-    def getSubmissionPresenterConflicts(self, index) -> str:
+    def get_submission_presenter_conflicts(self, index) -> str:
         return self.__presenter_conflicts[index]
 
-    def getSubmissionPresenterConflictsList(self) -> List[str]:
+    def get_submission_presenter_conflicts_list(self) -> List[str]:
         return self.__presenter_conflicts
 
-    def setSubmissionPresenterConflicts(self, submission: str) -> None:
-        if submission not in self.__presenter_conflicts:
-            self.__presenter_conflicts.append(submission)
-
-    def getNumberOfSubmissionAttendeeConflicts(self) -> int:
-        return len(self.__attendee_conflicts)
-
-    def getSubmissionAttendeeConflicts(self, index: int) -> str:
+    def get_submission_attendee_conflicts(self, index: int) -> str:
         return self.__attendee_conflicts[index]
 
-    def getSubmissionAttendeeConflictsList(self) -> List[str]:
+    def get_submission_attendee_conflicts_list(self) -> List[str]:
         return self.__attendee_conflicts
 
-    def setSubmissionAttendeeConflicts(self, submission: str) -> None:
+    def set_submission_attendee_conflicts(self, submission: str) -> None:
         if submission not in self.__attendee_conflicts:
             self.__attendee_conflicts.append(submission)
 

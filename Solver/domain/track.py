@@ -22,56 +22,34 @@ class Track:
         self.__track_chairs_conflicts = chairs_conflicts
         self.__submissions = submissions
 
-    def getTrackName(self) -> str:
+    def get_track_name(self) -> str:
         return self.__name
 
-    def setTrackName(self, name: str) -> None:
-        self.__name = name
-
-    def getNumberOfTrackChairs(self) -> int:
-        return len(self.__track_chairs)
-
-    def getTrackChairs(self, index: int) -> List[str]:
+    def get_track_chairs(self, index: int) -> List[str]:
         return self.__track_chairs[index]
 
-    def getTrackChairsList(self) -> List[str]:
+    def get_track_chairs_list(self) -> List[str]:
         return self.__track_chairs
 
-    def setTrackChairs(self, chair: str):
-        self.__track_chairs.append(chair)
-
-    def setTrackChairsList(self, chairs_list: List[str]) -> None:
-        self.__track_chairs = chairs_list
-
-    def getNumberOfTrackChairConflicts(self) -> int:
-        return len(self.__track_chairs_conflicts)
-
-    def getTrackChairConflicts(self, index) -> "Track":
+    def get_track_chair_conflicts(self, index) -> "Track":
         return self.__track_chairs_conflicts[index]
 
-    def getTrackChairConflictsList(self) -> List["Track"]:
+    def get_track_chair_conflicts_list(self) -> List["Track"]:
         return self.__track_chairs_conflicts
 
-    def setTrackChairConflicts(self, track: "Track") -> None:
-        if track not in self.__track_chairs_conflicts:
-            self.__track_chairs_conflicts.append(track)
-
-    def getNumberOfTrackSubmissions(self) -> int:
-        return len(self.__submissions)
-
-    def getTrackSubmissions(self, index) -> "Submission":
+    def get_track_submissions(self, index) -> "Submission":
         return self.__submissions[index]
 
-    def getTrackSubmissionsList(self) -> List["Submission"]:
-        return self.__submissions
-
-    def setTrackSubmissions(self, submission: "Submission") -> None:
+    def set_track_submissions(self, submission: "Submission") -> None:
         self.__submissions.append(submission)
 
-    def getTrackRequiredTimeSlots(self) -> int:
+    def get_track_submissions_list(self) -> List["Submission"]:
+        return self.__submissions
+
+    def get_track_required_time_slots(self) -> int:
         return self.__required_timeslots
 
-    def setTrackRequiredTimeSlots(self, required_timeslots: int) -> None:
+    def set_track_required_time_slots(self, required_timeslots: int) -> None:
         self.__required_timeslots = required_timeslots
 
     def __str__(self):

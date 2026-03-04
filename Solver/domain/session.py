@@ -16,35 +16,20 @@ class Session:
         self.__start_time = start_time
         self.__end_time = end_time
 
-    def getSessionName(self) -> str:
+    def get_session_name(self) -> str:
         return self.__name
 
-    def setSessionName(self, name: str) -> None:
-        self.__name = name
-
-    def getSessionMaxTimeSlots(self) -> int:
+    def get_session_max_time_slots(self) -> int:
         return self.__max_time_slots
 
-    def setSessionMaxTimeSlots(self, max_time_slots: int) -> None:
-        self.__max_time_slots = max_time_slots
-
-    def getSessionDate(self) -> str:
+    def get_session_date(self) -> str:
         return self.__date
 
-    def setSessionDate(self, date: str) -> None:
-        self.__date = date
-
-    def getSessionStartTime(self) -> str:
+    def get_session_start_time(self) -> str:
         return self.__start_time
 
-    def setSessionStartTime(self, start_time: str) -> None:
-        self.__start_time = start_time
-
-    def getSessionEndTime(self) -> str:
+    def get_session_end_time(self) -> str:
         return self.__end_time
-
-    def setSessionEndTime(self, end_time: str) -> None:
-        self.__end_time = end_time
 
     def __str__(self):
         return "Session(" + self.__name + ")"

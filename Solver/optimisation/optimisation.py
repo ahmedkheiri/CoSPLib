@@ -28,36 +28,39 @@ class Optimisation:
         model = LpProblem("model", LpMinimize)
         names = []
         sub_x_map = {
-            self.getProblem().getSubmission(sub).getSubmissionName(): []
-            for sub in range(self.getProblem().getNumberOfSubmissions())
-            if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() > 1
+            self.getProblem().get_submission(sub).get_submission_name(): []
+            for sub in range(self.getProblem().get_number_of_submissions())
+            if self.getProblem()
+            .get_submission(sub)
+            .get_submission_required_time_slots()
+            > 1
         }
         track_session_room_x_map = {
-            self.getProblem().getTrack(track).getTrackName()
-            + self.getProblem().getSession(session).getSessionName()
-            + self.getProblem().getRoom(room).getRoomName(): []
-            for track in range(self.getProblem().getNumberOfTracks())
-            for session in range(self.getProblem().getNumberOfSessions())
-            for room in range(self.getProblem().getNumberOfRooms())
+            self.getProblem().get_track(track).get_track_name()
+            + self.getProblem().get_session(session).get_session_name()
+            + self.getProblem().get_room(room).get_room_name(): []
+            for track in range(self.getProblem().get_number_of_tracks())
+            for session in range(self.getProblem().get_number_of_sessions())
+            for room in range(self.getProblem().get_number_of_rooms())
         }
         add_names = []
         track_z_map = {
-            self.getProblem().getTrack(track).getTrackName(): []
-            for track in range(self.getProblem().getNumberOfTracks())
+            self.getProblem().get_track(track).get_track_name(): []
+            for track in range(self.getProblem().get_number_of_tracks())
         }
         session_room_z_map = {}
         room_track_z_map = {
-            self.getProblem().getRoom(room).getRoomName()
-            + self.getProblem().getTrack(track).getTrackName(): []
-            for room in range(self.getProblem().getNumberOfRooms())
-            for track in range(self.getProblem().getNumberOfTracks())
+            self.getProblem().get_room(room).get_room_name()
+            + self.getProblem().get_track(track).get_track_name(): []
+            for room in range(self.getProblem().get_number_of_rooms())
+            for track in range(self.getProblem().get_number_of_tracks())
         }
         track_session_room_z_map = {}
         session_track_z_map = {
-            self.getProblem().getSession(session).getSessionName()
-            + self.getProblem().getTrack(track).getTrackName(): []
-            for session in range(self.getProblem().getNumberOfSessions())
-            for track in range(self.getProblem().getNumberOfTracks())
+            self.getProblem().get_session(session).get_session_name()
+            + self.getProblem().get_track(track).get_track_name(): []
+            for session in range(self.getProblem().get_number_of_sessions())
+            for track in range(self.getProblem().get_number_of_tracks())
         }
         add2_names = []
         track_room_y_map = {}
@@ -68,285 +71,286 @@ class Optimisation:
         n = {}
         mts_subs = [
             sub
-            for sub in range(self.getProblem().getNumberOfSubmissions())
-            if self.getProblem().getSubmission(sub).getSubmissionRequiredTimeSlots() > 1
+            for sub in range(self.getProblem().get_number_of_submissions())
+            if self.getProblem()
+            .get_submission(sub)
+            .get_submission_required_time_slots()
+            > 1
         ]
 
         # Creating decision variables Zs
-        for i in range(self.getProblem().getNumberOfSessions()):
-            for j in range(self.getProblem().getNumberOfRooms()):
+        for i in range(self.getProblem().get_number_of_sessions()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 temp = []
-                for z in range(self.getProblem().getNumberOfTracks()):
+                for z in range(self.getProblem().get_number_of_tracks()):
                     add_names.append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     timeslots[
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
-                    ] = self.getProblem().getSession(i).getSessionMaxTimeSlots()
+                        + self.getProblem().get_track(z).get_track_name()
+                    ] = self.getProblem().get_session(i).get_session_max_time_slots()
                     coefficients[
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     ] = (
                         1
                         + self.getProblem()
-                        .getParameters()
-                        .getTracksSessionsPenaltyWeight()
-                        * self.getProblem().getTracksSessionsPenalty(
-                            self.getProblem().getTrack(z).getTrackName(),
-                            self.getProblem().getSession(i).getSessionName(),
+                        .get_parameters()
+                        .tracks_sessions_penalty_weight
+                        * self.getProblem().get_tracks_sessions_penalty(
+                            self.getProblem().get_track(z).get_track_name(),
+                            self.getProblem().get_session(i).get_session_name(),
+                        )
+                        + self.getProblem().get_parameters().tracks_rooms_penalty_weight
+                        * self.getProblem().get_tracks_rooms_penalty(
+                            self.getProblem().get_track(z).get_track_name(),
+                            self.getProblem().get_room(j).get_room_name(),
                         )
                         + self.getProblem()
-                        .getParameters()
-                        .getTracksRoomsPenaltyWeight()
-                        * self.getProblem().getTracksRoomsPenalty(
-                            self.getProblem().getTrack(z).getTrackName(),
-                            self.getProblem().getRoom(j).getRoomName(),
-                        )
-                        + self.getProblem()
-                        .getParameters()
-                        .getSessionsRoomsPenaltyWeight()
-                        * self.getProblem().getSessionsRoomsPenalty(
-                            self.getProblem().getSession(i).getSessionName(),
-                            self.getProblem().getRoom(j).getRoomName(),
+                        .get_parameters()
+                        .sessions_rooms_penalty_weight
+                        * self.getProblem().get_sessions_rooms_penalty(
+                            self.getProblem().get_session(i).get_session_name(),
+                            self.getProblem().get_room(j).get_room_name(),
                         )
                     )
                     temp.append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     room_track_z_map[
-                        self.getProblem().getRoom(j).getRoomName()
-                        + self.getProblem().getTrack(z).getTrackName()
+                        self.getProblem().get_room(j).get_room_name()
+                        + self.getProblem().get_track(z).get_track_name()
                     ].append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
-                    track_z_map[self.getProblem().getTrack(z).getTrackName()].append(
+                    track_z_map[self.getProblem().get_track(z).get_track_name()].append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     track_session_room_z_map[
-                        self.getProblem().getTrack(z).getTrackName()
-                        + self.getProblem().getSession(i).getSessionName()
-                        + self.getProblem().getRoom(j).getRoomName()
+                        self.getProblem().get_track(z).get_track_name()
+                        + self.getProblem().get_session(i).get_session_name()
+                        + self.getProblem().get_room(j).get_room_name()
                     ] = (
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     session_track_z_map[
-                        self.getProblem().getSession(i).getSessionName()
-                        + self.getProblem().getTrack(z).getTrackName()
+                        self.getProblem().get_session(i).get_session_name()
+                        + self.getProblem().get_track(z).get_track_name()
                     ].append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                 session_room_z_map[
-                    self.getProblem().getSession(i).getSessionName()
-                    + self.getProblem().getRoom(j).getRoomName()
+                    self.getProblem().get_session(i).get_session_name()
+                    + self.getProblem().get_room(j).get_room_name()
                 ] = temp
 
         # Creating decision variables Xs
-        for i in range(self.getProblem().getNumberOfSessions()):
-            for j in range(self.getProblem().getNumberOfRooms()):
+        for i in range(self.getProblem().get_number_of_sessions()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 for x in mts_subs:
                     if (
                         self.getProblem()
-                        .getSubmission(x)
-                        .getSubmissionRequiredTimeSlots()
-                        <= self.getProblem().getSession(i).getSessionMaxTimeSlots()
+                        .get_submission(x)
+                        .get_submission_required_time_slots()
+                        <= self.getProblem().get_session(i).get_session_max_time_slots()
                     ):
                         names.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
                             + self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionTrack()
-                            .getTrackName()
+                            .get_submission(x)
+                            .get_submission_track()
+                            .get_track_name()
                             + "|"
-                            + self.getProblem().getSubmission(x).getSubmissionName()
+                            + self.getProblem().get_submission(x).get_submission_name()
                         )
                         coefficients[
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
                             + self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionTrack()
-                            .getTrackName()
+                            .get_submission(x)
+                            .get_submission_track()
+                            .get_track_name()
                             + "|"
-                            + self.getProblem().getSubmission(x).getSubmissionName()
+                            + self.getProblem().get_submission(x).get_submission_name()
                         ] = 1
                         n[
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
                             + self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionTrack()
-                            .getTrackName()
+                            .get_submission(x)
+                            .get_submission_track()
+                            .get_track_name()
                             + "|"
-                            + self.getProblem().getSubmission(x).getSubmissionName()
+                            + self.getProblem().get_submission(x).get_submission_name()
                         ] = (
                             self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionRequiredTimeSlots()
+                            .get_submission(x)
+                            .get_submission_required_time_slots()
                         )
                         sub_x_map[
-                            self.getProblem().getSubmission(x).getSubmissionName()
+                            self.getProblem().get_submission(x).get_submission_name()
                         ].append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
                             + self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionTrack()
-                            .getTrackName()
+                            .get_submission(x)
+                            .get_submission_track()
+                            .get_track_name()
                             + "|"
-                            + self.getProblem().getSubmission(x).getSubmissionName()
+                            + self.getProblem().get_submission(x).get_submission_name()
                         )
                         track_session_room_x_map[
                             self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionTrack()
-                            .getTrackName()
-                            + self.getProblem().getSession(i).getSessionName()
-                            + self.getProblem().getRoom(j).getRoomName()
+                            .get_submission(x)
+                            .get_submission_track()
+                            .get_track_name()
+                            + self.getProblem().get_session(i).get_session_name()
+                            + self.getProblem().get_room(j).get_room_name()
                         ].append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
                             + self.getProblem()
-                            .getSubmission(x)
-                            .getSubmissionTrack()
-                            .getTrackName()
+                            .get_submission(x)
+                            .get_submission_track()
+                            .get_track_name()
                             + "|"
-                            + self.getProblem().getSubmission(x).getSubmissionName()
+                            + self.getProblem().get_submission(x).get_submission_name()
                         )
 
         # Additional variables to minimise tracks per room Ys
-        for i in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_tracks()):
             temp = []
-            for j in range(self.getProblem().getNumberOfRooms()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 add2_names.append(
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
                 coefficients[
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 ] = 1
                 temp.append(
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
                 track_room_y_map[
-                    self.getProblem().getTrack(i).getTrackName()
-                    + self.getProblem().getRoom(j).getRoomName()
+                    self.getProblem().get_track(i).get_track_name()
+                    + self.getProblem().get_room(j).get_room_name()
                 ] = (
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
-            track_y_map[self.getProblem().getTrack(i).getTrackName()] = temp
+            track_y_map[self.getProblem().get_track(i).get_track_name()] = temp
 
         pen = []
         # Creating penalties for similar tracks
-        for i in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_tracks()):
             temp = [i]
-            for j in range(i, self.getProblem().getNumberOfTracks()):
+            for j in range(i, self.getProblem().get_number_of_tracks()):
                 if i != j:
-                    if self.getProblem().getTracksTracksPenaltybyIndex(i, j) != 0:
+                    if self.getProblem().get_tracks_tracks_penalty_by_index(i, j) != 0:
                         temp.append(j)
                 if len(temp) > 1:
-                    for session in range(self.getProblem().getNumberOfSessions()):
+                    for session in range(self.getProblem().get_number_of_sessions()):
                         pen.append(
                             "ptt_|"
-                            + self.getProblem().getTrack(i).getTrackName()
-                            + self.getProblem().getTrack(j).getTrackName()
-                            + self.getProblem().getSession(session).getSessionName()
+                            + self.getProblem().get_track(i).get_track_name()
+                            + self.getProblem().get_track(j).get_track_name()
+                            + self.getProblem().get_session(session).get_session_name()
                         )
                         coefficients[
                             "ptt_|"
-                            + self.getProblem().getTrack(i).getTrackName()
-                            + self.getProblem().getTrack(j).getTrackName()
-                            + self.getProblem().getSession(session).getSessionName()
+                            + self.getProblem().get_track(i).get_track_name()
+                            + self.getProblem().get_track(j).get_track_name()
+                            + self.getProblem().get_session(session).get_session_name()
                         ] = (
                             self.getProblem()
-                            .getParameters()
-                            .getSimilarTracksPenaltyWeight()
-                            * self.getProblem().getTracksTracksPenaltybyIndex(i, j)
+                            .get_parameters()
+                            .similar_tracks_penalty_weight
+                            * self.getProblem().get_tracks_tracks_penalty_by_index(i, j)
                         )
                     temp = [i]
 
         # Creating penalties for min number of rooms per track
-        for track in range(self.getProblem().getNumberOfTracks()):
+        for track in range(self.getProblem().get_number_of_tracks()):
             temp = []
-            track_name = self.getProblem().getTrack(track).getTrackName()
+            track_name = self.getProblem().get_track(track).get_track_name()
             for name in add2_names:
                 if track_name == name.split("|")[2]:
                     temp.append(name)
-            pen.append("pmrt_|" + self.getProblem().getTrack(track).getTrackName())
+            pen.append("pmrt_|" + self.getProblem().get_track(track).get_track_name())
             coefficients[
-                "pmrt_|" + self.getProblem().getTrack(track).getTrackName()
-            ] = self.getProblem().getParameters().getNumOfRoomsPerTrackWeight()
+                "pmrt_|" + self.getProblem().get_track(track).get_track_name()
+            ] = self.getProblem().get_parameters().num_rooms_per_track_weight
 
         # Creating penalties for parallel tracks
-        for session in range(self.getProblem().getNumberOfSessions()):
-            session_name = self.getProblem().getSession(session).getSessionName()
-            for track in range(self.getProblem().getNumberOfTracks()):
-                track_name = self.getProblem().getTrack(track).getTrackName()
+        for session in range(self.getProblem().get_number_of_sessions()):
+            session_name = self.getProblem().get_session(session).get_session_name()
+            for track in range(self.getProblem().get_number_of_tracks()):
+                track_name = self.getProblem().get_track(track).get_track_name()
                 temp = []
                 for name in add_names:
                     if (
@@ -356,14 +360,14 @@ class Optimisation:
                         temp.append(name)
                 pen.append(
                     "ppt_|"
-                    + self.getProblem().getSession(session).getSessionName()
-                    + self.getProblem().getTrack(track).getTrackName()
+                    + self.getProblem().get_session(session).get_session_name()
+                    + self.getProblem().get_track(track).get_track_name()
                 )
                 coefficients[
                     "ppt_|"
-                    + self.getProblem().getSession(session).getSessionName()
-                    + self.getProblem().getTrack(track).getTrackName()
-                ] = self.getProblem().getParameters().getParallelTracksWeight()
+                    + self.getProblem().get_session(session).get_session_name()
+                    + self.getProblem().get_track(track).get_track_name()
+                ] = self.getProblem().get_parameters().parallel_tracks_weight
 
         # Creating objective function and binary IP formulation
         variables = LpVariable.dicts("Variables", names, cat="Binary")
@@ -385,27 +389,27 @@ class Optimisation:
 
         # Assign subs with multiple ts
         all_constraints = []
-        for track in range(self.getProblem().getNumberOfTracks()):
-            for session in range(self.getProblem().getNumberOfSessions()):
-                for room in range(self.getProblem().getNumberOfRooms()):
+        for track in range(self.getProblem().get_number_of_tracks()):
+            for session in range(self.getProblem().get_number_of_sessions()):
+                for room in range(self.getProblem().get_number_of_rooms()):
                     temp = track_session_room_x_map[
-                        self.getProblem().getTrack(track).getTrackName()
-                        + self.getProblem().getSession(session).getSessionName()
-                        + self.getProblem().getRoom(room).getRoomName()
+                        self.getProblem().get_track(track).get_track_name()
+                        + self.getProblem().get_session(session).get_session_name()
+                        + self.getProblem().get_room(room).get_room_name()
                     ]
                     if len(temp) != 0:
                         all_constraints.append(
                             lpSum([n[x] * variables[x] for x in temp])
                             - self.getProblem()
-                            .getSession(session)
-                            .getSessionMaxTimeSlots()
+                            .get_session(session)
+                            .get_session_max_time_slots()
                             * add_variables[
                                 track_session_room_z_map[
-                                    self.getProblem().getTrack(track).getTrackName()
+                                    self.getProblem().get_track(track).get_track_name()
                                     + self.getProblem()
-                                    .getSession(session)
-                                    .getSessionName()
-                                    + self.getProblem().getRoom(room).getRoomName()
+                                    .get_session(session)
+                                    .get_session_name()
+                                    + self.getProblem().get_room(room).get_room_name()
                                 ]
                             ]
                         )
@@ -417,7 +421,7 @@ class Optimisation:
         all_constraints = []
         for submission in mts_subs:
             temp = sub_x_map[
-                self.getProblem().getSubmission(submission).getSubmissionName()
+                self.getProblem().get_submission(submission).get_submission_name()
             ]
             all_constraints.append(lpSum([variables[x] for x in temp]))
 
@@ -425,39 +429,39 @@ class Optimisation:
             model += all_constraints[c] == 1
 
         # Creating constraints: Assign tracks with respect to available time slots
-        for track in range(self.getProblem().getNumberOfTracks()):
-            temp = track_z_map[self.getProblem().getTrack(track).getTrackName()]
+        for track in range(self.getProblem().get_number_of_tracks()):
+            temp = track_z_map[self.getProblem().get_track(track).get_track_name()]
             model += (
                 lpSum([timeslots[x] * add_variables[x] for x in temp])
-                >= self.getProblem().getTrack(track).getTrackRequiredTimeSlots()
+                >= self.getProblem().get_track(track).get_track_required_time_slots()
             )
 
         # Creating constraints: Consider organiser conflicts
         all_constraints = []
         temp2 = []
-        for z in range(self.getProblem().getNumberOfTracks()):
-            if len(self.getProblem().getTrack(z).getTrackChairConflictsList()) != 0:
-                for i in range(self.getProblem().getNumberOfSessions()):
+        for z in range(self.getProblem().get_number_of_tracks()):
+            if len(self.getProblem().get_track(z).get_trackChairConflictsList()) != 0:
+                for i in range(self.getProblem().get_number_of_sessions()):
                     temp = []
-                    for j in range(self.getProblem().getNumberOfRooms()):
+                    for j in range(self.getProblem().get_number_of_rooms()):
                         temp.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                         )
                         for x in (
-                            self.getProblem().getTrack(z).getTrackChairConflictsList()
+                            self.getProblem().get_track(z).get_trackChairConflictsList()
                         ):
                             temp.append(
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + x.getTrackName()
+                                + x.get_track_name()
                             )
                     if sorted(temp) not in temp2:
                         temp2.append(sorted(temp))
@@ -469,16 +473,16 @@ class Optimisation:
 
         # Creating constraints for similar tracks
         all_constraints = []
-        for i in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_tracks()):
             temp = [i]
-            for j in range(i, self.getProblem().getNumberOfTracks()):
+            for j in range(i, self.getProblem().get_number_of_tracks()):
                 if i != j:
-                    if self.getProblem().getTracksTracksPenaltybyIndex(i, j) != 0:
+                    if self.getProblem().get_tracks_tracks_penalty_by_index(i, j) != 0:
                         temp.append(j)
                 if len(temp) > 1:
-                    for session in range(self.getProblem().getNumberOfSessions()):
+                    for session in range(self.getProblem().get_number_of_sessions()):
                         session_name = (
-                            self.getProblem().getSession(session).getSessionName()
+                            self.getProblem().get_session(session).get_session_name()
                         )
                         temp2 = []
                         for name in range(len(add_names)):
@@ -487,27 +491,33 @@ class Optimisation:
                                     add_names[name].split("|")[1] == session_name
                                     and add_names[name].split("|")[3]
                                     == self.getProblem()
-                                    .getTrack(temp[z])
-                                    .getTrackName()
+                                    .get_track(temp[z])
+                                    .get_track_name()
                                 ):
                                     temp2.append(add_names[name])
                         all_constraints.append(
                             lpSum([add_variables[x] for x in temp2])
                             - penalties[
                                 "ptt_|"
-                                + self.getProblem().getTrack(i).getTrackName()
-                                + self.getProblem().getTrack(j).getTrackName()
-                                + self.getProblem().getSession(session).getSessionName()
+                                + self.getProblem().get_track(i).get_track_name()
+                                + self.getProblem().get_track(j).get_track_name()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
                             ]
                             - penalties[
                                 "ppt_|"
-                                + self.getProblem().getSession(session).getSessionName()
-                                + self.getProblem().getTrack(i).getTrackName()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
+                                + self.getProblem().get_track(i).get_track_name()
                             ]
                             - penalties[
                                 "ppt_|"
-                                + self.getProblem().getSession(session).getSessionName()
-                                + self.getProblem().getTrack(j).getTrackName()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
+                                + self.getProblem().get_track(j).get_track_name()
                             ]
                         )
                     temp = [i]
@@ -517,18 +527,18 @@ class Optimisation:
 
         # Creating constraints: Do not assign same track into same session
         all_constraints = []
-        for session in range(self.getProblem().getNumberOfSessions()):
-            for track in range(self.getProblem().getNumberOfTracks()):
+        for session in range(self.getProblem().get_number_of_sessions()):
+            for track in range(self.getProblem().get_number_of_tracks()):
                 temp = session_track_z_map[
-                    self.getProblem().getSession(session).getSessionName()
-                    + self.getProblem().getTrack(track).getTrackName()
+                    self.getProblem().get_session(session).get_session_name()
+                    + self.getProblem().get_track(track).get_track_name()
                 ]
                 all_constraints.append(
                     lpSum([add_variables[x] for x in temp])
                     - penalties[
                         "ppt_|"
-                        + self.getProblem().getSession(session).getSessionName()
-                        + self.getProblem().getTrack(track).getTrackName()
+                        + self.getProblem().get_session(session).get_session_name()
+                        + self.getProblem().get_track(track).get_track_name()
                     ]
                 )
 
@@ -537,30 +547,32 @@ class Optimisation:
 
         # Creating constraints: Min number of Rooms per Track
         all_constraints = []
-        for track in range(self.getProblem().getNumberOfTracks()):
-            temp = track_y_map[self.getProblem().getTrack(track).getTrackName()]
+        for track in range(self.getProblem().get_number_of_tracks()):
+            temp = track_y_map[self.getProblem().get_track(track).get_track_name()]
             all_constraints.append(
                 lpSum([add2_variables[x] for x in temp])
-                - penalties["pmrt_|" + self.getProblem().getTrack(track).getTrackName()]
+                - penalties[
+                    "pmrt_|" + self.getProblem().get_track(track).get_track_name()
+                ]
             )
 
         for c in range(len(all_constraints)):
             model += all_constraints[c] == 1
 
         all_constraints = []
-        for room in range(self.getProblem().getNumberOfRooms()):
-            for track in range(self.getProblem().getNumberOfTracks()):
+        for room in range(self.getProblem().get_number_of_rooms()):
+            for track in range(self.getProblem().get_number_of_tracks()):
                 temp = room_track_z_map[
-                    self.getProblem().getRoom(room).getRoomName()
-                    + self.getProblem().getTrack(track).getTrackName()
+                    self.getProblem().get_room(room).get_room_name()
+                    + self.getProblem().get_track(track).get_track_name()
                 ]
                 all_constraints.append(
                     lpSum([add_variables[x] for x in temp])
-                    - self.getProblem().getNumberOfSessions()
+                    - self.getProblem().get_number_of_sessions()
                     * add2_variables[
                         track_room_y_map[
-                            self.getProblem().getTrack(track).getTrackName()
-                            + self.getProblem().getRoom(room).getRoomName()
+                            self.getProblem().get_track(track).get_track_name()
+                            + self.getProblem().get_room(room).get_room_name()
                         ]
                     ]
                 )
@@ -570,11 +582,11 @@ class Optimisation:
 
         # Creating constraints: Assign only 1 track into one room and session
         all_constraints = []
-        for session in range(self.getProblem().getNumberOfSessions()):
-            for room in range(self.getProblem().getNumberOfRooms()):
+        for session in range(self.getProblem().get_number_of_sessions()):
+            for room in range(self.getProblem().get_number_of_rooms()):
                 temp = session_room_z_map[
-                    self.getProblem().getSession(session).getSessionName()
-                    + self.getProblem().getRoom(room).getRoomName()
+                    self.getProblem().get_session(session).get_session_name()
+                    + self.getProblem().get_room(room).get_room_name()
                 ]
                 all_constraints.append(lpSum([add_variables[x] for x in temp]))
 
@@ -621,39 +633,39 @@ class Optimisation:
 
         for i in range(len(solution)):
             self.getSolution().getSolTracks()[
-                self.getProblem().getSessionIndex(solution[i][1])
+                self.getProblem().get_session_index(solution[i][1])
             ][
-                self.getProblem().getRoomIndex(solution[i][2])
-            ] = self.getProblem().getTrackIndex(solution[i][3])
+                self.getProblem().get_room_index(solution[i][2])
+            ] = self.getProblem().get_track_index(solution[i][3])
 
         if len(solution2) > 0:
             for i in range(len(solution2)):
                 for j in range(
                     self.getProblem()
-                    .getSubmission(
-                        self.getProblem().getSubmissionIndex(solution2[i][4])
+                    .get_submission(
+                        self.getProblem().get_submission_index(solution2[i][4])
                     )
-                    .getSubmissionRequiredTimeSlots()
+                    .get_submission_required_time_slots()
                 ):
                     ts = (
                         self.getSolution()
                         .getSolSubmissions()[
-                            self.getProblem().getSessionIndex(solution2[i][1])
-                        ][self.getProblem().getRoomIndex(solution2[i][2])]
+                            self.getProblem().get_session_index(solution2[i][1])
+                        ][self.getProblem().get_room_index(solution2[i][2])]
                         .index(-1)
                     )
                     self.getSolution().getSolSubmissions()[
-                        self.getProblem().getSessionIndex(solution2[i][1])
-                    ][self.getProblem().getRoomIndex(solution2[i][2])][
+                        self.getProblem().get_session_index(solution2[i][1])
+                    ][self.getProblem().get_room_index(solution2[i][2])][
                         ts
-                    ] = self.getProblem().getSubmissionIndex(solution2[i][4])
+                    ] = self.getProblem().get_submission_index(solution2[i][4])
         return t
 
     def SwapTrack(self):
-        if self.getProblem().getNumberOfTracks() == 1:
+        if self.getProblem().get_number_of_tracks() == 1:
             return
-        session = np.random.randint(self.getProblem().getNumberOfSessions(), size=2)
-        room = np.random.randint(self.getProblem().getNumberOfRooms(), size=2)
+        session = np.random.randint(self.getProblem().get_number_of_sessions(), size=2)
+        room = np.random.randint(self.getProblem().get_number_of_rooms(), size=2)
         while (
             (session[0] == session[1] and room[0] == room[1])
             or (
@@ -666,8 +678,10 @@ class Optimisation:
                 == self.getSolution().getSolTracks()[session[1]][room[1]]
             )
         ):
-            session = np.random.randint(self.getProblem().getNumberOfSessions(), size=2)
-            room = np.random.randint(self.getProblem().getNumberOfRooms(), size=2)
+            session = np.random.randint(
+                self.getProblem().get_number_of_sessions(), size=2
+            )
+            room = np.random.randint(self.getProblem().get_number_of_rooms(), size=2)
         (
             self.getSolution().getSolTracks()[session[0]][room[0]],
             self.getSolution().getSolTracks()[session[1]][room[1]],
@@ -677,14 +691,14 @@ class Optimisation:
         )
 
     def SwapSubmission(self):
-        track = np.random.randint(self.getProblem().getNumberOfTracks())
+        track = np.random.randint(self.getProblem().get_number_of_tracks())
         subs = np.random.randint(
             len(self.getSolution().getIndSolSubmissions()[track]), size=2
         )
         while (subs[0] == subs[1]) or (
             len(self.getSolution().getIndSolSubmissions()[track]) == 1
         ):
-            track = np.random.randint(self.getProblem().getNumberOfTracks())
+            track = np.random.randint(self.getProblem().get_number_of_tracks())
             subs = np.random.randint(
                 len(self.getSolution().getIndSolSubmissions()[track]), size=2
             )
@@ -697,14 +711,14 @@ class Optimisation:
         )
 
     def ReverseSubmission(self):
-        track = np.random.randint(self.getProblem().getNumberOfTracks())
+        track = np.random.randint(self.getProblem().get_number_of_tracks())
         locs = np.random.randint(
             len(self.getSolution().getIndSolSubmissions()[track]), size=2
         )
         while (locs[0] == locs[1]) or (
             len(self.getSolution().getIndSolSubmissions()[track]) == 1
         ):
-            track = np.random.randint(self.getProblem().getNumberOfTracks())
+            track = np.random.randint(self.getProblem().get_number_of_tracks())
             locs = np.random.randint(
                 len(self.getSolution().getIndSolSubmissions()[track]), size=2
             )
@@ -724,35 +738,35 @@ class ExactModel(Optimisation):
         names = []
         subs_with_conflicts = [
             sub
-            for sub in range(self.getProblem().getNumberOfSubmissions())
+            for sub in range(self.getProblem().get_number_of_submissions())
             if len(
                 self.getProblem()
-                .getSubmission(sub)
-                .getSubmissionPresenterConflictsList()
+                .get_submission(sub)
+                .get_submission_presenter_conflicts_list()
             )
             != 0
         ]
         submission_conflict_x_list = []
         track_session_room_x_map = {}
         track_submission_x_map = {
-            self.getProblem().getTrack(track).getTrackName()
+            self.getProblem().get_track(track).get_track_name()
             + self.getProblem()
-            .getTrack(track)
-            .getTrackSubmissionsList()[sub]
-            .getSubmissionName(): []
-            for track in range(self.getProblem().getNumberOfTracks())
+            .get_track(track)
+            .get_track_submissions_list()[sub]
+            .get_submission_name(): []
+            for track in range(self.getProblem().get_number_of_tracks())
             for sub in range(
-                len(self.getProblem().getTrack(track).getTrackSubmissionsList())
+                len(self.getProblem().get_track(track).get_track_submissions_list())
             )
         }
         add_names = []
         session_room_z_map = {}
         track_session_room_z_map = {}
         room_track_z_map = {
-            self.getProblem().getRoom(room).getRoomName()
-            + self.getProblem().getTrack(track).getTrackName(): []
-            for room in range(self.getProblem().getNumberOfRooms())
-            for track in range(self.getProblem().getNumberOfTracks())
+            self.getProblem().get_room(room).get_room_name()
+            + self.getProblem().get_track(track).get_track_name(): []
+            for room in range(self.getProblem().get_number_of_rooms())
+            for track in range(self.getProblem().get_number_of_tracks())
         }
         add2_names = []
         track_y_map = {}
@@ -763,300 +777,298 @@ class ExactModel(Optimisation):
         # Determine MaxS for each track
         sessions_ts = []
         required_sessions = {}
-        for session in range(self.getProblem().getNumberOfSessions()):
+        for session in range(self.getProblem().get_number_of_sessions()):
             sessions_ts.append(
-                self.getProblem().getSession(session).getSessionMaxTimeSlots()
+                self.getProblem().get_session(session).get_session_max_time_slots()
             )
         sorted_sessions_ts = sorted(sessions_ts)
-        for track in range(self.getProblem().getNumberOfTracks()):
+        for track in range(self.getProblem().get_number_of_tracks()):
             temp = []
             i = -1
-            while self.getProblem().getTrack(track).getTrackRequiredTimeSlots() > sum(
-                temp
-            ):
+            while self.getProblem().get_track(
+                track
+            ).get_track_required_time_slots() > sum(temp):
                 i += 1
                 temp.append(sorted_sessions_ts[i])
-                if i == self.getProblem().getNumberOfSessions() - 1:
+                if i == self.getProblem().get_number_of_sessions() - 1:
                     break
             required_sessions[str(track)] = len(temp)
 
         # Creating decision variables [X Variables]
-        for i in range(self.getProblem().getNumberOfSessions()):
-            for j in range(self.getProblem().getNumberOfRooms()):
-                for z in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_sessions()):
+            for j in range(self.getProblem().get_number_of_rooms()):
+                for z in range(self.getProblem().get_number_of_tracks()):
                     temp = []
                     for x in range(
-                        len(self.getProblem().getTrack(z).getTrackSubmissionsList())
+                        len(self.getProblem().get_track(z).get_track_submissions_list())
                     ):
                         names.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         )
                         coefficients[
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         ] = (
                             self.getProblem()
-                            .getParameters()
-                            .getSubmissionsTimezonesWeight()
-                            * self.getProblem().getSubmissionsTimezonesPenalty(
+                            .get_parameters()
+                            .submissions_timezones_penalty_weight
+                            * self.getProblem().get_submissions_timezones_penalty(
                                 str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 ),
-                                self.getProblem().getSession(i).getSessionName(),
+                                self.getProblem().get_session(i).get_session_name(),
                             )
                             + self.getProblem()
-                            .getParameters()
-                            .getSubmissionsSessionsPenaltyWeight()
-                            * self.getProblem().getSubmissionsSessionsPenalty(
+                            .get_parameters()
+                            .submissions_sessions_penalty_weight
+                            * self.getProblem().get_submissions_sessions_penalty(
                                 str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 ),
-                                self.getProblem().getSession(i).getSessionName(),
+                                self.getProblem().get_session(i).get_session_name(),
                             )
                             + self.getProblem()
-                            .getParameters()
-                            .getSubmissionsRoomsPenaltyWeight()
-                            * self.getProblem().getSubmissionsRoomsPenalty(
+                            .get_parameters()
+                            .submissions_rooms_penalty_weight
+                            * self.getProblem().get_submissions_rooms_penalty(
                                 str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 ),
-                                self.getProblem().getRoom(j).getRoomName(),
+                                self.getProblem().get_room(j).get_room_name(),
                             )
                         )
                         timeslots[
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         ] = (
                             self.getProblem()
-                            .getSubmission(
-                                self.getProblem().getSubmissionIndex(
+                            .get_submission(
+                                self.getProblem().get_submission_index(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 )
                             )
-                            .getSubmissionRequiredTimeSlots()
+                            .get_submission_required_time_slots()
                         )
                         temp.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         )
                         track_submission_x_map[
-                            self.getProblem().getTrack(z).getTrackName()
+                            self.getProblem().get_track(z).get_track_name()
                             + self.getProblem()
-                            .getTrack(z)
-                            .getTrackSubmissionsList()[x]
-                            .getSubmissionName()
+                            .get_track(z)
+                            .get_track_submissions_list()[x]
+                            .get_submission_name()
                         ].append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         )
                         if (
                             len(
                                 self.getProblem()
-                                .getSubmission(
-                                    self.getProblem().getSubmissionIndex(
+                                .get_submission(
+                                    self.getProblem().get_submission_index(
                                         self.getProblem()
-                                        .getTrack(z)
-                                        .getTrackSubmissionsList()[x]
-                                        .getSubmissionName()
+                                        .get_track(z)
+                                        .get_track_submissions_list()[x]
+                                        .get_submission_name()
                                     )
                                 )
-                                .getSubmissionPresenterConflictsList()
+                                .get_submission_presenter_conflicts_list()
                             )
                             != 0
                         ):
                             submission_conflict_x_list.append(
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + self.getProblem().getTrack(z).getTrackName()
+                                + self.getProblem().get_track(z).get_track_name()
                                 + "|"
                                 + str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 )
                             )
                     track_session_room_x_map[
-                        self.getProblem().getTrack(z).getTrackName()
-                        + self.getProblem().getSession(i).getSessionName()
-                        + self.getProblem().getRoom(j).getRoomName()
+                        self.getProblem().get_track(z).get_track_name()
+                        + self.getProblem().get_session(i).get_session_name()
+                        + self.getProblem().get_room(j).get_room_name()
                     ] = temp
 
         # Additional variables to minimise tracks per room [Y Variables]
-        for i in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_tracks()):
             temp = []
-            for j in range(self.getProblem().getNumberOfRooms()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 add2_names.append(
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
                 temp.append(
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
                 track_room_y_map[
-                    self.getProblem().getTrack(i).getTrackName()
-                    + self.getProblem().getRoom(j).getRoomName()
+                    self.getProblem().get_track(i).get_track_name()
+                    + self.getProblem().get_room(j).get_room_name()
                 ] = (
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
-            track_y_map[self.getProblem().getTrack(i).getTrackName()] = temp
+            track_y_map[self.getProblem().get_track(i).get_track_name()] = temp
 
         # Additional variables for assigning tracks into sessions and rooms [Z Variables]
-        for i in range(self.getProblem().getNumberOfSessions()):
-            for j in range(self.getProblem().getNumberOfRooms()):
+        for i in range(self.getProblem().get_number_of_sessions()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 temp = []
-                for z in range(self.getProblem().getNumberOfTracks()):
+                for z in range(self.getProblem().get_number_of_tracks()):
                     add_names.append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     coefficients[
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     ] = (
                         self.getProblem()
-                        .getParameters()
-                        .getTracksSessionsPenaltyWeight()
-                        * self.getProblem().getTracksSessionsPenalty(
-                            self.getProblem().getTrack(z).getTrackName(),
-                            self.getProblem().getSession(i).getSessionName(),
+                        .get_parameters()
+                        .tracks_sessions_penalty_weight
+                        * self.getProblem().get_tracks_sessions_penalty(
+                            self.getProblem().get_track(z).get_track_name(),
+                            self.getProblem().get_session(i).get_session_name(),
+                        )
+                        + self.getProblem().get_parameters().tracks_rooms_penalty_weight
+                        * self.getProblem().get_tracks_rooms_penalty(
+                            self.getProblem().get_track(z).get_track_name(),
+                            self.getProblem().get_room(j).get_room_name(),
                         )
                         + self.getProblem()
-                        .getParameters()
-                        .getTracksRoomsPenaltyWeight()
-                        * self.getProblem().getTracksRoomsPenalty(
-                            self.getProblem().getTrack(z).getTrackName(),
-                            self.getProblem().getRoom(j).getRoomName(),
-                        )
-                        + self.getProblem()
-                        .getParameters()
-                        .getSessionsRoomsPenaltyWeight()
-                        * self.getProblem().getSessionsRoomsPenalty(
-                            self.getProblem().getSession(i).getSessionName(),
-                            self.getProblem().getRoom(j).getRoomName(),
+                        .get_parameters()
+                        .sessions_rooms_penalty_weight
+                        * self.getProblem().get_sessions_rooms_penalty(
+                            self.getProblem().get_session(i).get_session_name(),
+                            self.getProblem().get_room(j).get_room_name(),
                         )
                     )
                     temp.append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     track_session_room_z_map[
-                        self.getProblem().getTrack(z).getTrackName()
-                        + self.getProblem().getSession(i).getSessionName()
-                        + self.getProblem().getRoom(j).getRoomName()
+                        self.getProblem().get_track(z).get_track_name()
+                        + self.getProblem().get_session(i).get_session_name()
+                        + self.getProblem().get_room(j).get_room_name()
                     ] = (
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     room_track_z_map[
-                        self.getProblem().getRoom(j).getRoomName()
-                        + self.getProblem().getTrack(z).getTrackName()
+                        self.getProblem().get_room(j).get_room_name()
+                        + self.getProblem().get_track(z).get_track_name()
                     ].append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                 session_room_z_map[
-                    self.getProblem().getSession(i).getSessionName()
-                    + self.getProblem().getRoom(j).getRoomName()
+                    self.getProblem().get_session(i).get_session_name()
+                    + self.getProblem().get_room(j).get_room_name()
                 ] = temp
 
         # Creating objective function and binary IP formulation
@@ -1076,47 +1088,51 @@ class ExactModel(Optimisation):
         # Creating Constraints Eq.2
         if len(subs_with_conflicts) != 0:
             unique_conflicts = []
-            for submission in range(self.getProblem().getNumberOfSubmissions()):
+            for submission in range(self.getProblem().get_number_of_submissions()):
                 sub_name = (
-                    self.getProblem().getSubmission(submission).getSubmissionName()
+                    self.getProblem().get_submission(submission).get_submission_name()
                 )
                 if (
                     len(
                         self.getProblem()
-                        .getSubmission(submission)
-                        .getSubmissionPresenterConflictsList()
+                        .get_submission(submission)
+                        .get_submission_presenter_conflicts_list()
                     )
                     != 0
                 ):
                     for conflict in (
                         self.getProblem()
-                        .getSubmission(submission)
-                        .getSubmissionPresenterConflictsList()
+                        .get_submission(submission)
+                        .get_submission_presenter_conflicts_list()
                     ):
-                        for session in range(self.getProblem().getNumberOfSessions()):
+                        for session in range(
+                            self.getProblem().get_number_of_sessions()
+                        ):
                             session_name = (
-                                self.getProblem().getSession(session).getSessionName()
+                                self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
                             )
-                            for room in range(self.getProblem().getNumberOfRooms()):
+                            for room in range(self.getProblem().get_number_of_rooms()):
                                 room_name = (
-                                    self.getProblem().getRoom(room).getRoomName()
+                                    self.getProblem().get_room(room).get_room_name()
                                 )
                                 current_conflict = [
                                     sub_name,
-                                    conflict.getSubmissionName(),
+                                    conflict.get_submission_name(),
                                     session_name,
                                     room_name,
                                 ]
                                 M_list = [
                                     len(
                                         self.getProblem()
-                                        .getSubmission(submission)
-                                        .getSubmissionPresenterConflictsList()
+                                        .get_submission(submission)
+                                        .get_submission_presenter_conflicts_list()
                                     )
                                     + 1,
                                     self.getProblem()
-                                    .getSession(session)
-                                    .getSessionMaxTimeSlots(),
+                                    .get_session(session)
+                                    .get_session_max_time_slots(),
                                 ]
                                 M = min(M_list)
                                 if sorted(current_conflict) not in unique_conflicts:
@@ -1145,7 +1161,7 @@ class ExactModel(Optimisation):
                                             submission_conflict_x_list[name].split("|")[
                                                 4
                                             ]
-                                            == conflict.getSubmissionName()
+                                            == conflict.get_submission_name()
                                             and submission_conflict_x_list[name].split(
                                                 "|"
                                             )[2]
@@ -1166,11 +1182,11 @@ class ExactModel(Optimisation):
 
         # Creating constraints Eq.5
         all_constraints = []
-        for session in range(self.getProblem().getNumberOfSessions()):
-            for room in range(self.getProblem().getNumberOfRooms()):
+        for session in range(self.getProblem().get_number_of_sessions()):
+            for room in range(self.getProblem().get_number_of_rooms()):
                 temp = session_room_z_map[
-                    self.getProblem().getSession(session).getSessionName()
-                    + self.getProblem().getRoom(room).getRoomName()
+                    self.getProblem().get_session(session).get_session_name()
+                    + self.getProblem().get_room(room).get_room_name()
                 ]
                 all_constraints.append(lpSum([add_variables[x] for x in temp]))
         for c in range(len(all_constraints)):
@@ -1179,22 +1195,26 @@ class ExactModel(Optimisation):
         # Creating constraints Eq.6 & Eq.7
         all_constraints = []
         all_constraints2 = []
-        for track in range(self.getProblem().getNumberOfTracks()):
-            for session in range(self.getProblem().getNumberOfSessions()):
-                for room in range(self.getProblem().getNumberOfRooms()):
+        for track in range(self.getProblem().get_number_of_tracks()):
+            for session in range(self.getProblem().get_number_of_sessions()):
+                for room in range(self.getProblem().get_number_of_rooms()):
                     temp = track_session_room_x_map[
-                        self.getProblem().getTrack(track).getTrackName()
-                        + self.getProblem().getSession(session).getSessionName()
-                        + self.getProblem().getRoom(room).getRoomName()
+                        self.getProblem().get_track(track).get_track_name()
+                        + self.getProblem().get_session(session).get_session_name()
+                        + self.getProblem().get_room(room).get_room_name()
                     ]
                     all_constraints.append(
                         lpSum([timeslots[x] * variables[x] for x in temp])
-                        - self.getProblem().getSession(session).getSessionMaxTimeSlots()
+                        - self.getProblem()
+                        .get_session(session)
+                        .get_session_max_time_slots()
                         * add_variables[
                             track_session_room_z_map[
-                                self.getProblem().getTrack(track).getTrackName()
-                                + self.getProblem().getSession(session).getSessionName()
-                                + self.getProblem().getRoom(room).getRoomName()
+                                self.getProblem().get_track(track).get_track_name()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
+                                + self.getProblem().get_room(room).get_room_name()
                             ]
                         ]
                     )
@@ -1202,9 +1222,11 @@ class ExactModel(Optimisation):
                         lpSum([variables[x] for x in temp])
                         - add_variables[
                             track_session_room_z_map[
-                                self.getProblem().getTrack(track).getTrackName()
-                                + self.getProblem().getSession(session).getSessionName()
-                                + self.getProblem().getRoom(room).getRoomName()
+                                self.getProblem().get_track(track).get_track_name()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
+                                + self.getProblem().get_room(room).get_room_name()
                             ]
                         ]
                     )
@@ -1215,8 +1237,8 @@ class ExactModel(Optimisation):
 
         # Creating constraints Eq.3
         all_constraints = []
-        for track in range(self.getProblem().getNumberOfTracks()):
-            temp = track_y_map[self.getProblem().getTrack(track).getTrackName()]
+        for track in range(self.getProblem().get_number_of_tracks()):
+            temp = track_y_map[self.getProblem().get_track(track).get_track_name()]
             all_constraints.append(lpSum([add2_variables[x] for x in temp]))
 
         for c in range(len(all_constraints)):
@@ -1224,19 +1246,19 @@ class ExactModel(Optimisation):
 
         # Creating constraints Eq.4
         all_constraints = []
-        for room in range(self.getProblem().getNumberOfRooms()):
-            for track in range(self.getProblem().getNumberOfTracks()):
+        for room in range(self.getProblem().get_number_of_rooms()):
+            for track in range(self.getProblem().get_number_of_tracks()):
                 temp = room_track_z_map[
-                    self.getProblem().getRoom(room).getRoomName()
-                    + self.getProblem().getTrack(track).getTrackName()
+                    self.getProblem().get_room(room).get_room_name()
+                    + self.getProblem().get_track(track).get_track_name()
                 ]
                 all_constraints.append(
                     lpSum([add_variables[x] for x in temp])
                     - required_sessions[str(track)]
                     * add2_variables[
                         track_room_y_map[
-                            self.getProblem().getTrack(track).getTrackName()
-                            + self.getProblem().getRoom(room).getRoomName()
+                            self.getProblem().get_track(track).get_track_name()
+                            + self.getProblem().get_room(room).get_room_name()
                         ]
                     ]
                 )
@@ -1246,16 +1268,16 @@ class ExactModel(Optimisation):
 
         # Creating Constraints Eq.1
         all_constraints = []
-        for z in range(self.getProblem().getNumberOfTracks()):
+        for z in range(self.getProblem().get_number_of_tracks()):
             for x in range(
-                len(self.getProblem().getTrack(z).getTrackSubmissionsList())
+                len(self.getProblem().get_track(z).get_track_submissions_list())
             ):
                 temp = track_submission_x_map[
-                    self.getProblem().getTrack(z).getTrackName()
+                    self.getProblem().get_track(z).get_track_name()
                     + self.getProblem()
-                    .getTrack(z)
-                    .getTrackSubmissionsList()[x]
-                    .getSubmissionName()
+                    .get_track(z)
+                    .get_track_submissions_list()[x]
+                    .get_submission_name()
                 ]
                 all_constraints.append(lpSum([variables[x] for x in temp]))
 
@@ -1290,23 +1312,23 @@ class ExactModel(Optimisation):
         solution = df.iloc[:, 0].to_list()
         for i in range(len(solution)):
             self.getSolution().getSolTracks()[
-                self.getProblem().getSessionIndex(solution[i][1])
+                self.getProblem().get_session_index(solution[i][1])
             ][
-                self.getProblem().getRoomIndex(solution[i][2])
-            ] = self.getProblem().getTrackIndex(solution[i][3])
+                self.getProblem().get_room_index(solution[i][2])
+            ] = self.getProblem().get_track_index(solution[i][3])
             ts = (
                 self.getSolution()
-                .getSolSubmissions()[self.getProblem().getSessionIndex(solution[i][1])][
-                    self.getProblem().getRoomIndex(solution[i][2])
-                ]
+                .getSolSubmissions()[
+                    self.getProblem().get_session_index(solution[i][1])
+                ][self.getProblem().get_room_index(solution[i][2])]
                 .index(-1)
             )
             self.getSolution().getSolSubmissions()[
-                self.getProblem().getSessionIndex(solution[i][1])
-            ][self.getProblem().getRoomIndex(solution[i][2])][
+                self.getProblem().get_session_index(solution[i][1])
+            ][self.getProblem().get_room_index(solution[i][2])][
                 ts
-            ] = self.getProblem().getSubmissionIndex(solution[i][4])
-        for sub in range(self.getProblem().getNumberOfSubmissions()):
+            ] = self.getProblem().get_submission_index(solution[i][4])
+        for sub in range(self.getProblem().get_number_of_submissions()):
             for session in range(len(self.getSolution().getSolSubmissions())):
                 for room in range(len(self.getSolution().getSolSubmissions()[session])):
                     if sub in self.getSolution().getSolSubmissions()[session][room]:
@@ -1334,8 +1356,8 @@ class ExactModel(Optimisation):
                             while (
                                 temp.count(info[i])
                                 < self.getProblem()
-                                .getSubmission(info[i])
-                                .getSubmissionRequiredTimeSlots()
+                                .get_submission(info[i])
+                                .get_submission_required_time_slots()
                             ):
                                 temp.append(info[i])
                         while len(temp) < len(
@@ -1357,30 +1379,30 @@ class ExtendedModel(Optimisation):
         submission_att_conflict_x_list = []
         track_session_room_x_map = {}
         track_submission_x_map = {
-            self.getProblem().getTrack(track).getTrackName()
+            self.getProblem().get_track(track).get_track_name()
             + self.getProblem()
-            .getTrack(track)
-            .getTrackSubmissionsList()[sub]
-            .getSubmissionName(): []
-            for track in range(self.getProblem().getNumberOfTracks())
+            .get_track(track)
+            .get_track_submissions_list()[sub]
+            .get_submission_name(): []
+            for track in range(self.getProblem().get_number_of_tracks())
             for sub in range(
-                len(self.getProblem().getTrack(track).getTrackSubmissionsList())
+                len(self.getProblem().get_track(track).get_track_submissions_list())
             )
         }
         add_names = []
         session_room_z_map = {}
         track_session_room_z_map = {}
         room_track_z_map = {
-            self.getProblem().getRoom(room).getRoomName()
-            + self.getProblem().getTrack(track).getTrackName(): []
-            for room in range(self.getProblem().getNumberOfRooms())
-            for track in range(self.getProblem().getNumberOfTracks())
+            self.getProblem().get_room(room).get_room_name()
+            + self.getProblem().get_track(track).get_track_name(): []
+            for room in range(self.getProblem().get_number_of_rooms())
+            for track in range(self.getProblem().get_number_of_tracks())
         }
         similar_tracks = {
-            self.getProblem().getSession(session).getSessionName()
-            + self.getProblem().getTrack(track).getTrackName(): []
-            for session in range(self.getProblem().getNumberOfSessions())
-            for track in range(self.getProblem().getNumberOfTracks())
+            self.getProblem().get_session(session).get_session_name()
+            + self.getProblem().get_track(track).get_track_name(): []
+            for session in range(self.getProblem().get_number_of_sessions())
+            for track in range(self.getProblem().get_number_of_tracks())
         }
         add2_names = []
         track_y_map = {}
@@ -1392,383 +1414,389 @@ class ExtendedModel(Optimisation):
         # Determine MaxS for each track
         sessions_ts = []
         required_sessions = {}
-        for session in range(self.getProblem().getNumberOfSessions()):
+        for session in range(self.getProblem().get_number_of_sessions()):
             sessions_ts.append(
-                self.getProblem().getSession(session).getSessionMaxTimeSlots()
+                self.getProblem().get_session(session).get_session_max_time_slots()
             )
         sorted_sessions_ts = sorted(sessions_ts)
-        for track in range(self.getProblem().getNumberOfTracks()):
+        for track in range(self.getProblem().get_number_of_tracks()):
             temp = []
             i = -1
-            while self.getProblem().getTrack(track).getTrackRequiredTimeSlots() > sum(
-                temp
-            ):
+            while self.getProblem().get_track(
+                track
+            ).get_track_required_time_slots() > sum(temp):
                 i += 1
                 temp.append(sorted_sessions_ts[i])
-                if i == self.getProblem().getNumberOfSessions() - 1:
+                if i == self.getProblem().get_number_of_sessions() - 1:
                     break
             required_sessions[str(track)] = len(temp)
 
         # Creating decision variables [X Variables]
-        for i in range(self.getProblem().getNumberOfSessions()):
-            for j in range(self.getProblem().getNumberOfRooms()):
-                for z in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_sessions()):
+            for j in range(self.getProblem().get_number_of_rooms()):
+                for z in range(self.getProblem().get_number_of_tracks()):
                     temp = []
                     for x in range(
-                        len(self.getProblem().getTrack(z).getTrackSubmissionsList())
+                        len(self.getProblem().get_track(z).get_track_submissions_list())
                     ):
                         names.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         )
                         coefficients[
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         ] = (
                             self.getProblem()
-                            .getParameters()
-                            .getSubmissionsTimezonesWeight()
-                            * self.getProblem().getSubmissionsTimezonesPenalty(
+                            .get_parameters()
+                            .submissions_timezones_penalty_weight
+                            * self.getProblem().get_submissions_timezones_penalty(
                                 str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 ),
-                                self.getProblem().getSession(i).getSessionName(),
+                                self.getProblem().get_session(i).get_session_name(),
                             )
                             + self.getProblem()
-                            .getParameters()
-                            .getSubmissionsSessionsPenaltyWeight()
-                            * self.getProblem().getSubmissionsSessionsPenalty(
+                            .get_parameters()
+                            .submissions_sessions_penalty_weight
+                            * self.getProblem().get_submissions_sessions_penalty(
                                 str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 ),
-                                self.getProblem().getSession(i).getSessionName(),
+                                self.getProblem().get_session(i).get_session_name(),
                             )
                             + self.getProblem()
-                            .getParameters()
-                            .getSubmissionsRoomsPenaltyWeight()
-                            * self.getProblem().getSubmissionsRoomsPenalty(
+                            .get_parameters()
+                            .submissions_rooms_penalty_weight
+                            * self.getProblem().get_submissions_rooms_penalty(
                                 str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 ),
-                                self.getProblem().getRoom(j).getRoomName(),
+                                self.getProblem().get_room(j).get_room_name(),
                             )
                         )
                         timeslots[
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         ] = (
                             self.getProblem()
-                            .getSubmission(
-                                self.getProblem().getSubmissionIndex(
+                            .get_submission(
+                                self.getProblem().get_submission_index(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 )
                             )
-                            .getSubmissionRequiredTimeSlots()
+                            .get_submission_required_time_slots()
                         )
                         temp.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         )
                         track_submission_x_map[
-                            self.getProblem().getTrack(z).getTrackName()
+                            self.getProblem().get_track(z).get_track_name()
                             + self.getProblem()
-                            .getTrack(z)
-                            .getTrackSubmissionsList()[x]
-                            .getSubmissionName()
+                            .get_track(z)
+                            .get_track_submissions_list()[x]
+                            .get_submission_name()
                         ].append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                             + "|"
                             + str(
                                 self.getProblem()
-                                .getTrack(z)
-                                .getTrackSubmissionsList()[x]
-                                .getSubmissionName()
+                                .get_track(z)
+                                .get_track_submissions_list()[x]
+                                .get_submission_name()
                             )
                         )
                         if (
                             len(
                                 self.getProblem()
-                                .getSubmission(
-                                    self.getProblem().getSubmissionIndex(
+                                .get_submission(
+                                    self.getProblem().get_submission_index(
                                         self.getProblem()
-                                        .getTrack(z)
-                                        .getTrackSubmissionsList()[x]
-                                        .getSubmissionName()
+                                        .get_track(z)
+                                        .get_track_submissions_list()[x]
+                                        .get_submission_name()
                                     )
                                 )
-                                .getSubmissionPresenterConflictsList()
+                                .get_submission_presenter_conflicts_list()
                             )
                             != 0
                         ):
                             submission_conflict_x_list.append(
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + self.getProblem().getTrack(z).getTrackName()
+                                + self.getProblem().get_track(z).get_track_name()
                                 + "|"
                                 + str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 )
                             )
                         if (
                             len(
                                 self.getProblem()
-                                .getSubmission(
-                                    self.getProblem().getSubmissionIndex(
+                                .get_submission(
+                                    self.getProblem().get_submission_index(
                                         self.getProblem()
-                                        .getTrack(z)
-                                        .getTrackSubmissionsList()[x]
-                                        .getSubmissionName()
+                                        .get_track(z)
+                                        .get_track_submissions_list()[x]
+                                        .get_submission_name()
                                     )
                                 )
-                                .getSubmissionAttendeeConflictsList()
+                                .get_submission_attendee_conflicts_list()
                             )
                             != 0
                         ):
                             submission_att_conflict_x_list.append(
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + self.getProblem().getTrack(z).getTrackName()
+                                + self.getProblem().get_track(z).get_track_name()
                                 + "|"
                                 + str(
                                     self.getProblem()
-                                    .getTrack(z)
-                                    .getTrackSubmissionsList()[x]
-                                    .getSubmissionName()
+                                    .get_track(z)
+                                    .get_track_submissions_list()[x]
+                                    .get_submission_name()
                                 )
                             )
                     track_session_room_x_map[
-                        self.getProblem().getTrack(z).getTrackName()
-                        + self.getProblem().getSession(i).getSessionName()
-                        + self.getProblem().getRoom(j).getRoomName()
+                        self.getProblem().get_track(z).get_track_name()
+                        + self.getProblem().get_session(i).get_session_name()
+                        + self.getProblem().get_room(j).get_room_name()
                     ] = temp
 
         # Additional variables to minimise tracks per room [Y Variables]
-        for i in range(self.getProblem().getNumberOfTracks()):
+        for i in range(self.getProblem().get_number_of_tracks()):
             temp = []
-            for j in range(self.getProblem().getNumberOfRooms()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 add2_names.append(
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
                 temp.append(
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
                 track_room_y_map[
-                    self.getProblem().getTrack(i).getTrackName()
-                    + self.getProblem().getRoom(j).getRoomName()
+                    self.getProblem().get_track(i).get_track_name()
+                    + self.getProblem().get_room(j).get_room_name()
                 ] = (
                     "|"
-                    + self.getProblem().getRoom(j).getRoomName()
+                    + self.getProblem().get_room(j).get_room_name()
                     + "|"
-                    + self.getProblem().getTrack(i).getTrackName()
+                    + self.getProblem().get_track(i).get_track_name()
                 )
-            track_y_map[self.getProblem().getTrack(i).getTrackName()] = temp
+            track_y_map[self.getProblem().get_track(i).get_track_name()] = temp
 
         # Additional variables for assigning tracks into sessions and rooms [Z Variables]
-        for i in range(self.getProblem().getNumberOfSessions()):
-            for j in range(self.getProblem().getNumberOfRooms()):
+        for i in range(self.getProblem().get_number_of_sessions()):
+            for j in range(self.getProblem().get_number_of_rooms()):
                 temp = []
-                for z in range(self.getProblem().getNumberOfTracks()):
+                for z in range(self.getProblem().get_number_of_tracks()):
                     add_names.append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     coefficients[
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     ] = (
                         self.getProblem()
-                        .getParameters()
-                        .getTracksSessionsPenaltyWeight()
-                        * self.getProblem().getTracksSessionsPenalty(
-                            self.getProblem().getTrack(z).getTrackName(),
-                            self.getProblem().getSession(i).getSessionName(),
+                        .get_parameters()
+                        .tracks_sessions_penalty_weight
+                        * self.getProblem().get_tracks_sessions_penalty(
+                            self.getProblem().get_track(z).get_track_name(),
+                            self.getProblem().get_session(i).get_session_name(),
+                        )
+                        + self.getProblem().get_parameters().tracks_rooms_penalty_weight
+                        * self.getProblem().get_tracks_rooms_penalty(
+                            self.getProblem().get_track(z).get_track_name(),
+                            self.getProblem().get_room(j).get_room_name(),
                         )
                         + self.getProblem()
-                        .getParameters()
-                        .getTracksRoomsPenaltyWeight()
-                        * self.getProblem().getTracksRoomsPenalty(
-                            self.getProblem().getTrack(z).getTrackName(),
-                            self.getProblem().getRoom(j).getRoomName(),
-                        )
-                        + self.getProblem()
-                        .getParameters()
-                        .getSessionsRoomsPenaltyWeight()
-                        * self.getProblem().getSessionsRoomsPenalty(
-                            self.getProblem().getSession(i).getSessionName(),
-                            self.getProblem().getRoom(j).getRoomName(),
+                        .get_parameters()
+                        .sessions_rooms_penalty_weight
+                        * self.getProblem().get_sessions_rooms_penalty(
+                            self.getProblem().get_session(i).get_session_name(),
+                            self.getProblem().get_room(j).get_room_name(),
                         )
                     )
                     temp.append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     track_session_room_z_map[
-                        self.getProblem().getTrack(z).getTrackName()
-                        + self.getProblem().getSession(i).getSessionName()
-                        + self.getProblem().getRoom(j).getRoomName()
+                        self.getProblem().get_track(z).get_track_name()
+                        + self.getProblem().get_session(i).get_session_name()
+                        + self.getProblem().get_room(j).get_room_name()
                     ] = (
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
                     room_track_z_map[
-                        self.getProblem().getRoom(j).getRoomName()
-                        + self.getProblem().getTrack(z).getTrackName()
+                        self.getProblem().get_room(j).get_room_name()
+                        + self.getProblem().get_track(z).get_track_name()
                     ].append(
                         "|"
-                        + self.getProblem().getSession(i).getSessionName()
+                        + self.getProblem().get_session(i).get_session_name()
                         + "|"
-                        + self.getProblem().getRoom(j).getRoomName()
+                        + self.getProblem().get_room(j).get_room_name()
                         + "|"
-                        + self.getProblem().getTrack(z).getTrackName()
+                        + self.getProblem().get_track(z).get_track_name()
                     )
-                    for x in range(z + 1, self.getProblem().getNumberOfTracks()):
-                        if self.getProblem().getTracksTracksPenaltybyIndex(z, x) != 0:
+                    for x in range(z + 1, self.getProblem().get_number_of_tracks()):
+                        if (
+                            self.getProblem().get_tracks_tracks_penalty_by_index(z, x)
+                            != 0
+                        ):
                             if (
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + self.getProblem().getTrack(z).getTrackName()
+                                + self.getProblem().get_track(z).get_track_name()
                                 not in similar_tracks[
-                                    self.getProblem().getSession(i).getSessionName()
-                                    + self.getProblem().getTrack(z).getTrackName()
+                                    self.getProblem().get_session(i).get_session_name()
+                                    + self.getProblem().get_track(z).get_track_name()
                                 ]
                             ):
                                 similar_tracks[
-                                    self.getProblem().getSession(i).getSessionName()
-                                    + self.getProblem().getTrack(z).getTrackName()
+                                    self.getProblem().get_session(i).get_session_name()
+                                    + self.getProblem().get_track(z).get_track_name()
                                 ].append(
                                     "|"
-                                    + self.getProblem().getSession(i).getSessionName()
+                                    + self.getProblem()
+                                    .get_session(i)
+                                    .get_session_name()
                                     + "|"
-                                    + self.getProblem().getRoom(j).getRoomName()
+                                    + self.getProblem().get_room(j).get_room_name()
                                     + "|"
-                                    + self.getProblem().getTrack(z).getTrackName()
+                                    + self.getProblem().get_track(z).get_track_name()
                                 )
                             if (
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + self.getProblem().getTrack(x).getTrackName()
+                                + self.getProblem().get_track(x).get_track_name()
                                 not in similar_tracks[
-                                    self.getProblem().getSession(i).getSessionName()
-                                    + self.getProblem().getTrack(z).getTrackName()
+                                    self.getProblem().get_session(i).get_session_name()
+                                    + self.getProblem().get_track(z).get_track_name()
                                 ]
                             ):
                                 similar_tracks[
-                                    self.getProblem().getSession(i).getSessionName()
-                                    + self.getProblem().getTrack(z).getTrackName()
+                                    self.getProblem().get_session(i).get_session_name()
+                                    + self.getProblem().get_track(z).get_track_name()
                                 ].append(
                                     "|"
-                                    + self.getProblem().getSession(i).getSessionName()
+                                    + self.getProblem()
+                                    .get_session(i)
+                                    .get_session_name()
                                     + "|"
-                                    + self.getProblem().getRoom(j).getRoomName()
+                                    + self.getProblem().get_room(j).get_room_name()
                                     + "|"
-                                    + self.getProblem().getTrack(x).getTrackName()
+                                    + self.getProblem().get_track(x).get_track_name()
                                 )
                 session_room_z_map[
-                    self.getProblem().getSession(i).getSessionName()
-                    + self.getProblem().getRoom(j).getRoomName()
+                    self.getProblem().get_session(i).get_session_name()
+                    + self.getProblem().get_room(j).get_room_name()
                 ] = temp
 
         # Creating products of variables for consecutive tracks
         for i in range(
-            self.getProblem().getNumberOfRooms() * self.getProblem().getNumberOfTracks()
+            self.getProblem().get_number_of_rooms()
+            * self.getProblem().get_number_of_tracks()
         ):
             temp = []
             temp.append(add_names[i])
@@ -1783,7 +1811,7 @@ class ExtendedModel(Optimisation):
                 temp2 = temp[z] + temp[z + 1]
                 product_names.append(temp2)
                 coefficients[temp2] = (
-                    -self.getProblem().getParameters().getConsecutiveTracksWeight()
+                    -self.getProblem().get_parameters().consecutive_tracks_weight
                 )
 
         # Creating objective function and binary IP formulation
@@ -1806,47 +1834,51 @@ class ExtendedModel(Optimisation):
         # Creating Constraints Eq.2
         if len(submission_conflict_x_list) != 0:
             unique_conflicts = []
-            for submission in range(self.getProblem().getNumberOfSubmissions()):
+            for submission in range(self.getProblem().get_number_of_submissions()):
                 sub_name = (
-                    self.getProblem().getSubmission(submission).getSubmissionName()
+                    self.getProblem().get_submission(submission).get_submission_name()
                 )
                 if (
                     len(
                         self.getProblem()
-                        .getSubmission(submission)
-                        .getSubmissionPresenterConflictsList()
+                        .get_submission(submission)
+                        .get_submission_presenter_conflicts_list()
                     )
                     != 0
                 ):
                     for conflict in (
                         self.getProblem()
-                        .getSubmission(submission)
-                        .getSubmissionPresenterConflictsList()
+                        .get_submission(submission)
+                        .get_submission_presenter_conflicts_list()
                     ):
-                        for session in range(self.getProblem().getNumberOfSessions()):
+                        for session in range(
+                            self.getProblem().get_number_of_sessions()
+                        ):
                             session_name = (
-                                self.getProblem().getSession(session).getSessionName()
+                                self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
                             )
-                            for room in range(self.getProblem().getNumberOfRooms()):
+                            for room in range(self.getProblem().get_number_of_rooms()):
                                 room_name = (
-                                    self.getProblem().getRoom(room).getRoomName()
+                                    self.getProblem().get_room(room).get_room_name()
                                 )
                                 current_conflict = [
                                     sub_name,
-                                    conflict.getSubmissionName(),
+                                    conflict.get_submission_name(),
                                     session_name,
                                     room_name,
                                 ]
                                 M_list = [
                                     len(
                                         self.getProblem()
-                                        .getSubmission(submission)
-                                        .getSubmissionPresenterConflictsList()
+                                        .get_submission(submission)
+                                        .get_submission_presenter_conflicts_list()
                                     )
                                     + 1,
                                     self.getProblem()
-                                    .getSession(session)
-                                    .getSessionMaxTimeSlots(),
+                                    .get_session(session)
+                                    .get_session_max_time_slots(),
                                 ]
                                 M = min(M_list)
                                 if sorted(current_conflict) not in unique_conflicts:
@@ -1875,7 +1907,7 @@ class ExtendedModel(Optimisation):
                                             submission_conflict_x_list[name].split("|")[
                                                 4
                                             ]
-                                            == conflict.getSubmissionName()
+                                            == conflict.get_submission_name()
                                             and submission_conflict_x_list[name].split(
                                                 "|"
                                             )[2]
@@ -1896,11 +1928,11 @@ class ExtendedModel(Optimisation):
 
         # Creating constraints Eq.5
         all_constraints = []
-        for session in range(self.getProblem().getNumberOfSessions()):
-            for room in range(self.getProblem().getNumberOfRooms()):
+        for session in range(self.getProblem().get_number_of_sessions()):
+            for room in range(self.getProblem().get_number_of_rooms()):
                 temp = session_room_z_map[
-                    self.getProblem().getSession(session).getSessionName()
-                    + self.getProblem().getRoom(room).getRoomName()
+                    self.getProblem().get_session(session).get_session_name()
+                    + self.getProblem().get_room(room).get_room_name()
                 ]
                 all_constraints.append(lpSum([add_variables[x] for x in temp]))
         for c in range(len(all_constraints)):
@@ -1909,22 +1941,26 @@ class ExtendedModel(Optimisation):
         # Creating constraints Eq.6 & Eq.7
         all_constraints = []
         all_constraints2 = []
-        for track in range(self.getProblem().getNumberOfTracks()):
-            for session in range(self.getProblem().getNumberOfSessions()):
-                for room in range(self.getProblem().getNumberOfRooms()):
+        for track in range(self.getProblem().get_number_of_tracks()):
+            for session in range(self.getProblem().get_number_of_sessions()):
+                for room in range(self.getProblem().get_number_of_rooms()):
                     temp = track_session_room_x_map[
-                        self.getProblem().getTrack(track).getTrackName()
-                        + self.getProblem().getSession(session).getSessionName()
-                        + self.getProblem().getRoom(room).getRoomName()
+                        self.getProblem().get_track(track).get_track_name()
+                        + self.getProblem().get_session(session).get_session_name()
+                        + self.getProblem().get_room(room).get_room_name()
                     ]
                     all_constraints.append(
                         lpSum([timeslots[x] * variables[x] for x in temp])
-                        - self.getProblem().getSession(session).getSessionMaxTimeSlots()
+                        - self.getProblem()
+                        .get_session(session)
+                        .get_session_max_time_slots()
                         * add_variables[
                             track_session_room_z_map[
-                                self.getProblem().getTrack(track).getTrackName()
-                                + self.getProblem().getSession(session).getSessionName()
-                                + self.getProblem().getRoom(room).getRoomName()
+                                self.getProblem().get_track(track).get_track_name()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
+                                + self.getProblem().get_room(room).get_room_name()
                             ]
                         ]
                     )
@@ -1932,9 +1968,11 @@ class ExtendedModel(Optimisation):
                         lpSum([variables[x] for x in temp])
                         - add_variables[
                             track_session_room_z_map[
-                                self.getProblem().getTrack(track).getTrackName()
-                                + self.getProblem().getSession(session).getSessionName()
-                                + self.getProblem().getRoom(room).getRoomName()
+                                self.getProblem().get_track(track).get_track_name()
+                                + self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
+                                + self.getProblem().get_room(room).get_room_name()
                             ]
                         ]
                     )
@@ -1945,8 +1983,8 @@ class ExtendedModel(Optimisation):
 
         # Creating constraints Eq.3
         all_constraints = []
-        for track in range(self.getProblem().getNumberOfTracks()):
-            temp = track_y_map[self.getProblem().getTrack(track).getTrackName()]
+        for track in range(self.getProblem().get_number_of_tracks()):
+            temp = track_y_map[self.getProblem().get_track(track).get_track_name()]
             all_constraints.append(lpSum([add2_variables[x] for x in temp]))
 
         for c in range(len(all_constraints)):
@@ -1954,19 +1992,19 @@ class ExtendedModel(Optimisation):
 
         # Creating constraints Eq.4
         all_constraints = []
-        for room in range(self.getProblem().getNumberOfRooms()):
-            for track in range(self.getProblem().getNumberOfTracks()):
+        for room in range(self.getProblem().get_number_of_rooms()):
+            for track in range(self.getProblem().get_number_of_tracks()):
                 temp = room_track_z_map[
-                    self.getProblem().getRoom(room).getRoomName()
-                    + self.getProblem().getTrack(track).getTrackName()
+                    self.getProblem().get_room(room).get_room_name()
+                    + self.getProblem().get_track(track).get_track_name()
                 ]
                 all_constraints.append(
                     lpSum([add_variables[x] for x in temp])
                     - required_sessions[str(track)]
                     * add2_variables[
                         track_room_y_map[
-                            self.getProblem().getTrack(track).getTrackName()
-                            + self.getProblem().getRoom(room).getRoomName()
+                            self.getProblem().get_track(track).get_track_name()
+                            + self.getProblem().get_room(room).get_room_name()
                         ]
                     ]
                 )
@@ -1976,16 +2014,16 @@ class ExtendedModel(Optimisation):
 
         # Creating Constraints Eq.1
         all_constraints = []
-        for z in range(self.getProblem().getNumberOfTracks()):
+        for z in range(self.getProblem().get_number_of_tracks()):
             for x in range(
-                len(self.getProblem().getTrack(z).getTrackSubmissionsList())
+                len(self.getProblem().get_track(z).get_track_submissions_list())
             ):
                 temp = track_submission_x_map[
-                    self.getProblem().getTrack(z).getTrackName()
+                    self.getProblem().get_track(z).get_track_name()
                     + self.getProblem()
-                    .getTrack(z)
-                    .getTrackSubmissionsList()[x]
-                    .getSubmissionName()
+                    .get_track(z)
+                    .get_track_submissions_list()[x]
+                    .get_submission_name()
                 ]
                 all_constraints.append(lpSum([variables[x] for x in temp]))
 
@@ -2005,29 +2043,29 @@ class ExtendedModel(Optimisation):
         # Creating constraints Eq.15
         all_constraints = []
         temp2 = []
-        for z in range(self.getProblem().getNumberOfTracks()):
-            if len(self.getProblem().getTrack(z).getTrackChairConflictsList()) != 0:
-                for i in range(self.getProblem().getNumberOfSessions()):
+        for z in range(self.getProblem().get_number_of_tracks()):
+            if len(self.getProblem().get_track(z).get_trackChairConflictsList()) != 0:
+                for i in range(self.getProblem().get_number_of_sessions()):
                     temp = []
-                    for j in range(self.getProblem().getNumberOfRooms()):
+                    for j in range(self.getProblem().get_number_of_rooms()):
                         temp.append(
                             "|"
-                            + self.getProblem().getSession(i).getSessionName()
+                            + self.getProblem().get_session(i).get_session_name()
                             + "|"
-                            + self.getProblem().getRoom(j).getRoomName()
+                            + self.getProblem().get_room(j).get_room_name()
                             + "|"
-                            + self.getProblem().getTrack(z).getTrackName()
+                            + self.getProblem().get_track(z).get_track_name()
                         )
                         for x in (
-                            self.getProblem().getTrack(z).getTrackChairConflictsList()
+                            self.getProblem().get_track(z).get_trackChairConflictsList()
                         ):
                             temp.append(
                                 "|"
-                                + self.getProblem().getSession(i).getSessionName()
+                                + self.getProblem().get_session(i).get_session_name()
                                 + "|"
-                                + self.getProblem().getRoom(j).getRoomName()
+                                + self.getProblem().get_room(j).get_room_name()
                                 + "|"
-                                + x.getTrackName()
+                                + x.get_track_name()
                             )
                     if sorted(temp) not in temp2:
                         temp2.append(sorted(temp))
@@ -2040,47 +2078,51 @@ class ExtendedModel(Optimisation):
         # Creating Constraints Eq.14
         if len(submission_att_conflict_x_list) != 0:
             unique_conflicts = []
-            for submission in range(self.getProblem().getNumberOfSubmissions()):
+            for submission in range(self.getProblem().get_number_of_submissions()):
                 sub_name = (
-                    self.getProblem().getSubmission(submission).getSubmissionName()
+                    self.getProblem().get_submission(submission).get_submission_name()
                 )
                 if (
                     len(
                         self.getProblem()
-                        .getSubmission(submission)
-                        .getSubmissionAttendeeConflictsList()
+                        .get_submission(submission)
+                        .get_submission_attendee_conflicts_list()
                     )
                     != 0
                 ):
                     for conflict in (
                         self.getProblem()
-                        .getSubmission(submission)
-                        .getSubmissionAttendeeConflictsList()
+                        .get_submission(submission)
+                        .get_submission_attendee_conflicts_list()
                     ):
-                        for session in range(self.getProblem().getNumberOfSessions()):
+                        for session in range(
+                            self.getProblem().get_number_of_sessions()
+                        ):
                             session_name = (
-                                self.getProblem().getSession(session).getSessionName()
+                                self.getProblem()
+                                .get_session(session)
+                                .get_session_name()
                             )
-                            for room in range(self.getProblem().getNumberOfRooms()):
+                            for room in range(self.getProblem().get_number_of_rooms()):
                                 room_name = (
-                                    self.getProblem().getRoom(room).getRoomName()
+                                    self.getProblem().get_room(room).get_room_name()
                                 )
                                 current_conflict = [
                                     sub_name,
-                                    conflict.getSubmissionName(),
+                                    conflict.get_submission_name(),
                                     session_name,
                                     room_name,
                                 ]
                                 M_list = [
                                     len(
                                         self.getProblem()
-                                        .getSubmission(submission)
-                                        .getSubmissionAttendeeConflictsList()
+                                        .get_submission(submission)
+                                        .get_submission_attendee_conflicts_list()
                                     )
                                     + 1,
                                     self.getProblem()
-                                    .getSession(session)
-                                    .getSessionMaxTimeSlots(),
+                                    .get_session(session)
+                                    .get_session_max_time_slots(),
                                 ]
                                 M = min(M_list)
                                 if sorted(current_conflict) not in unique_conflicts:
@@ -2111,7 +2153,7 @@ class ExtendedModel(Optimisation):
                                             submission_att_conflict_x_list[name].split(
                                                 "|"
                                             )[4]
-                                            == conflict.getSubmissionName()
+                                            == conflict.get_submission_name()
                                             and submission_att_conflict_x_list[
                                                 name
                                             ].split("|")[2]
@@ -2134,7 +2176,8 @@ class ExtendedModel(Optimisation):
         all_constraints1 = []
         all_constraints2 = []
         for i in range(
-            self.getProblem().getNumberOfRooms() * self.getProblem().getNumberOfTracks()
+            self.getProblem().get_number_of_rooms()
+            * self.getProblem().get_number_of_tracks()
         ):
             temp = []
             temp.append(add_names[i])
@@ -2193,23 +2236,23 @@ class ExtendedModel(Optimisation):
         solution = df.iloc[:, 0].to_list()
         for i in range(len(solution)):
             self.getSolution().getSolTracks()[
-                self.getProblem().getSessionIndex(solution[i][1])
+                self.getProblem().get_session_index(solution[i][1])
             ][
-                self.getProblem().getRoomIndex(solution[i][2])
-            ] = self.getProblem().getTrackIndex(solution[i][3])
+                self.getProblem().get_room_index(solution[i][2])
+            ] = self.getProblem().get_track_index(solution[i][3])
             ts = (
                 self.getSolution()
-                .getSolSubmissions()[self.getProblem().getSessionIndex(solution[i][1])][
-                    self.getProblem().getRoomIndex(solution[i][2])
-                ]
+                .getSolSubmissions()[
+                    self.getProblem().get_session_index(solution[i][1])
+                ][self.getProblem().get_room_index(solution[i][2])]
                 .index(-1)
             )
             self.getSolution().getSolSubmissions()[
-                self.getProblem().getSessionIndex(solution[i][1])
-            ][self.getProblem().getRoomIndex(solution[i][2])][
+                self.getProblem().get_session_index(solution[i][1])
+            ][self.getProblem().get_room_index(solution[i][2])][
                 ts
-            ] = self.getProblem().getSubmissionIndex(solution[i][4])
-        for sub in range(self.getProblem().getNumberOfSubmissions()):
+            ] = self.getProblem().get_submission_index(solution[i][4])
+        for sub in range(self.getProblem().get_number_of_submissions()):
             for session in range(len(self.getSolution().getSolSubmissions())):
                 for room in range(len(self.getSolution().getSolSubmissions()[session])):
                     if sub in self.getSolution().getSolSubmissions()[session][room]:
@@ -2237,8 +2280,8 @@ class ExtendedModel(Optimisation):
                             while (
                                 temp.count(info[i])
                                 < self.getProblem()
-                                .getSubmission(info[i])
-                                .getSubmissionRequiredTimeSlots()
+                                .get_submission(info[i])
+                                .get_submission_required_time_slots()
                             ):
                                 temp.append(info[i])
                         while len(temp) < len(

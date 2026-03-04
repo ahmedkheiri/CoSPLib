@@ -18,6 +18,8 @@ import pandas as pd
 import datetime as dt
 import pytz
 
+pd.set_option("future.no_silent_downcasting", True)
+
 
 class Problem:
     def __init__(self, file_path: Path) -> None:
@@ -397,7 +399,7 @@ class Problem:
             keep_default_na=False,
             na_filter=False,
         )
-        file.replace(to_replace="", value=0, inplace=True)
+        file = file.replace("", 0).convert_dtypes()
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
 
@@ -420,7 +422,7 @@ class Problem:
             keep_default_na=False,
             na_filter=False,
         )
-        file.replace(to_replace="", value=0, inplace=True)
+        file = file.replace("", 0).convert_dtypes()
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
 
@@ -443,7 +445,7 @@ class Problem:
             keep_default_na=False,
             na_filter=False,
         )
-        file.replace(to_replace="", value=0, inplace=True)
+        file = file.replace("", 0).convert_dtypes()
         penalty_list = file.values.tolist()
 
         for i in range(len(penalty_list)):
@@ -475,7 +477,7 @@ class Problem:
             keep_default_na=False,
             na_filter=False,
         )
-        file.replace(to_replace="", value=0, inplace=True)
+        file = file.replace("", 0).convert_dtypes()
         columns = list(file.columns)
         columns.remove("Unnamed: 0")
 

@@ -6,7 +6,6 @@ Created on Tue Mar 14 19:16:16 2023
 """
 
 from domain.problem import Problem
-from parameters import *
 import numpy as np
 import pandas as pd
 

@@ -614,6 +614,7 @@ class Optimisation:
         print("Solving time:", round((time() - stime), 2))
         print(model.objective.value())
         print("Model Status:", LpStatus[model.status])
+
         solution = []
         solution2 = []
         to_remove = []

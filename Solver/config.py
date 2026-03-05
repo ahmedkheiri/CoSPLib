@@ -13,6 +13,10 @@ REQUIRED_SHEETS = [
     "sessions_rooms|penalty",
 ]
 
+# Optimisation
+HYPER_HEURISTIC = False
+MATHEURISTIC = True
+
 # Utils
 # Timezone values are inversed intentionally
 TIMEZONE_MAPPING = {

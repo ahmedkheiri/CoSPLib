@@ -29,6 +29,7 @@ class HyperHeuristic:
         run_time_in_sec: int,
         ruin_and_recreate_frequency_in_sec: int = 600,
     ) -> None:
+        logging.info("Solving with hyper-heuristic...")
         objective_best = solution.EvaluateSolution()
         objective_current = objective_best
         solution_best = solution.copyWholeSolution()

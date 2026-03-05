@@ -61,13 +61,17 @@ class Submission:
     def get_submission_presenter_conflicts(self, index) -> str:
         return self.__presenter_conflicts[index]
 
-    def get_submission_presenter_conflicts_list(self) -> List[str]:
+    def get_submission_presenter_conflicts_list(self) -> List["Submission"]:
         return self.__presenter_conflicts
+
+    def set_submission_presenter_conflicts(self, submission: "Submission"):
+        if submission not in self.__presenter_conflicts:
+            self.__presenter_conflicts.append(submission)
 
     def get_submission_attendee_conflicts(self, index: int) -> str:
         return self.__attendee_conflicts[index]
 
-    def get_submission_attendee_conflicts_list(self) -> List[str]:
+    def get_submission_attendee_conflicts_list(self) -> List["Submission"]:
         return self.__attendee_conflicts
 
     def set_submission_attendee_conflicts(self, submission: str) -> None:

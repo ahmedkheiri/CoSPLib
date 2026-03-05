@@ -34,6 +34,10 @@ class Track:
     def get_track_chair_conflicts(self, index) -> "Track":
         return self.__track_chairs_conflicts[index]
 
+    def set_track_chair_conflicts(self, track: "Track"):
+        if track not in self.__track_chairs_conflicts:
+            self.__track_chairs_conflicts.append(track)
+
     def get_track_chair_conflicts_list(self) -> List["Track"]:
         return self.__track_chairs_conflicts
 

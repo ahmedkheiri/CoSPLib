@@ -7,6 +7,7 @@ Created on Tue Mar 14 19:16:16 2023
 
 from optimisation.algorithms.hyper_heuristic import HyperHeuristic
 from optimisation.algorithms.matheuristic import Matheuristic
+from optimisation.milp.exact_model import ExactModel
 from domain.problem import Problem
 from solution import Solution, RandomInd
 from pathlib import Path
@@ -44,6 +45,14 @@ def solve_with_matheuristic(problem: Problem) -> Solution:
     return final_solution
 
 
+def solve_with_exact_milp(problem: Problem) -> Solution:
+    final_solution = Solution(problem)
+    solver = ExactModel(problem, final_solution)
+    s_time = time()
+    solver.solve(time_limit_in_sec=3600)
+    return final_solution
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     problem = Problem(file_path=Path(config.INPUT_PATH))
@@ -53,6 +62,8 @@ if __name__ == "__main__":
         final_solution = solve_with_hyper_heuristic(problem)
     if config.MATHEURISTIC:
         final_solution = solve_with_matheuristic(problem)
+    if config.EXACT_MILP:
+        final_solution = solve_with_exact_milp(problem)
 
     logging.info(
         f"Is solution feasible? {final_solution.EvaluateAllSubmissionsScheduled()}"
@@ -60,12 +71,4 @@ if __name__ == "__main__":
     logging.info(f"Objective value: {final_solution.EvaluateSolution()}")
     final_solution.printViolations()
 
-    """sol = Solution(problem)
-
-    solver = ExactModel(problem, sol)  # Available models: ExactModel(), ExtendedModel()
-    solver.solve(timelimit=3600)
-
-    print("Objective Value:", sol.EvaluateSolution())
-    print("All submissions scheduled? ", sol.EvaluateAllSubmissionsScheduled())
-    sol.printViolations()
-    sol.toExcel(file_name="Solution" + config.INSTANCE_NAME + ".xlsx")"""
+    """sol.toExcel(file_name="Solution" + config.INSTANCE_NAME + ".xlsx")"""

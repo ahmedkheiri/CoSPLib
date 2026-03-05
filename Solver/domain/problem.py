@@ -596,6 +596,88 @@ class Problem:
             for y in range(self.get_number_of_submissions()):
                 if y != i:
                     for x in range(
+                        len(self.get_submission(i).get_submission_prsenters_list())
+                    ):
+                        if (
+                            self.get_submission(i).get_submission_prsenters_list()[x]
+                            != ""
+                        ):
+                            for z in range(
+                                len(
+                                    self.get_submission(
+                                        y
+                                    ).get_submission_prsenters_list()
+                                )
+                            ):
+                                if (
+                                    self.get_submission(
+                                        i
+                                    ).get_submission_prsenters_list()[x]
+                                    == self.get_submission(
+                                        y
+                                    ).get_submission_prsenters_list()[z]
+                                ):
+                                    self.get_submission(
+                                        i
+                                    ).set_submission_presenter_conflicts(
+                                        self.get_submission(y)
+                                    )
+                                    self.get_submission(
+                                        y
+                                    ).set_submission_presenter_conflicts(
+                                        self.get_submission(i)
+                                    )
+                            for z in range(
+                                len(
+                                    self.get_submission(y)
+                                    .get_submission_track()
+                                    .get_track_chairs_list()
+                                )
+                            ):
+                                if (
+                                    self.get_submission(
+                                        i
+                                    ).get_submission_prsenters_list()[x]
+                                    == self.get_submission(y)
+                                    .get_submission_track()
+                                    .get_track_chairs_list()[z]
+                                ) and (
+                                    self.get_submission(i).get_submission_track()
+                                    != self.get_submission(y).get_submission_track()
+                                ):
+                                    self.get_submission(
+                                        i
+                                    ).set_submission_presenter_conflicts(
+                                        self.get_submission(y)
+                                    )
+                                    self.get_submission(
+                                        y
+                                    ).set_submission_presenter_conflicts(
+                                        self.get_submission(i)
+                                    )
+        for i in range(self.get_number_of_tracks()):
+            for y in range(self.get_number_of_tracks()):
+                if y != i:
+                    for x in range(len(self.get_track(i).get_track_chairs_list())):
+                        if self.get_track(i).get_track_chairs_list()[x] != "":
+                            for z in range(
+                                len(self.get_track(y).get_track_chairs_list())
+                            ):
+                                if (
+                                    self.get_track(i).get_track_chairs_list()[x]
+                                    == self.get_track(y).get_track_chairs_list()[z]
+                                ):
+                                    self.get_track(i).set_track_chair_conflicts(
+                                        self.get_track(y)
+                                    )
+                                    self.get_track(y).set_track_chair_conflicts(
+                                        self.get_track(i)
+                                    )
+
+        for i in range(self.get_number_of_submissions()):
+            for y in range(self.get_number_of_submissions()):
+                if y != i:
+                    for x in range(
                         len(self.get_submission(i).get_submission_attendees_list())
                     ):
                         if (

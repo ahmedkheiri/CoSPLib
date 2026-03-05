@@ -15,7 +15,8 @@ REQUIRED_SHEETS = [
 
 # Optimisation
 HYPER_HEURISTIC = False
-MATHEURISTIC = True
+MATHEURISTIC = False
+EXACT_MILP = True
 
 # Utils
 # Timezone values are inversed intentionally

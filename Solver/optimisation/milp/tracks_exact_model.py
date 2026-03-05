@@ -17,19 +17,19 @@ class TracksExactModel:
     def __init__(self, problem: Problem, solution: Solution) -> None:
         self.__problem: Problem = problem
         self.__solution: Solution = solution
-        self.__model: LpProblem = LpProblem("model", LpMinimize)
+        self.__model: LpProblem = LpProblem("TracksExactModel", LpMinimize)
         self.__variables: LpVariable = None
         self.__add_variables: LpVariable = None
         self.__add2_variables: LpVariable = None
         self.__penalties: LpVariable = None
         self.__names: List[str] = list()
-        self.__sub_x_map = {
+        self.__sub_x_map: Dict[str, List[str]] = {
             problem.get_submission(submission).get_submission_name(): []
             for submission in range(problem.get_number_of_submissions())
             if problem.get_submission(submission).get_submission_required_time_slots()
             > 1
         }
-        self.__track_session_room_x_map = {
+        self.__track_session_room_x_map: Dict[str, List[str]] = {
             problem.get_track(track).get_track_name()
             + problem.get_session(session).get_session_name()
             + problem.get_room(room).get_room_name(): []
@@ -37,38 +37,38 @@ class TracksExactModel:
             for session in range(problem.get_number_of_sessions())
             for room in range(problem.get_number_of_rooms())
         }
-        self.__add_names = list()
-        self.__track_z_map = {
+        self.__add_names: List[str] = list()
+        self.__track_z_map: Dict[str, List[str]] = {
             problem.get_track(track).get_track_name(): []
             for track in range(problem.get_number_of_tracks())
         }
-        self.__session_room_z_map = dict()
-        self.__room_track_z_map = {
+        self.__session_room_z_map: Dict[str, List[str]] = dict()
+        self.__room_track_z_map: Dict[str, List[str]] = {
             problem.get_room(room).get_room_name()
             + problem.get_track(track).get_track_name(): []
             for room in range(problem.get_number_of_rooms())
             for track in range(problem.get_number_of_tracks())
         }
-        self.__track_session_room_z_map = dict()
-        self.__session_track_z_map = {
+        self.__track_session_room_z_map: Dict[str, str] = dict()
+        self.__session_track_z_map: Dict[str, List[str]] = {
             problem.get_session(session).get_session_name()
             + problem.get_track(track).get_track_name(): []
             for session in range(problem.get_number_of_sessions())
             for track in range(problem.get_number_of_tracks())
         }
-        self.__add2_names = list()
-        self.__track_room_y_map = dict()
-        self.__track_y_map = dict()
-        self.__coefficients = dict()
-        self.__timeslots = dict()
-        self.__n = dict()
-        self.__mts_subs = [
+        self.__add2_names: List[str] = list()
+        self.__track_room_y_map: Dict[str, str] = dict()
+        self.__track_y_map: Dict[str, List[str]] = dict()
+        self.__coefficients: Dict[str, int] = dict()
+        self.__timeslots: Dict[str, int] = dict()
+        self.__n: Dict[str, int] = dict()
+        self.__mts_subs: List[int] = [
             submission
             for submission in range(problem.get_number_of_submissions())
             if problem.get_submission(submission).get_submission_required_time_slots()
             > 1
         ]
-        self.__pen = list()
+        self.__pen: List[str] = list()
         self.__build_decision_variables()
         self.__build_objective_function()
         self.__build_constraints()

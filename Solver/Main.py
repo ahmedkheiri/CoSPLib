@@ -5,52 +5,17 @@ Created on Tue Mar 14 19:16:16 2023
 @author: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
 """
 
-from optimisation.algorithms.hyper_heuristic import HyperHeuristic
-from optimisation.algorithms.matheuristic import Matheuristic
-from optimisation.milp.exact_model import ExactModel
+from optimisation.run_mode import (
+    solve_with_exact_milp,
+    solve_with_extended_milp,
+    solve_with_hyper_heuristic,
+    solve_with_matheuristic,
+)
 from domain.problem import Problem
 from solution import Solution, RandomInd
 from pathlib import Path
-from time import time
 import config
 import logging
-
-
-def solve_with_hyper_heuristic(problem: Problem) -> Solution:
-    final_solution = RandomInd(problem)
-    solver = HyperHeuristic()
-    s_time = time()
-    solver.solve(
-        problem=problem,
-        solution=final_solution,
-        start_time=s_time,
-        run_time_in_sec=3600,
-        ruin_and_recreate_frequency_in_sec=600,
-    )
-    return final_solution
-
-
-def solve_with_matheuristic(problem: Problem) -> Solution:
-    final_solution = Solution(problem)
-    solver = Matheuristic()
-    s_time = time()
-    solver.solve(
-        problem=problem,
-        solution=final_solution,
-        start_time=s_time,
-        run_time_in_sec=600,
-        time_limit_in_sec=90,
-        ruin_and_recreate_frequency_in_sec=600,
-    )
-    return final_solution
-
-
-def solve_with_exact_milp(problem: Problem) -> Solution:
-    final_solution = Solution(problem)
-    solver = ExactModel(problem, final_solution)
-    s_time = time()
-    solver.solve(time_limit_in_sec=3600)
-    return final_solution
 
 
 if __name__ == "__main__":
@@ -64,6 +29,8 @@ if __name__ == "__main__":
         final_solution = solve_with_matheuristic(problem)
     if config.EXACT_MILP:
         final_solution = solve_with_exact_milp(problem)
+    if config.EXTENDED_MILP:
+        final_solution = solve_with_extended_milp(problem)
 
     logging.info(
         f"Is solution feasible? {final_solution.EvaluateAllSubmissionsScheduled()}"

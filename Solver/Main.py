@@ -12,7 +12,6 @@ from optimisation.run_mode import (
     solve_with_matheuristic,
 )
 from domain.problem import Problem
-from solution import Solution, RandomInd
 from pathlib import Path
 import config
 import logging
@@ -33,9 +32,9 @@ if __name__ == "__main__":
         final_solution = solve_with_extended_milp(problem)
 
     logging.info(
-        f"Is solution feasible? {final_solution.EvaluateAllSubmissionsScheduled()}"
+        f"Is solution feasible? {final_solution.evaluate_all_submissions_scheduled()}"
     )
-    logging.info(f"Objective value: {final_solution.EvaluateSolution()}")
-    final_solution.printViolations()
-
-    """sol.toExcel(file_name="Solution" + config.INSTANCE_NAME + ".xlsx")"""
+    logging.info(f"Objective value: {final_solution.evaluate_solution()}")
+    final_solution.print_violations()
+    if config.SAVE_SOLUTION:
+        final_solution.to_excel(file_path=Path(config.OUTPUT_PATH))

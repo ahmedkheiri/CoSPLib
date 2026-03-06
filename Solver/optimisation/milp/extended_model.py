@@ -45,7 +45,7 @@ class ExtendedModel:
             for room in range(self.__problem.get_number_of_rooms())
             for track in range(self.__problem.get_number_of_tracks())
         }
-        self.__similar_tracks = {
+        self.__similar_tracks: Dict[str, List[str]] = {
             self.__problem.get_session(session).get_session_name()
             + self.__problem.get_track(track).get_track_name(): []
             for session in range(self.__problem.get_number_of_sessions())
@@ -54,7 +54,7 @@ class ExtendedModel:
         self.__add2_names: List[str] = list()
         self.__track_y_map: Dict[str, List[str]] = dict()
         self.__track_room_y_map: Dict[str, str] = dict()
-        self.__product_names = []
+        self.__product_names: List[str] = []
         self.__coefficients: Dict[str, int] = dict()
         self.__timeslots: Dict[str, int] = dict()
         self.__required_sessions: Dict[str, int] = dict()
@@ -878,41 +878,49 @@ class ExtendedModel:
         df = df.map(lambda x: x.split("|"))
         solution = df.iloc[:, 0].to_list()
         for i in range(len(solution)):
-            self.__solution.getSolTracks()[
+            self.__solution.get_tracks_solution()[
                 self.__problem.get_session_index(solution[i][1])
             ][
                 self.__problem.get_room_index(solution[i][2])
             ] = self.__problem.get_track_index(solution[i][3])
-            ts = self.__solution.getSolSubmissions()[
+            ts = self.__solution.get_submissions_solution()[
                 self.__problem.get_session_index(solution[i][1])
             ][self.__problem.get_room_index(solution[i][2])].index(-1)
-            self.__solution.getSolSubmissions()[
+            self.__solution.get_submissions_solution()[
                 self.__problem.get_session_index(solution[i][1])
             ][self.__problem.get_room_index(solution[i][2])][
                 ts
             ] = self.__problem.get_submission_index(solution[i][4])
         for sub in range(self.__problem.get_number_of_submissions()):
-            for session in range(len(self.__solution.getSolSubmissions())):
-                for room in range(len(self.__solution.getSolSubmissions()[session])):
-                    if sub in self.__solution.getSolSubmissions()[session][room]:
+            for session in range(len(self.__solution.get_submissions_solution())):
+                for room in range(
+                    len(self.__solution.get_submissions_solution()[session])
+                ):
+                    if sub in self.__solution.get_submissions_solution()[session][room]:
                         info = []
                         for i in range(
-                            len(self.__solution.getSolSubmissions()[session][room])
+                            len(
+                                self.__solution.get_submissions_solution()[session][
+                                    room
+                                ]
+                            )
                         ):
                             if (
-                                self.__solution.getSolSubmissions()[session][room][i]
+                                self.__solution.get_submissions_solution()[session][
+                                    room
+                                ][i]
                                 != -1
                             ):
                                 if (
-                                    self.__solution.getSolSubmissions()[session][room][
-                                        i
-                                    ]
+                                    self.__solution.get_submissions_solution()[session][
+                                        room
+                                    ][i]
                                     not in info
                                 ):
                                     info.append(
-                                        self.__solution.getSolSubmissions()[session][
-                                            room
-                                        ][i]
+                                        self.__solution.get_submissions_solution()[
+                                            session
+                                        ][room][i]
                                     )
                         temp = []
                         for i in range(len(info)):
@@ -924,10 +932,10 @@ class ExtendedModel:
                             ):
                                 temp.append(info[i])
                         while len(temp) < len(
-                            self.__solution.getSolSubmissions()[session][room]
+                            self.__solution.get_submissions_solution()[session][room]
                         ):
                             temp.append(-1)
-                        self.__solution.getSolSubmissions()[session][room] = temp
+                        self.__solution.get_submissions_solution()[session][room] = temp
 
     def __find_MaxS_for_tracks(self) -> None:
         sessions_ts = []

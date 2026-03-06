@@ -6,928 +6,1301 @@ Created on Tue Mar 14 19:16:16 2023
 """
 
 from domain.problem import Problem
+from pathlib import Path
+from typing import List, Callable
+import config
 import numpy as np
 import pandas as pd
+import logging
 
 
 class Solution:
-    def __init__(self, problem):
-        self.__problem = problem
-        self.__solTracks = [
-            [-1 for x in range(self.getProblem().get_number_of_rooms())]
-            for y in range(self.getProblem().get_number_of_sessions())
+    def __init__(self, problem: Problem):
+        self.__problem: Problem = problem
+        self.__tracks_solution: List[List[int]] = [
+            [-1 for room in range(self.get_problem().get_number_of_rooms())]
+            for session in range(self.get_problem().get_number_of_sessions())
         ]
-        self.__solSubmissions = [
+        self.__submissions_solution: List[List[List[int]]] = [
             [
                 [
                     -1
-                    for x in range(
-                        self.getProblem().get_session(z).get_session_max_time_slots()
+                    for time_slot in range(
+                        self.get_problem()
+                        .get_session(session)
+                        .get_session_max_time_slots()
                     )
                 ]
-                for y in range(self.getProblem().get_number_of_rooms())
+                for room in range(self.get_problem().get_number_of_rooms())
             ]
-            for z in range(self.getProblem().get_number_of_sessions())
+            for session in range(self.get_problem().get_number_of_sessions())
         ]
-        self.__indsolSubmissions = [
+        self.__submissions_indirect_solution: List[List[int]] = [
             [
-                self.getProblem().get_submission_index(x.get_submission_name())
-                for x in self.getProblem().get_track(y).get_track_submissions_list()
+                self.get_problem().get_submission_index(
+                    submission.get_submission_name()
+                )
+                for submission in self.get_problem()
+                .get_track(track)
+                .get_track_submissions_list()
             ]
-            for y in range(self.getProblem().get_number_of_tracks())
+            for track in range(self.get_problem().get_number_of_tracks())
         ]
-        self.generateEvaluations()
+        self.__generate_valuations()
 
-    def getProblem(self) -> Problem:
+    def get_problem(self) -> Problem:
         return self.__problem
 
-    def getSolTracks(self) -> list:
-        return self.__solTracks
+    def get_tracks_solution(self) -> List[List[int]]:
+        return self.__tracks_solution
 
-    def getSolSubmissions(self) -> list:
-        return self.__solSubmissions
+    def get_submissions_solution(self) -> List[List[List[int]]]:
+        return self.__submissions_solution
 
-    def getIndSolSubmissions(self) -> list:
-        return self.__indsolSubmissions
+    def get_submissions_indirect_solution(self) -> List[List[int]]:
+        return self.__submissions_indirect_solution
 
-    def setIndSolSubmissions(self, solInd):
-        self.__indsolSubmissions = solInd
+    def set_submissions_indirect_solution(
+        self, submissions_indirect_solution: List[List[int]]
+    ) -> None:
+        self.__submissions_indirect_solution = submissions_indirect_solution
 
-    def setBestSolution(self, solTracks, solSubmissions):
-        self.__solTracks = solTracks
-        self.__solSubmissions = solSubmissions
+    def set_best_solution(
+        self,
+        tracks_solution: List[List[int]],
+        submissions_solution: List[List[List[int]]],
+    ) -> None:
+        self.__tracks_solution = tracks_solution
+        self.__submissions_solution = submissions_solution
 
-    def restoreSolution(self, solTracks, solSubmissions, solInd):
-        self.__solTracks = solTracks
-        self.__solSubmissions = solSubmissions
-        self.__indsolSubmissions = solInd
+    def restore_solution(
+        self,
+        tracks_solution: List[List[int]],
+        submissions_solution: List[List[List[int]]],
+        submissions_indirect_solution: List[List[int]],
+    ) -> None:
+        self.__tracks_solution = tracks_solution
+        self.__submissions_solution = submissions_solution
+        self.__submissions_indirect_solution = submissions_indirect_solution
 
-    def resetSolTracks(self):
-        self.__solTracks = [
-            [-1 for x in range(self.getProblem().get_number_of_rooms())]
-            for y in range(self.getProblem().get_number_of_sessions())
+    def reset_tracks_solution(self) -> None:
+        self.__tracks_solution = [
+            [-1 for room in range(self.get_problem().get_number_of_rooms())]
+            for session in range(self.get_problem().get_number_of_sessions())
         ]
 
-    def resetSolSubmissions(self):
-        self.__solSubmissions = [
+    def reset_submissions_solution(self) -> None:
+        self.__submissions_solution = [
             [
                 [
                     -1
-                    for x in range(
-                        self.getProblem().get_session(z).get_session_max_time_slots()
+                    for time_slot in range(
+                        self.get_problem()
+                        .get_session(session)
+                        .get_session_max_time_slots()
                     )
                 ]
-                for y in range(self.getProblem().get_number_of_rooms())
+                for room in range(self.get_problem().get_number_of_rooms())
             ]
-            for z in range(self.getProblem().get_number_of_sessions())
+            for session in range(self.get_problem().get_number_of_sessions())
         ]
 
-    def resetIndSolSubmissions(self):
-        self.__indsolSubmissions = [
+    def reset_submissions_indirect_solution(self) -> None:
+        self.__submissions_indirect_solution = [
             [
-                self.getProblem().get_submission_index(x.get_submission_name())
-                for x in self.getProblem().get_track(y).get_track_submissions_list()
+                self.get_problem().get_submission_index(
+                    submission.get_submission_name()
+                )
+                for submission in self.get_problem()
+                .get_track(track)
+                .get_track_submissions_list()
             ]
-            for y in range(self.getProblem().get_number_of_tracks())
+            for track in range(self.get_problem().get_number_of_tracks())
         ]
 
-    def generateEvaluations(self):
+    def __generate_valuations(self) -> None:
         self.__evaluations = []
         self.__evaluations_names = {}
-        if self.getProblem().get_parameters().tracks_sessions_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().tracks_sessions_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().tracks_sessions_penalty_weight
-                    * self.EvaluateTracksSessions()
+                    self.get_problem().get_parameters().tracks_sessions_penalty_weight
+                    * self.evaluate_tracks_sessions()
                 ),
                 "Tracks_Sessions|Penalty:",
             )
-        if self.getProblem().get_parameters().tracks_rooms_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().tracks_rooms_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().tracks_rooms_penalty_weight
-                    * self.EvaluateTracksRooms()
+                    self.get_problem().get_parameters().tracks_rooms_penalty_weight
+                    * self.evaluate_tracks_rooms()
                 ),
                 "Tracks_Rooms|Penalty:",
             )
-        if self.getProblem().get_parameters().sessions_rooms_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().sessions_rooms_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().sessions_rooms_penalty_weight
-                    * self.EvaluateSessionsRooms()
+                    self.get_problem().get_parameters().sessions_rooms_penalty_weight
+                    * self.evaluate_sessions_rooms()
                 ),
                 "Sessions_Rooms|Penalty",
             )
-        if self.getProblem().get_parameters().similar_tracks_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().similar_tracks_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().similar_tracks_penalty_weight
-                    * self.EvaluateSimilarTracks()
+                    self.get_problem().get_parameters().similar_tracks_penalty_weight
+                    * self.evaluate_similar_tracks()
                 ),
                 "Similar Tracks:",
             )
-        if self.getProblem().get_parameters().num_rooms_per_track_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().num_rooms_per_track_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().num_rooms_per_track_weight
-                    * self.EvaluateNumberOfRoomsPerTrack()
+                    self.get_problem().get_parameters().num_rooms_per_track_weight
+                    * self.evaluate_number_of_rooms_per_track()
                 ),
                 "Number of rooms per track:",
             )
-        if self.getProblem().get_parameters().parallel_tracks_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().parallel_tracks_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().parallel_tracks_weight
-                    * self.EvaluateParallelTracks()
+                    self.get_problem().get_parameters().parallel_tracks_weight
+                    * self.evaluate_parallel_tracks()
                 ),
                 "Parallel tracks:",
             )
-        if self.getProblem().get_parameters().consecutive_tracks_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().consecutive_tracks_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().consecutive_tracks_weight
-                    * self.EvaluateConsecutiveTracks()
+                    self.get_problem().get_parameters().consecutive_tracks_weight
+                    * self.evaluate_consecutive_tracks()
                 ),
                 "Consecutive tracks:",
             )
-        if self.getProblem().get_parameters().submissions_timezones_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().submissions_timezones_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem()
+                    self.get_problem()
                     .get_parameters()
                     .submissions_timezones_penalty_weight
-                    * self.EvaluateSubmissionsTimezones()
+                    * self.evaluate_submissions_timezones()
                 ),
                 "Submissions timezones:",
             )
-        if self.getProblem().get_parameters().submissions_order_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().submissions_order_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().submissions_order_weight
-                    * self.EvaluateSubmissionsOrder()
+                    self.get_problem().get_parameters().submissions_order_weight
+                    * self.evaluate_submissions_order()
                 ),
                 "Submissions order:",
             )
-        if self.getProblem().get_parameters().submissions_sessions_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().submissions_sessions_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem()
+                    self.get_problem()
                     .get_parameters()
                     .submissions_sessions_penalty_weight
-                    * self.EvaluateSubmissionsSessions()
+                    * self.evaluate_submissions_sessions()
                 ),
                 "Submissions_Sessions|Penalty:",
             )
-        if self.getProblem().get_parameters().submissions_rooms_penalty_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().submissions_rooms_penalty_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().submissions_rooms_penalty_weight
-                    * self.EvaluateSubmissionsRooms()
+                    self.get_problem().get_parameters().submissions_rooms_penalty_weight
+                    * self.evaluate_submissions_rooms()
                 ),
                 "Submissions_Rooms|Penalty:",
             )
-        if self.getProblem().get_parameters().presenters_conflicts_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().presenters_conflicts_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().presenters_conflicts_weight
-                    * self.EvaluatePresentersConflicts()
+                    self.get_problem().get_parameters().presenters_conflicts_weight
+                    * self.evaluate_presenters_conflicts_session_level()
                 ),
                 "Presenters conflicts [Session Level]:",
             )
-        if self.getProblem().get_parameters().attendees_conflicts_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().attendees_conflicts_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().attendees_conflicts_weight
-                    * self.EvaluateAttendeesConflicts()
+                    self.get_problem().get_parameters().attendees_conflicts_weight
+                    * self.evaluate_attendees_conflicts_session_level()
                 ),
                 "Attendees conflicts [Session Level]:",
             )
-        if self.getProblem().get_parameters().chairs_conflicts_weight > 0:
-            self.setEvaluation(
+        if self.get_problem().get_parameters().chairs_conflicts_weight > 0:
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem().get_parameters().chairs_conflicts_weight
-                    * self.EvaluateChairsConflicts()
+                    self.get_problem().get_parameters().chairs_conflicts_weight
+                    * self.evaluate_track_chairs_conflicts()
                 ),
                 "Chairs conflicts:",
             )
         if (
-            self.getProblem()
+            self.get_problem()
             .get_parameters()
             .presenters_conflicts_timeslot_level_weight
             > 0
         ):
-            self.setEvaluation(
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem()
+                    self.get_problem()
                     .get_parameters()
                     .presenters_conflicts_timeslot_level_weight
-                    * self.EvaluatePresentersConflictsTS()
+                    * self.evaluate_presenters_conflicts_time_slot_level()
                 ),
                 "Presenters conflicts [Timeslot Level]:",
             )
         if (
-            self.getProblem().get_parameters().attendees_conflicts_timeslot_level_weight
+            self.get_problem()
+            .get_parameters()
+            .attendees_conflicts_timeslot_level_weight
             > 0
         ):
-            self.setEvaluation(
+            self.__set_evaluation(
                 lambda: (
-                    self.getProblem()
+                    self.get_problem()
                     .get_parameters()
                     .attendees_conflicts_timeslot_level_weight
-                    * self.EvaluateAttendeesConflictsTS()
+                    * self.evaluate_attendees_conflicts_time_slot_level()
                 ),
                 "Attendees conflicts [Timeslot Level]:",
             )
-        self.setEvaluation(
-            lambda: self.EvaluateExtendedSubmissions(),
+        self.__set_evaluation(
+            lambda: self.evaluate_multi_slot_submissions(),
             "Submissions with multiple timeslots in different sessions:",
         )
 
-    def setEvaluation(self, evaluation_function, evaluation_name):
+    def __set_evaluation(
+        self, evaluation_function: Callable[[], int], evaluation_name: str
+    ) -> None:
         self.__evaluations.append(evaluation_function)
         self.__evaluations_names[evaluation_function] = evaluation_name
 
-    def getEvaluationsList(self) -> list:
+    def get_evaluations_list(self) -> List[Callable[[], int]]:
         return self.__evaluations
 
-    def getEvaluationName(self, evaluation_function) -> str:
+    def get_evaluation_name(self, evaluation_function: Callable[[], int]) -> str:
         return self.__evaluations_names[evaluation_function]
 
-    def EvaluateTracksSessions(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
-                    pen += self.getProblem().get_tracks_sessions_penalty_by_index(
-                        self.getSolTracks()[i][j], i
+    def evaluate_tracks_sessions(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if self.get_tracks_solution()[session][room] != -1:
+                    value += self.get_problem().get_tracks_sessions_penalty_by_index(
+                        self.get_tracks_solution()[session][room], session
                     )
-        return pen
+        return value
 
-    def EvaluateTracksRooms(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
-                    pen += self.getProblem().get_tracks_rooms_penalty_by_index(
-                        self.getSolTracks()[i][j], j
+    def evaluate_tracks_rooms(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if self.get_tracks_solution()[session][room] != -1:
+                    value += self.get_problem().get_tracks_rooms_penalty_by_index(
+                        self.get_tracks_solution()[session][room], room
                     )
-        return pen
+        return value
 
-    def EvaluateSessionsRooms(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
-                    pen += self.getProblem().get_sessions_rooms_penalty_by_index(i, j)
-        return pen
+    def evaluate_sessions_rooms(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if self.get_tracks_solution()[session][room] != -1:
+                    value += self.get_problem().get_sessions_rooms_penalty_by_index(
+                        session, room
+                    )
+        return value
 
-    def EvaluateSimilarTracks(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(j, len(self.getSolTracks()[i])):
+    def evaluate_similar_tracks(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for this_room in range(len(self.get_tracks_solution()[session])):
+                for other_room in range(
+                    this_room, len(self.get_tracks_solution()[session])
+                ):
                     if (
-                        (self.getSolTracks()[i][j] != self.getSolTracks()[i][x])
-                        and (self.getSolTracks()[i][j] != -1)
-                        and (self.getSolTracks()[i][x] != -1)
+                        (
+                            self.get_tracks_solution()[session][this_room]
+                            != self.get_tracks_solution()[session][other_room]
+                        )
+                        and (self.get_tracks_solution()[session][this_room] != -1)
+                        and (self.get_tracks_solution()[session][other_room] != -1)
                     ):
-                        pen += self.getProblem().get_tracks_tracks_penalty_by_index(
-                            self.getSolTracks()[i][j], self.getSolTracks()[i][x]
+                        value += self.get_problem().get_tracks_tracks_penalty_by_index(
+                            self.get_tracks_solution()[session][this_room],
+                            self.get_tracks_solution()[session][other_room],
                         )
-        return pen
+        return value
 
-    def EvaluateNumberOfRoomsPerTrack(self) -> int:
-        pen = 0
-        di = {track: [] for track in range(self.getProblem().get_number_of_tracks())}
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if (self.getSolTracks()[i][j] != -1) and (
-                    j not in di[self.getSolTracks()[i][j]]
+    def evaluate_number_of_rooms_per_track(self) -> int:
+        value = 0
+        rooms_per_track_map = {
+            track: [] for track in range(self.get_problem().get_number_of_tracks())
+        }
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if (self.get_tracks_solution()[session][room] != -1) and (
+                    room
+                    not in rooms_per_track_map[
+                        self.get_tracks_solution()[session][room]
+                    ]
                 ):
-                    di[self.getSolTracks()[i][j]].append(j)
-        for i in di.values():
-            if len(i) > 1:
-                pen += len(i) - 1
-        return pen
+                    rooms_per_track_map[
+                        self.get_tracks_solution()[session][room]
+                    ].append(room)
 
-    def EvaluateParallelTracks(self) -> int:
-        pen = 0
-        temp = [
-            tuple(self.getSolTracks()[session])
-            for session in range(len(self.getSolTracks()))
+        for rooms in rooms_per_track_map.values():
+            if len(rooms) > 1:
+                value += len(rooms) - 1
+        return value
+
+    def evaluate_parallel_tracks(self) -> int:
+        value = 0
+        sessions = [
+            tuple(self.get_tracks_solution()[session])
+            for session in range(len(self.get_tracks_solution()))
         ]
-        for track in range(self.getProblem().get_number_of_tracks()):
-            for session in range(len(temp)):
-                c = temp[session].count(track)
-                if c > 1:
-                    pen += c - 1
-        return pen
 
-    def EvaluateConsecutiveTracks(self) -> int:
-        pen = 0
-        di = {track: [] for track in range(self.getProblem().get_number_of_tracks())}
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if (self.getSolTracks()[i][j] != -1) and (
-                    i not in di[self.getSolTracks()[i][j]]
+        for track in range(self.get_problem().get_number_of_tracks()):
+            for session in sessions:
+                tracks_count = session.count(track)
+                if tracks_count > 1:
+                    value += tracks_count - 1
+        return value
+
+    def evaluate_consecutive_tracks(self) -> int:
+        value = 0
+        sessions_per_track_map = {
+            track: [] for track in range(self.get_problem().get_number_of_tracks())
+        }
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if (self.get_tracks_solution()[session][room] != -1) and (
+                    session
+                    not in sessions_per_track_map[
+                        self.get_tracks_solution()[session][room]
+                    ]
                 ):
-                    di[self.getSolTracks()[i][j]].append(i)
-        for i in di.values():
-            if (len(i) > 1) and (sum(i) != sum(range(i[0], i[len(i) - 1] + 1))):
-                pen += 1
-        return pen
+                    sessions_per_track_map[
+                        self.get_tracks_solution()[session][room]
+                    ].append(session)
 
-    def EvaluateSubmissionsTimezones(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolSubmissions()[i][j][x] != -1:
-                        pen += self.getProblem().get_submissions_timezones_penalty_by_index(
-                            self.getSolSubmissions()[i][j][x], i
+        for sessions in sessions_per_track_map.values():
+            if (len(sessions) > 1) and (
+                sum(sessions)
+                != sum(range(sessions[0], sessions[len(sessions) - 1] + 1))
+            ):
+                value += 1
+        return value
+
+    def evaluate_submissions_timezones(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
+                    if self.get_submissions_solution()[session][room][time_slot] != -1:
+                        value += self.get_problem().get_submissions_timezones_penalty_by_index(
+                            self.get_submissions_solution()[session][room][time_slot],
+                            session,
                         )
-        return pen
+        return value
 
-    def EvaluateSubmissionsOrder(self) -> int:
-        pen = 0
-        di = {track: [] for track in range(self.getProblem().get_number_of_tracks())}
-        session_ts = {
-            self.getProblem().get_session(session).get_session_name() + str(ts): []
-            for session in range(len(self.getSolTracks()))
-            for ts in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+    def evaluate_submissions_order(self) -> int:
+        value = 0
+        submissions_per_track_map = {
+            track: [] for track in range(self.get_problem().get_number_of_tracks())
+        }
+        submissions_per_time_slot_map = {
+            self.get_problem().get_session(session).get_session_name()
+            + str(time_slot): []
+            for session in range(len(self.get_tracks_solution()))
+            for time_slot in range(
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
         }
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                if self.getSolTracks()[session][room] != -1:
-                    for ts in range(len(self.getSolSubmissions()[session][room])):
-                        if (self.getSolSubmissions()[session][room][ts] != -1) and (
-                            self.getSolSubmissions()[session][room][ts]
-                            not in di[self.getSolTracks()[session][room]]
-                        ):
-                            di[self.getSolTracks()[session][room]].append(
-                                self.getSolSubmissions()[session][room][ts]
-                            )
-                        if (self.getSolSubmissions()[session][room][ts] != -1) and (
-                            self.getSolSubmissions()[session][room][ts]
-                            not in session_ts[
-                                self.getProblem()
-                                .get_session(session)
-                                .get_session_name()
-                                + str(ts)
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if self.get_tracks_solution()[session][room] != -1:
+                    for time_slot in range(
+                        len(self.get_submissions_solution()[session][room])
+                    ):
+                        if (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        ) and (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            not in submissions_per_track_map[
+                                self.get_tracks_solution()[session][room]
                             ]
                         ):
-                            session_ts[
-                                self.getProblem()
+                            submissions_per_track_map[
+                                self.get_tracks_solution()[session][room]
+                            ].append(
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ]
+                            )
+                        if (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        ) and (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            not in submissions_per_time_slot_map[
+                                self.get_problem()
                                 .get_session(session)
                                 .get_session_name()
-                                + str(ts)
-                            ].append(self.getSolSubmissions()[session][room][ts])
+                                + str(time_slot)
+                            ]
+                        ):
+                            submissions_per_time_slot_map[
+                                self.get_problem()
+                                .get_session(session)
+                                .get_session_name()
+                                + str(time_slot)
+                            ].append(
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ]
+                            )
 
-        for ts in session_ts.values():
-            for this_sub in range(len(ts) - 1):
-                for other_sub in range(this_sub + 1, len(ts)):
+        for time_slot in submissions_per_time_slot_map.values():
+            for this_sub in range(len(time_slot) - 1):
+                for other_sub in range(this_sub + 1, len(time_slot)):
                     if (
-                        self.getProblem()
-                        .get_submission(ts[this_sub])
+                        self.get_problem()
+                        .get_submission(time_slot[this_sub])
                         .get_submission_track()
                         .get_track_name()
-                        == self.getProblem()
-                        .get_submission(ts[other_sub])
+                        == self.get_problem()
+                        .get_submission(time_slot[other_sub])
                         .get_submission_track()
                         .get_track_name()
                     ) and (
                         (
-                            self.getProblem()
-                            .get_submission(ts[this_sub])
+                            self.get_problem()
+                            .get_submission(time_slot[this_sub])
                             .get_submission_order()
                             != 0
                         )
                         and (
-                            self.getProblem()
-                            .get_submission(ts[other_sub])
+                            self.get_problem()
+                            .get_submission(time_slot[other_sub])
                             .get_submission_order()
                             != 0
                         )
                     ):
-                        pen += 1
+                        value += 1
 
-        for track in range(self.getProblem().get_number_of_tracks()):
+        for track in range(self.get_problem().get_number_of_tracks()):
             order = 1
-            for sub in di[track]:
+            for submission in submissions_per_track_map[track]:
                 if (
-                    self.getProblem().get_submission(sub).get_submission_order()
+                    self.get_problem().get_submission(submission).get_submission_order()
                     != order
                 ) and (
-                    self.getProblem().get_submission(sub).get_submission_order() != 0
+                    self.get_problem().get_submission(submission).get_submission_order()
+                    != 0
                 ):
-                    pen += 1
+                    value += 1
                 order += 1
-        return pen
+        return value
 
-    def EvaluateSubmissionsSessions(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolSubmissions()[i][j][x] != -1:
-                        pen += (
-                            self.getProblem().get_submissions_sessions_penalty_by_index(
-                                self.getSolSubmissions()[i][j][x], i
+    def evaluate_submissions_sessions(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
+                    if self.get_submissions_solution()[session][room][time_slot] != -1:
+                        value += self.get_problem().get_submissions_sessions_penalty_by_index(
+                            self.get_submissions_solution()[session][room][time_slot],
+                            session,
+                        )
+        return value
+
+    def evaluate_submissions_rooms(self) -> int:
+        value = 0
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
+                    if self.get_submissions_solution()[session][room][time_slot] != -1:
+                        value += (
+                            self.get_problem().get_submissions_rooms_penalty_by_index(
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ],
+                                room,
                             )
                         )
-        return pen
+        return value
 
-    def EvaluateSubmissionsRooms(self) -> int:
-        pen = 0
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolSubmissions()[i][j][x] != -1:
-                        pen += self.getProblem().get_submissions_rooms_penalty_by_index(
-                            self.getSolSubmissions()[i][j][x], j
-                        )
-        return pen
-
-    def EvaluatePresentersConflicts(self) -> int:  # Session Level
-        pen = 0
-        di = {
-            session: [] for session in range(self.getProblem().get_number_of_sessions())
+    def evaluate_presenters_conflicts_session_level(self) -> int:
+        value = 0
+        submission_room_pairs_per_session_map = {
+            session: []
+            for session in range(self.get_problem().get_number_of_sessions())
         }
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
                     if (
-                        (self.getSolSubmissions()[i][j][x] != -1)
+                        (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        )
                         and (
                             len(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
+                                )
                                 .get_submission_presenter_conflicts_list()
                             )
                             != 0
                         )
-                        and ((self.getSolSubmissions()[i][j][x], j) not in di[i])
+                        and (
+                            (
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ],
+                                room,
+                            )
+                            not in submission_room_pairs_per_session_map[session]
+                        )
                     ):
-                        di[i].append((self.getSolSubmissions()[i][j][x], j))
-        for i in range(len(self.getSolTracks())):
-            if len(di[i]) > 1:
-                for j in range(len(di[i]) - 1):
-                    for z in range(j + 1, len(di[i])):
-                        if (
-                            self.getProblem().get_submission(di[i][j][0])
-                            in self.getProblem()
-                            .get_submission(di[i][z][0])
-                            .get_submission_presenter_conflicts_list()
-                        ) and (di[i][j][1] != di[i][z][1]):
-                            pen += 1
-        return pen
+                        submission_room_pairs_per_session_map[session].append(
+                            (
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ],
+                                room,
+                            )
+                        )
 
-    def EvaluateAttendeesConflicts(self) -> int:  # Session Level
-        pen = 0
-        di = {
-            session: [] for session in range(self.getProblem().get_number_of_sessions())
+        for session in range(len(self.get_tracks_solution())):
+            if len(submission_room_pairs_per_session_map[session]) > 1:
+                for this_submission_room_pair in range(
+                    len(submission_room_pairs_per_session_map[session]) - 1
+                ):
+                    for other_submission_room_pair in range(
+                        this_submission_room_pair + 1,
+                        len(submission_room_pairs_per_session_map[session]),
+                    ):
+                        if (
+                            self.get_problem().get_submission(
+                                submission_room_pairs_per_session_map[session][
+                                    this_submission_room_pair
+                                ][0]
+                            )
+                            in self.get_problem()
+                            .get_submission(
+                                submission_room_pairs_per_session_map[session][
+                                    other_submission_room_pair
+                                ][0]
+                            )
+                            .get_submission_presenter_conflicts_list()
+                        ) and (
+                            submission_room_pairs_per_session_map[session][
+                                this_submission_room_pair
+                            ][1]
+                            != submission_room_pairs_per_session_map[session][
+                                other_submission_room_pair
+                            ][1]
+                        ):
+                            value += 1
+        return value
+
+    def evaluate_attendees_conflicts_session_level(self) -> int:
+        value = 0
+        submission_room_pairs_per_session_map = {
+            session: []
+            for session in range(self.get_problem().get_number_of_sessions())
         }
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
                     if (
-                        (self.getSolSubmissions()[i][j][x] != -1)
+                        (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        )
                         and (
                             len(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
+                                )
                                 .get_submission_attendee_conflicts_list()
                             )
                             != 0
                         )
-                        and ((self.getSolSubmissions()[i][j][x], j) not in di[i])
+                        and (
+                            (
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ],
+                                room,
+                            )
+                            not in submission_room_pairs_per_session_map[session]
+                        )
                     ):
-                        di[i].append((self.getSolSubmissions()[i][j][x], j))
-        for i in range(len(self.getSolTracks())):
-            if len(di[i]) > 1:
-                for j in range(len(di[i]) - 1):
-                    for z in range(j + 1, len(di[i])):
-                        if (
-                            self.getProblem().get_submission(di[i][j][0])
-                            in self.getProblem()
-                            .get_submission(di[i][z][0])
-                            .get_submission_attendee_conflicts_list()
-                        ) and (di[i][j][1] != di[i][z][1]):
-                            pen += 1
-        return pen
+                        submission_room_pairs_per_session_map[session].append(
+                            (
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ],
+                                room,
+                            )
+                        )
 
-    def EvaluateChairsConflicts(self) -> int:
-        pen = 0
-        di = {
-            session: [] for session in range(self.getProblem().get_number_of_sessions())
+        for session in range(len(self.get_tracks_solution())):
+            if len(submission_room_pairs_per_session_map[session]) > 1:
+                for this_submission_room_pair in range(
+                    len(submission_room_pairs_per_session_map[session]) - 1
+                ):
+                    for other_submission_room_pair in range(
+                        this_submission_room_pair + 1,
+                        len(submission_room_pairs_per_session_map[session]),
+                    ):
+                        if (
+                            self.get_problem().get_submission(
+                                submission_room_pairs_per_session_map[session][
+                                    this_submission_room_pair
+                                ][0]
+                            )
+                            in self.get_problem()
+                            .get_submission(
+                                submission_room_pairs_per_session_map[session][
+                                    other_submission_room_pair
+                                ][0]
+                            )
+                            .get_submission_attendee_conflicts_list()
+                        ) and (
+                            submission_room_pairs_per_session_map[session][
+                                this_submission_room_pair
+                            ][1]
+                            != submission_room_pairs_per_session_map[session][
+                                other_submission_room_pair
+                            ][1]
+                        ):
+                            value += 1
+        return value
+
+    def evaluate_track_chairs_conflicts(self) -> int:
+        value = 0
+        tracks_per_session_map = {
+            session: []
+            for session in range(self.get_problem().get_number_of_sessions())
         }
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if (self.getSolTracks()[i][j] != -1) and (
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if (self.get_tracks_solution()[session][room] != -1) and (
                     len(
-                        self.getProblem()
-                        .get_track(self.getSolTracks()[i][j])
+                        self.get_problem()
+                        .get_track(self.get_tracks_solution()[session][room])
                         .get_track_chair_conflicts_list()
                     )
                     != 0
                 ):
-                    di[i].append(self.getSolTracks()[i][j])
-        for i in range(len(self.getSolTracks())):
-            if len(di[i]) > 1:
-                for j in range(len(di[i]) - 1):
-                    for z in range(j + 1, len(di[i])):
+                    tracks_per_session_map[session].append(
+                        self.get_tracks_solution()[session][room]
+                    )
+
+        for session in range(len(self.get_tracks_solution())):
+            if len(tracks_per_session_map[session]) > 1:
+                for this_track in range(len(tracks_per_session_map[session]) - 1):
+                    for other_track in range(
+                        this_track + 1, len(tracks_per_session_map[session])
+                    ):
                         if (
-                            self.getProblem().get_track(di[i][j])
-                            in self.getProblem()
-                            .get_track(di[i][z])
+                            self.get_problem().get_track(
+                                tracks_per_session_map[session][this_track]
+                            )
+                            in self.get_problem()
+                            .get_track(tracks_per_session_map[session][other_track])
                             .get_track_chair_conflicts_list()
                         ):
-                            pen += 1
-        return pen
+                            value += 1
+        return value
 
-    def EvaluatePresentersConflictsTS(self) -> int:  # Time slot Level
-        pen = 0
-        di = {
-            str(session) + str(ts): []
-            for session in range(self.getProblem().get_number_of_sessions())
-            for ts in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+    def evaluate_presenters_conflicts_time_slot_level(self) -> int:
+        value = 0
+        submissions_per_time_slot_map = {
+            self.get_problem().get_session(session).get_session_name()
+            + str(time_slot): []
+            for session in range(self.get_problem().get_number_of_sessions())
+            for time_slot in range(
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
         }
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                for ts in range(len(self.getSolSubmissions()[session][room])):
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
                     if (
-                        (self.getSolSubmissions()[session][room][ts] != -1)
+                        (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        )
                         and (
                             len(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_submission(
-                                    self.getSolSubmissions()[session][room][ts]
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
                                 )
                                 .get_submission_presenter_conflicts_list()
                             )
                             != 0
                         )
                         and (
-                            self.getSolSubmissions()[session][room][ts]
-                            not in di[str(session) + str(ts)]
+                            self.get_submissions_solution()[session][room][time_slot]
+                            not in submissions_per_time_slot_map[
+                                self.get_problem()
+                                .get_session(session)
+                                .get_session_name()
+                                + str(time_slot)
+                            ]
                         )
                     ):
-                        di[str(session) + str(ts)].append(
-                            self.getSolSubmissions()[session][room][ts]
+                        submissions_per_time_slot_map[
+                            self.get_problem().get_session(session).get_session_name()
+                            + str(time_slot)
+                        ].append(
+                            self.get_submissions_solution()[session][room][time_slot]
                         )
-        for session in range(len(self.getSolTracks())):
-            for ts in range(len(self.getSolSubmissions()[session][room])):
-                if len(di[str(session) + str(ts)]) > 1:
-                    for j in range(len(di[str(session) + str(ts)]) - 1):
-                        for z in range(j + 1, len(di[str(session) + str(ts)])):
+
+        for session in range(len(self.get_tracks_solution())):
+            for time_slot in range(len(self.get_submissions_solution()[session][room])):
+                if (
+                    len(
+                        submissions_per_time_slot_map[
+                            self.get_problem().get_session(session).get_session_name()
+                            + str(time_slot)
+                        ]
+                    )
+                    > 1
+                ):
+                    for this_submission in range(
+                        len(
+                            submissions_per_time_slot_map[
+                                self.get_problem()
+                                .get_session(session)
+                                .get_session_name()
+                                + str(time_slot)
+                            ]
+                        )
+                        - 1
+                    ):
+                        for other_submission in range(
+                            this_submission + 1,
+                            len(
+                                submissions_per_time_slot_map[
+                                    self.get_problem()
+                                    .get_session(session)
+                                    .get_session_name()
+                                    + str(time_slot)
+                                ]
+                            ),
+                        ):
                             if (
-                                self.getProblem().get_submission(
-                                    di[str(session) + str(ts)][j]
+                                self.get_problem().get_submission(
+                                    submissions_per_time_slot_map[
+                                        self.get_problem()
+                                        .get_session(session)
+                                        .get_session_name()
+                                        + str(time_slot)
+                                    ][this_submission]
                                 )
-                                in self.getProblem()
-                                .get_submission(di[str(session) + str(ts)][z])
+                                in self.get_problem()
+                                .get_submission(
+                                    submissions_per_time_slot_map[
+                                        self.get_problem()
+                                        .get_session(session)
+                                        .get_session_name()
+                                        + str(time_slot)
+                                    ][other_submission]
+                                )
                                 .get_submission_presenter_conflicts_list()
                             ):
-                                pen += 1
-        return pen
+                                value += 1
+        return value
 
-    def EvaluateAttendeesConflictsTS(self) -> int:  # Time slot level
-        pen = 0
-        di = {
-            str(session) + str(ts): []
-            for session in range(self.getProblem().get_number_of_sessions())
-            for ts in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+    def evaluate_attendees_conflicts_time_slot_level(self) -> int:
+        value = 0
+        submissions_per_time_slot_map = {
+            self.get_problem().get_session(session).get_session_name()
+            + str(time_slot): []
+            for session in range(self.get_problem().get_number_of_sessions())
+            for time_slot in range(
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
         }
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                for ts in range(len(self.getSolSubmissions()[session][room])):
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
                     if (
-                        (self.getSolSubmissions()[session][room][ts] != -1)
+                        (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        )
                         and (
                             len(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_submission(
-                                    self.getSolSubmissions()[session][room][ts]
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
                                 )
                                 .get_submission_attendee_conflicts_list()
                             )
                             != 0
                         )
                         and (
-                            self.getSolSubmissions()[session][room][ts]
-                            not in di[str(session) + str(ts)]
+                            self.get_submissions_solution()[session][room][time_slot]
+                            not in submissions_per_time_slot_map[
+                                self.get_problem()
+                                .get_session(session)
+                                .get_session_name()
+                                + str(time_slot)
+                            ]
                         )
                     ):
-                        di[str(session) + str(ts)].append(
-                            self.getSolSubmissions()[session][room][ts]
+                        submissions_per_time_slot_map[
+                            self.get_problem().get_session(session).get_session_name()
+                            + str(time_slot)
+                        ].append(
+                            self.get_submissions_solution()[session][room][time_slot]
                         )
-        for session in range(len(self.getSolTracks())):
-            for ts in range(len(self.getSolSubmissions()[session][room])):
-                if len(di[str(session) + str(ts)]) > 1:
-                    for j in range(len(di[str(session) + str(ts)]) - 1):
-                        for z in range(j + 1, len(di[str(session) + str(ts)])):
+        for session in range(len(self.get_tracks_solution())):
+            for time_slot in range(len(self.get_submissions_solution()[session][room])):
+                if (
+                    len(
+                        submissions_per_time_slot_map[
+                            self.get_problem().get_session(session).get_session_name()
+                            + str(time_slot)
+                        ]
+                    )
+                    > 1
+                ):
+                    for this_submission in range(
+                        len(
+                            submissions_per_time_slot_map[
+                                self.get_problem()
+                                .get_session(session)
+                                .get_session_name()
+                                + str(time_slot)
+                            ]
+                        )
+                        - 1
+                    ):
+                        for other_submission in range(
+                            this_submission + 1,
+                            len(
+                                submissions_per_time_slot_map[
+                                    self.get_problem()
+                                    .get_session(session)
+                                    .get_session_name()
+                                    + str(time_slot)
+                                ]
+                            ),
+                        ):
                             if (
-                                self.getProblem().get_submission(
-                                    di[str(session) + str(ts)][j]
+                                self.get_problem().get_submission(
+                                    submissions_per_time_slot_map[
+                                        self.get_problem()
+                                        .get_session(session)
+                                        .get_session_name()
+                                        + str(time_slot)
+                                    ][this_submission]
                                 )
-                                in self.getProblem()
-                                .get_submission(di[str(session) + str(ts)][z])
+                                in self.get_problem()
+                                .get_submission(
+                                    submissions_per_time_slot_map[
+                                        self.get_problem()
+                                        .get_session(session)
+                                        .get_session_name()
+                                        + str(time_slot)
+                                    ][other_submission]
+                                )
                                 .get_submission_attendee_conflicts_list()
                             ):
-                                pen += 1
-        return pen
+                                value += 1
+        return value
 
-    def EvaluateExtendedSubmissions(self) -> int:
-        pen = 0
-        di = {
-            str(session) + str(room): []
-            for session in range(self.getProblem().get_number_of_sessions())
-            for room in range(self.getProblem().get_number_of_rooms())
+    def evaluate_multi_slot_submissions(self) -> int:
+        value = 0
+        multi_slot_submissions_per_session_room_pair_map = {
+            self.get_problem().get_session(session).get_session_name()
+            + self.get_problem().get_room(room).get_room_name(): []
+            for session in range(self.get_problem().get_number_of_sessions())
+            for room in range(self.get_problem().get_number_of_rooms())
         }
-        di2 = {
+        time_slots_per_submission_map = {
             sub: []
-            for sub in range(self.getProblem().get_number_of_submissions())
-            if self.getProblem()
+            for sub in range(self.get_problem().get_number_of_submissions())
+            if self.get_problem()
             .get_submission(sub)
             .get_submission_required_time_slots()
             > 1
         }
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                for ts in range(len(self.getSolSubmissions()[session][room])):
-                    if (self.getSolSubmissions()[session][room][ts] != -1) and (
-                        self.getProblem()
-                        .get_submission(self.getSolSubmissions()[session][room][ts])
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
+                    if (
+                        self.get_submissions_solution()[session][room][time_slot] != -1
+                    ) and (
+                        self.get_problem()
+                        .get_submission(
+                            self.get_submissions_solution()[session][room][time_slot]
+                        )
                         .get_submission_required_time_slots()
                         > 1
                     ):
-                        di[str(session) + str(room)].append(
-                            self.getSolSubmissions()[session][room][ts]
+                        multi_slot_submissions_per_session_room_pair_map[
+                            self.get_problem().get_session(session).get_session_name()
+                            + self.get_problem().get_room(room).get_room_name()
+                        ].append(
+                            self.get_submissions_solution()[session][room][time_slot]
                         )
-                        di2[self.getSolSubmissions()[session][room][ts]].append(ts)
-        for i in di.values():
-            if len(i) != 0:
-                temp = set(i)
-                for j in temp:
-                    if self.getProblem().get_submission(
-                        j
-                    ).get_submission_required_time_slots() != i.count(j):
-                        pen += 10000000
-        for i in di2.values():
-            if len(i) == 0:
-                pen += 1000000000
-                return pen
-            if sum(range(i[0], i[len(i) - 1] + 1)) != sum(i):
-                pen += 1000000000
-        return pen
+                        time_slots_per_submission_map[
+                            self.get_submissions_solution()[session][room][time_slot]
+                        ].append(time_slot)
 
-    def EvaluateAllSubmissionsScheduled(self) -> bool:
-        temp = [
-            self.getSolSubmissions()[session][room][ts]
-            for session in range(len(self.getSolTracks()))
-            for room in range(len(self.getSolTracks()[session]))
-            for ts in range(len(self.getSolSubmissions()[session][room]))
-            if self.getSolSubmissions()[session][room][ts] != -1
+        for (
+            multi_slot_submissions
+        ) in multi_slot_submissions_per_session_room_pair_map.values():
+            if len(multi_slot_submissions) != 0:
+                temp = set(multi_slot_submissions)
+                for multi_slot_submission in temp:
+                    if (
+                        self.get_problem()
+                        .get_submission(multi_slot_submission)
+                        .get_submission_required_time_slots()
+                        != multi_slot_submissions.count(multi_slot_submission)
+                    ):
+                        value += 10000000
+
+        for time_slots in time_slots_per_submission_map.values():
+            if len(time_slots) == 0:
+                return 1000000000
+            if sum(range(time_slots[0], time_slots[len(time_slots) - 1] + 1)) != sum(
+                time_slots
+            ):
+                value += 1000000000
+        return value
+
+    def evaluate_all_submissions_scheduled(self) -> bool:
+        scheduled_submissions = [
+            self.get_submissions_solution()[session][room][time_slot]
+            for session in range(len(self.get_tracks_solution()))
+            for room in range(len(self.get_tracks_solution()[session]))
+            for time_slot in range(len(self.get_submissions_solution()[session][room]))
+            if self.get_submissions_solution()[session][room][time_slot] != -1
         ]
-        for sub in range(self.getProblem().get_number_of_submissions()):
-            if (sub not in temp) or (
-                self.getProblem()
-                .get_submission(sub)
+        for submission in range(self.get_problem().get_number_of_submissions()):
+            if (submission not in scheduled_submissions) or (
+                self.get_problem()
+                .get_submission(submission)
                 .get_submission_required_time_slots()
-                != temp.count(sub)
+                != scheduled_submissions.count(submission)
             ):
                 return False
         return True
 
-    def ValidateSolution(self) -> bool:
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolTracks()[i][j] != -1:
-                        if self.getSolSubmissions()[i][j][x] != -1:
+    def validate_solution(self) -> bool:
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
+                    if self.get_tracks_solution()[session][room] != -1:
+                        if (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        ):
                             if (
-                                self.getProblem().get_submission(
-                                    self.getSolSubmissions()[i][j][x]
+                                self.get_problem().get_submission(
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
                                 )
-                                not in self.getProblem()
-                                .get_track(self.getSolTracks()[i][j])
+                                not in self.get_problem()
+                                .get_track(self.get_tracks_solution()[session][room])
                                 .get_track_submissions_list()
                             ):
                                 return False
         return True
 
-    def EvaluateSolution(self) -> int:
-        obj = [
-            self.getEvaluationsList()[i]()
-            for i in range(len(self.getEvaluationsList()))
-        ]
-        return sum(obj)
+    def evaluate_solution(self) -> int:
+        return sum([evaluation() for evaluation in self.get_evaluations_list()])
 
-    def QuickEvaluateSolution(self, previous_obj) -> int:
-        obj = 0
-        for i in range(len(self.getEvaluationsList())):
-            obj += self.getEvaluationsList()[i]()
-            if obj > previous_obj:
-                return obj
-        return obj
+    def evaluate_solution_fast(self, previous_objective: int) -> int:
+        current_objective = 0
+        for evaluation in self.get_evaluations_list():
+            current_objective += evaluation()
+            if current_objective > previous_objective:
+                return current_objective
+        return current_objective
 
-    def copyWholeSolution(self):
-        copy_solTracks = []
-        copy_solSubmissions = []
-        for i in range(len(self.getSolTracks())):
+    def copy_whole_solution(self) -> List:
+        copy_tracks_solution = []
+        copy_submissions_solution = []
+        for session in range(len(self.get_tracks_solution())):
             temp = []
             temp3 = []
-            for j in range(len(self.getSolTracks()[i])):
-                temp.append(self.getSolTracks()[i][j])
+            for room in range(len(self.get_tracks_solution()[session])):
+                temp.append(self.get_tracks_solution()[session][room])
                 temp2 = []
-                for z in range(len(self.getSolSubmissions()[i][j])):
-                    temp2.append(self.getSolSubmissions()[i][j][z])
+                for time_slot in range(
+                    len(self.get_submissions_solution()[session][room])
+                ):
+                    temp2.append(
+                        self.get_submissions_solution()[session][room][time_slot]
+                    )
                 temp3.append(temp2)
-            copy_solTracks.append(temp)
-            copy_solSubmissions.append(temp3)
-        copy_indsol = []
-        for i in range(len(self.getIndSolSubmissions())):
+            copy_tracks_solution.append(temp)
+            copy_submissions_solution.append(temp3)
+        copy_submissions_indirect_solution = []
+        for track in range(len(self.get_submissions_indirect_solution())):
             temp = []
-            for j in range(len(self.getIndSolSubmissions()[i])):
-                temp.append(self.getIndSolSubmissions()[i][j])
-            copy_indsol.append(temp)
-        return copy_solTracks, copy_solSubmissions, copy_indsol
+            for submission in range(
+                len(self.get_submissions_indirect_solution()[track])
+            ):
+                temp.append(self.get_submissions_indirect_solution()[track][submission])
+            copy_submissions_indirect_solution.append(temp)
+        return (
+            copy_tracks_solution,
+            copy_submissions_solution,
+            copy_submissions_indirect_solution,
+        )
 
-    def convertIndSolFirstTime(self):
-        temp = [
-            self.getIndSolSubmissions()[track][sub]
-            for track in range(len(self.getIndSolSubmissions()))
-            for sub in range(len(self.getIndSolSubmissions()[track]))
+    def convert_indirect_solution_first_time(self) -> None:
+        all_submissions = [
+            self.get_submissions_indirect_solution()[track][submission]
+            for track in range(len(self.get_submissions_indirect_solution()))
+            for submission in range(
+                len(self.get_submissions_indirect_solution()[track])
+            )
         ]
-        for sub in temp:
+        for submission in all_submissions:
             if (
-                self.getProblem()
-                .get_submission(sub)
+                self.get_problem()
+                .get_submission(submission)
                 .get_submission_required_time_slots()
                 == 1
             ):
                 stop = False
-                for session in range(self.getProblem().get_number_of_sessions()):
+                for session in range(self.get_problem().get_number_of_sessions()):
                     if stop == True:
                         break
-                    for room in range(self.getProblem().get_number_of_rooms()):
+                    for room in range(self.get_problem().get_number_of_rooms()):
                         if stop == True:
                             break
                         if (
-                            self.getProblem()
-                            .get_submission(sub)
+                            self.get_problem()
+                            .get_submission(submission)
                             .get_submission_required_time_slots()
-                            <= self.getSolSubmissions()[session][room].count(-1)
+                            <= self.get_submissions_solution()[session][room].count(-1)
                         ) and (
-                            self.getProblem().get_track_index(
-                                self.getProblem()
-                                .get_submission(sub)
+                            self.get_problem().get_track_index(
+                                self.get_problem()
+                                .get_submission(submission)
                                 .get_submission_track()
                                 .get_track_name()
                             )
-                            == self.getSolTracks()[session][room]
+                            == self.get_tracks_solution()[session][room]
                         ):
-                            i = self.getSolSubmissions()[session][room].index(-1)
-                            self.getSolSubmissions()[session][room][i] = sub
+                            available_time_slot = self.get_submissions_solution()[
+                                session
+                            ][room].index(-1)
+                            self.get_submissions_solution()[session][room][
+                                available_time_slot
+                            ] = submission
                             stop = True
-        for session in range(self.getProblem().get_number_of_sessions()):
-            for room in range(self.getProblem().get_number_of_rooms()):
-                if self.getSolSubmissions()[session][room].count(-1) == len(
-                    self.getSolSubmissions()[session][room]
-                ):
-                    self.getSolTracks()[session][room] = -1
-        # Creating Ind sol
-        temp3 = [[] for i in range(self.getProblem().get_number_of_tracks())]
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
-                    for x in range(len(self.getSolSubmissions()[i][j])):
-                        if (self.getSolSubmissions()[i][j][x] != -1) and (
-                            self.getSolSubmissions()[i][j][x]
-                            not in temp3[self.getSolTracks()[i][j]]
-                        ):
-                            temp3[self.getSolTracks()[i][j]].append(
-                                self.getSolSubmissions()[i][j][x]
-                            )
-        self.setIndSolSubmissions(temp3)
 
-    def convertSol(self):
-        temp = [
-            self.getIndSolSubmissions()[track][sub]
-            for track in range(len(self.getIndSolSubmissions()))
-            for sub in range(len(self.getIndSolSubmissions()[track]))
+        for session in range(self.get_problem().get_number_of_sessions()):
+            for room in range(self.get_problem().get_number_of_rooms()):
+                if self.get_submissions_solution()[session][room].count(-1) == len(
+                    self.get_submissions_solution()[session][room]
+                ):
+                    self.get_tracks_solution()[session][room] = -1
+
+        submissions_indirect_solution = [
+            [] for track in range(self.get_problem().get_number_of_tracks())
         ]
-        for sub in temp:
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if self.get_tracks_solution()[session][room] != -1:
+                    for time_slot in range(
+                        len(self.get_submissions_solution()[session][room])
+                    ):
+                        if (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            != -1
+                        ) and (
+                            self.get_submissions_solution()[session][room][time_slot]
+                            not in submissions_indirect_solution[
+                                self.get_tracks_solution()[session][room]
+                            ]
+                        ):
+                            submissions_indirect_solution[
+                                self.get_tracks_solution()[session][room]
+                            ].append(
+                                self.get_submissions_solution()[session][room][
+                                    time_slot
+                                ]
+                            )
+        self.set_submissions_indirect_solution(submissions_indirect_solution)
+
+    def convert_solution(self) -> None:
+        all_submissions = [
+            self.get_submissions_indirect_solution()[track][submission]
+            for track in range(len(self.get_submissions_indirect_solution()))
+            for submission in range(
+                len(self.get_submissions_indirect_solution()[track])
+            )
+        ]
+        for submission in all_submissions:
             if (
-                self.getProblem()
-                .get_submission(sub)
+                self.get_problem()
+                .get_submission(submission)
                 .get_submission_required_time_slots()
                 > 1
             ):
                 stop = False
-                for session in range(self.getProblem().get_number_of_sessions()):
+                for session in range(self.get_problem().get_number_of_sessions()):
                     if stop == True:
                         break
-                    for room in range(self.getProblem().get_number_of_rooms()):
+                    for room in range(self.get_problem().get_number_of_rooms()):
                         if stop == True:
                             break
                         if (
-                            self.getProblem()
-                            .get_submission(sub)
+                            self.get_problem()
+                            .get_submission(submission)
                             .get_submission_required_time_slots()
-                            <= self.getSolSubmissions()[session][room].count(-1)
+                            <= self.get_submissions_solution()[session][room].count(-1)
                         ) and (
-                            self.getProblem().get_track_index(
-                                self.getProblem()
-                                .get_submission(sub)
+                            self.get_problem().get_track_index(
+                                self.get_problem()
+                                .get_submission(submission)
                                 .get_submission_track()
                                 .get_track_name()
                             )
-                            == self.getSolTracks()[session][room]
+                            == self.get_tracks_solution()[session][room]
                         ):
-                            for ts in range(
-                                self.getProblem()
-                                .get_submission(sub)
+                            for time_slot in range(
+                                self.get_problem()
+                                .get_submission(submission)
                                 .get_submission_required_time_slots()
                             ):
-                                i = self.getSolSubmissions()[session][room].index(-1)
-                                self.getSolSubmissions()[session][room][i] = sub
+                                available_time_slot = self.get_submissions_solution()[
+                                    session
+                                ][room].index(-1)
+                                self.get_submissions_solution()[session][room][
+                                    available_time_slot
+                                ] = submission
                             stop = True
             else:
                 stop = False
-                for session in range(self.getProblem().get_number_of_sessions()):
+                for session in range(self.get_problem().get_number_of_sessions()):
                     if stop == True:
                         break
-                    for room in range(self.getProblem().get_number_of_rooms()):
+                    for room in range(self.get_problem().get_number_of_rooms()):
                         if stop == True:
                             break
                         if (
-                            self.getProblem()
-                            .get_submission(sub)
+                            self.get_problem()
+                            .get_submission(submission)
                             .get_submission_required_time_slots()
-                            <= self.getSolSubmissions()[session][room].count(-1)
+                            <= self.get_submissions_solution()[session][room].count(-1)
                         ) and (
-                            self.getProblem().get_track_index(
-                                self.getProblem()
-                                .get_submission(sub)
+                            self.get_problem().get_track_index(
+                                self.get_problem()
+                                .get_submission(submission)
                                 .get_submission_track()
                                 .get_track_name()
                             )
-                            == self.getSolTracks()[session][room]
+                            == self.get_tracks_solution()[session][room]
                         ):
-                            i = self.getSolSubmissions()[session][room].index(-1)
-                            self.getSolSubmissions()[session][room][i] = sub
+                            available_time_slot = self.get_submissions_solution()[
+                                session
+                            ][room].index(-1)
+                            self.get_submissions_solution()[session][room][
+                                available_time_slot
+                            ] = submission
                             stop = True
-        for session in range(self.getProblem().get_number_of_sessions()):
-            for room in range(self.getProblem().get_number_of_rooms()):
-                if self.getSolSubmissions()[session][room].count(-1) == len(
-                    self.getSolSubmissions()[session][room]
+
+        for session in range(self.get_problem().get_number_of_sessions()):
+            for room in range(self.get_problem().get_number_of_rooms()):
+                if self.get_submissions_solution()[session][room].count(-1) == len(
+                    self.get_submissions_solution()[session][room]
                 ):
-                    self.getSolTracks()[session][room] = -1
+                    self.get_tracks_solution()[session][room] = -1
 
-    def printViolations(self):
-        print("----- Violations breakdown -----")
-        for i in range(len(self.getEvaluationsList())):
-            result = self.getEvaluationsList()[i]()
-            if result > 0:
-                print(self.getEvaluationName(self.getEvaluationsList()[i]), result)
-        print("--------------------------------")
+    def print_violations(self):
+        logging.info("----- Violations breakdown -----")
+        for evaluation in self.get_evaluations_list():
+            value = evaluation()
+            if value > 0:
+                logging.info(f"{self.get_evaluation_name(evaluation)} {value}")
+        logging.info("--------------------------------")
 
-    def toExcel(self, file_name="Solution.xlsx"):
+    def to_excel(self, file_path: Path) -> None:
         # Preparing sol tracks
         df = pd.DataFrame(
-            self.getSolTracks(),
+            self.get_tracks_solution(),
             index=[
-                self.getProblem().get_session(s).get_session_name()
-                for s in range(self.getProblem().get_number_of_sessions())
+                self.get_problem().get_session(s).get_session_name()
+                for s in range(self.get_problem().get_number_of_sessions())
             ],
             columns=[
-                self.getProblem().get_room(r).get_room_name()
-                for r in range(self.getProblem().get_number_of_rooms())
+                self.get_problem().get_room(r).get_room_name()
+                for r in range(self.get_problem().get_number_of_rooms())
             ],
         )
         df = df.map(
-            lambda x: self.getProblem().get_track(x).get_track_name() if x != -1 else ""
+            lambda x: self.get_problem().get_track(x).get_track_name()
+            if x != -1
+            else ""
         )
 
         # Preparing sol submissions
         temp2 = []
-        for session in range(self.getProblem().get_number_of_sessions()):
+        for session in range(self.get_problem().get_number_of_sessions()):
             for t in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+                self.get_problem().get_session(session).get_session_max_time_slots()
             ):
                 temp = []
-                for room in range(self.getProblem().get_number_of_rooms()):
-                    if self.getSolSubmissions()[session][room][t] != -1:
+                for room in range(self.get_problem().get_number_of_rooms()):
+                    if self.get_submissions_solution()[session][room][t] != -1:
                         temp.append(
-                            self.getProblem()
-                            .get_submission(self.getSolSubmissions()[session][room][t])
+                            self.get_problem()
+                            .get_submission(
+                                self.get_submissions_solution()[session][room][t]
+                            )
                             .get_submission_name()
                         )
                     else:
@@ -936,44 +1309,44 @@ class Solution:
         df2 = pd.DataFrame(
             temp2,
             index=[
-                self.getProblem().get_session(s).get_session_name()
-                for s in range(self.getProblem().get_number_of_sessions())
+                self.get_problem().get_session(s).get_session_name()
+                for s in range(self.get_problem().get_number_of_sessions())
                 for t in range(
-                    self.getProblem().get_session(s).get_session_max_time_slots()
+                    self.get_problem().get_session(s).get_session_max_time_slots()
                 )
             ],
         )
 
         # Preparing objective
-        obj = self.EvaluateSolution()
+        obj = self.evaluate_solution()
         obj_list = ["Obj", "Final Objective = " + str(obj)]
         df3 = pd.DataFrame(obj_list)
 
         # Preparing Tracks|Sessions penalty
         p1_list = ["Evaluate Tracks|Sessions"]
         p1_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                if self.get_tracks_solution()[i][j] != -1:
                     if (
-                        self.getProblem().get_tracks_sessions_penalty_by_index(
-                            self.getSolTracks()[i][j], i
+                        self.get_problem().get_tracks_sessions_penalty_by_index(
+                            self.get_tracks_solution()[i][j], i
                         )
                         != 0
                     ):
                         p1_list.append(
-                            self.getProblem()
-                            .get_track(self.getSolTracks()[i][j])
+                            self.get_problem()
+                            .get_track(self.get_tracks_solution()[i][j])
                             .get_track_name()
                             + " - "
-                            + self.getProblem().get_session(i).get_session_name()
+                            + self.get_problem().get_session(i).get_session_name()
                         )
                         p1_pen.append(
-                            self.getProblem()
+                            self.get_problem()
                             .get_parameters()
                             .tracks_sessions_penalty_weight
-                            * self.getProblem().get_tracks_sessions_penalty_by_index(
-                                self.getSolTracks()[i][j], i
+                            * self.get_problem().get_tracks_sessions_penalty_by_index(
+                                self.get_tracks_solution()[i][j], i
                             )
                         )
         p1_list.append("Total")
@@ -985,28 +1358,28 @@ class Solution:
         # Preparing Tracks|Rooms penalty
         p2_list = ["Evaluate Tracks|Rooms"]
         p2_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                if self.get_tracks_solution()[i][j] != -1:
                     if (
-                        self.getProblem().get_tracks_rooms_penalty_by_index(
-                            self.getSolTracks()[i][j], j
+                        self.get_problem().get_tracks_rooms_penalty_by_index(
+                            self.get_tracks_solution()[i][j], j
                         )
                         != 0
                     ):
                         p2_list.append(
-                            self.getProblem()
-                            .get_track(self.getSolTracks()[i][j])
+                            self.get_problem()
+                            .get_track(self.get_tracks_solution()[i][j])
                             .get_track_name()
                             + " - "
-                            + self.getProblem().get_room(j).get_room_name()
+                            + self.get_problem().get_room(j).get_room_name()
                         )
                         p2_pen.append(
-                            self.getProblem()
+                            self.get_problem()
                             .get_parameters()
                             .tracks_rooms_penalty_weight
-                            * self.getProblem().get_tracks_rooms_penalty_by_index(
-                                self.getSolTracks()[i][j], j
+                            * self.get_problem().get_tracks_rooms_penalty_by_index(
+                                self.get_tracks_solution()[i][j], j
                             )
                         )
         p2_list.append("Total")
@@ -1018,20 +1391,23 @@ class Solution:
         # Preparing Sessions|Rooms penalty
         p3_list = ["Evaluate Sessions|Rooms"]
         p3_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if self.getSolTracks()[i][j] != -1:
-                    if self.getProblem().get_sessions_rooms_penalty_by_index(i, j) != 0:
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                if self.get_tracks_solution()[i][j] != -1:
+                    if (
+                        self.get_problem().get_sessions_rooms_penalty_by_index(i, j)
+                        != 0
+                    ):
                         p3_list.append(
-                            self.getProblem().get_session(i).get_session_name()
+                            self.get_problem().get_session(i).get_session_name()
                             + " - "
-                            + self.getProblem().get_room(j).get_room_name()
+                            + self.get_problem().get_room(j).get_room_name()
                         )
                         p3_pen.append(
-                            self.getProblem()
+                            self.get_problem()
                             .get_parameters()
                             .sessions_rooms_penalty_weight
-                            * self.getProblem().get_sessions_rooms_penalty_by_index(
+                            * self.get_problem().get_sessions_rooms_penalty_by_index(
                                 i, j
                             )
                         )
@@ -1044,37 +1420,42 @@ class Solution:
         # Preparing Similar tracks penalty
         p4_list = ["Evaluate Similar Tracks"]
         p4_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(j, len(self.getSolTracks()[i])):
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                for x in range(j, len(self.get_tracks_solution()[i])):
                     if (
-                        (self.getSolTracks()[i][j] != self.getSolTracks()[i][x])
-                        and (self.getSolTracks()[i][j] != -1)
-                        and (self.getSolTracks()[i][x] != -1)
+                        (
+                            self.get_tracks_solution()[i][j]
+                            != self.get_tracks_solution()[i][x]
+                        )
+                        and (self.get_tracks_solution()[i][j] != -1)
+                        and (self.get_tracks_solution()[i][x] != -1)
                     ):
                         if (
-                            self.getProblem().get_tracks_tracks_penalty_by_index(
-                                self.getSolTracks()[i][j], self.getSolTracks()[i][x]
+                            self.get_problem().get_tracks_tracks_penalty_by_index(
+                                self.get_tracks_solution()[i][j],
+                                self.get_tracks_solution()[i][x],
                             )
                             != 0
                         ):
                             p4_list.append(
-                                self.getProblem()
-                                .get_track(self.getSolTracks()[i][j])
+                                self.get_problem()
+                                .get_track(self.get_tracks_solution()[i][j])
                                 .get_track_name()
                                 + " - "
-                                + self.getProblem()
-                                .get_track(self.getSolTracks()[i][x])
+                                + self.get_problem()
+                                .get_track(self.get_tracks_solution()[i][x])
                                 .get_track_name()
                                 + " - "
-                                + self.getProblem().get_session(i).get_session_name()
+                                + self.get_problem().get_session(i).get_session_name()
                             )
                             p4_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .similar_tracks_penalty_weight
-                                * self.getProblem().get_tracks_tracks_penalty_by_index(
-                                    self.getSolTracks()[i][j], self.getSolTracks()[i][x]
+                                * self.get_problem().get_tracks_tracks_penalty_by_index(
+                                    self.get_tracks_solution()[i][j],
+                                    self.get_tracks_solution()[i][x],
                                 )
                             )
         p4_list.append("Total")
@@ -1086,20 +1467,20 @@ class Solution:
         # Preparing Number of rooms per track
         p5_list = ["Evaluate NumberOfRoomsPerTrack"]
         p5_pen = []
-        di = {track: [] for track in range(self.getProblem().get_number_of_tracks())}
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if (self.getSolTracks()[i][j] != -1) and (
-                    j not in di[self.getSolTracks()[i][j]]
+        di = {track: [] for track in range(self.get_problem().get_number_of_tracks())}
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                if (self.get_tracks_solution()[i][j] != -1) and (
+                    j not in di[self.get_tracks_solution()[i][j]]
                 ):
-                    di[self.getSolTracks()[i][j]].append(j)
+                    di[self.get_tracks_solution()[i][j]].append(j)
         t = -1
         for i in di.values():
             t += 1
             if len(i) > 1:
-                p5_list.append(self.getProblem().get_track(t).get_track_name())
+                p5_list.append(self.get_problem().get_track(t).get_track_name())
                 p5_pen.append(
-                    self.getProblem().get_parameters().num_rooms_per_track_weight
+                    self.get_problem().get_parameters().num_rooms_per_track_weight
                     * (len(i) - 1)
                 )
         p5_list.append("Total")
@@ -1112,20 +1493,20 @@ class Solution:
         p6_list = ["Evaluate Parallel Tracks"]
         p6_pen = []
         temp = [
-            tuple(self.getSolTracks()[session])
-            for session in range(len(self.getSolTracks()))
+            tuple(self.get_tracks_solution()[session])
+            for session in range(len(self.get_tracks_solution()))
         ]
-        for track in range(self.getProblem().get_number_of_tracks()):
+        for track in range(self.get_problem().get_number_of_tracks()):
             for session in range(len(temp)):
                 c = temp[session].count(track)
                 if c > 1:
                     p6_list.append(
-                        self.getProblem().get_track(track).get_track_name()
+                        self.get_problem().get_track(track).get_track_name()
                         + " - "
-                        + self.getProblem().get_session(session).get_session_name()
+                        + self.get_problem().get_session(session).get_session_name()
                     )
                     p6_pen.append(
-                        self.getProblem().get_parameters().parallel_tracks_weight
+                        self.get_problem().get_parameters().parallel_tracks_weight
                         * (c - 1)
                     )
         p6_list.append("Total")
@@ -1137,20 +1518,20 @@ class Solution:
         # Preparing Consecutive Tracks
         p7_list = ["Evaluate Consecutive Tracks"]
         p7_pen = []
-        di = {track: [] for track in range(self.getProblem().get_number_of_tracks())}
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if (self.getSolTracks()[i][j] != -1) and (
-                    i not in di[self.getSolTracks()[i][j]]
+        di = {track: [] for track in range(self.get_problem().get_number_of_tracks())}
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                if (self.get_tracks_solution()[i][j] != -1) and (
+                    i not in di[self.get_tracks_solution()[i][j]]
                 ):
-                    di[self.getSolTracks()[i][j]].append(i)
+                    di[self.get_tracks_solution()[i][j]].append(i)
         t = -1
         for i in di.values():
             t += 1
             if (len(i) > 1) and (sum(i) != sum(range(i[0], i[len(i) - 1] + 1))):
-                p7_list.append(self.getProblem().get_track(t).get_track_name())
+                p7_list.append(self.get_problem().get_track(t).get_track_name())
                 p7_pen.append(
-                    self.getProblem().get_parameters().consecutive_tracks_weight
+                    self.get_problem().get_parameters().consecutive_tracks_weight
                 )
         p7_list.append("Total")
         p7_pen.append(sum(p7_pen))
@@ -1161,29 +1542,31 @@ class Solution:
         # Preparing Submissions|Timezones penalty
         p9_list = ["Evaluate Submissions|Timezones"]
         p9_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolSubmissions()[i][j][x] != -1:
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                for x in range(len(self.get_submissions_solution()[i][j])):
+                    if self.get_submissions_solution()[i][j][x] != -1:
                         if (
-                            self.getProblem().get_submissions_timezones_penalty_by_index(
-                                self.getSolSubmissions()[i][j][x], i
+                            self.get_problem().get_submissions_timezones_penalty_by_index(
+                                self.get_submissions_solution()[i][j][x], i
                             )
                             != 0
                         ):
                             p9_list.append(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[i][j][x]
+                                )
                                 .get_submission_name()
                                 + " - "
-                                + self.getProblem().get_session(i).get_session_name()
+                                + self.get_problem().get_session(i).get_session_name()
                             )
                             p9_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .submissions_timezones_penalty_weight
-                                * self.getProblem().get_submissions_timezones_penalty_by_index(
-                                    self.getSolSubmissions()[i][j][x], i
+                                * self.get_problem().get_submissions_timezones_penalty_by_index(
+                                    self.get_submissions_solution()[i][j][x], i
                                 )
                             )
         p9_list.append("Total")
@@ -1195,91 +1578,97 @@ class Solution:
         # Preparing Submissions Order
         p11_list = ["Evaluate Submissions Order"]
         p11_pen = []
-        di = {track: [] for track in range(self.getProblem().get_number_of_tracks())}
+        di = {track: [] for track in range(self.get_problem().get_number_of_tracks())}
         session_ts = {
-            self.getProblem().get_session(session).get_session_name() + str(ts): []
-            for session in range(len(self.getSolTracks()))
+            self.get_problem().get_session(session).get_session_name() + str(ts): []
+            for session in range(len(self.get_tracks_solution()))
             for ts in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
         }
 
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                if self.getSolTracks()[session][room] != -1:
-                    for ts in range(len(self.getSolSubmissions()[session][room])):
-                        if (self.getSolSubmissions()[session][room][ts] != -1) and (
-                            self.getSolSubmissions()[session][room][ts]
-                            not in di[self.getSolTracks()[session][room]]
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                if self.get_tracks_solution()[session][room] != -1:
+                    for ts in range(
+                        len(self.get_submissions_solution()[session][room])
+                    ):
+                        if (
+                            self.get_submissions_solution()[session][room][ts] != -1
+                        ) and (
+                            self.get_submissions_solution()[session][room][ts]
+                            not in di[self.get_tracks_solution()[session][room]]
                         ):
-                            di[self.getSolTracks()[session][room]].append(
-                                self.getSolSubmissions()[session][room][ts]
+                            di[self.get_tracks_solution()[session][room]].append(
+                                self.get_submissions_solution()[session][room][ts]
                             )
-                        if (self.getSolSubmissions()[session][room][ts] != -1) and (
-                            self.getSolSubmissions()[session][room][ts]
+                        if (
+                            self.get_submissions_solution()[session][room][ts] != -1
+                        ) and (
+                            self.get_submissions_solution()[session][room][ts]
                             not in session_ts[
-                                self.getProblem()
+                                self.get_problem()
                                 .get_session(session)
                                 .get_session_name()
                                 + str(ts)
                             ]
                         ):
                             session_ts[
-                                self.getProblem()
+                                self.get_problem()
                                 .get_session(session)
                                 .get_session_name()
                                 + str(ts)
-                            ].append(self.getSolSubmissions()[session][room][ts])
+                            ].append(self.get_submissions_solution()[session][room][ts])
 
         for ts in session_ts.values():
             for this_sub in range(len(ts) - 1):
                 for other_sub in range(this_sub + 1, len(ts)):
                     if (
-                        self.getProblem()
+                        self.get_problem()
                         .get_submission(ts[this_sub])
                         .get_submission_track()
                         .get_track_name()
-                        == self.getProblem()
+                        == self.get_problem()
                         .get_submission(ts[other_sub])
                         .get_submission_track()
                         .get_track_name()
                     ) and (
                         (
-                            self.getProblem()
+                            self.get_problem()
                             .get_submission(ts[this_sub])
                             .get_submission_order()
                             != 0
                         )
                         and (
-                            self.getProblem()
+                            self.get_problem()
                             .get_submission(ts[other_sub])
                             .get_submission_order()
                             != 0
                         )
                     ):
                         p11_list.append(
-                            self.getProblem()
+                            self.get_problem()
                             .get_submission(ts[this_sub])
                             .get_submission_name()
                         )
                         p11_pen.append(
-                            self.getProblem().get_parameters().submissions_order_weight
+                            self.get_problem().get_parameters().submissions_order_weight
                         )
 
-        for track in range(self.getProblem().get_number_of_tracks()):
+        for track in range(self.get_problem().get_number_of_tracks()):
             order = 1
             for sub in di[track]:
                 if (
-                    self.getProblem().get_submission(sub).get_submission_order()
+                    self.get_problem().get_submission(sub).get_submission_order()
                     != order
                 ) and (
-                    self.getProblem().get_submission(sub).get_submission_order() != 0
+                    self.get_problem().get_submission(sub).get_submission_order() != 0
                 ):
                     p11_list.append(
-                        self.getProblem().get_submission(sub).get_submission_name()
+                        self.get_problem().get_submission(sub).get_submission_name()
                     )
                     p11_pen.append(
-                        self.getProblem().get_parameters().submissions_order_weight
+                        self.get_problem().get_parameters().submissions_order_weight
                     )
                 order += 1
         p11_list.append("Total")
@@ -1291,29 +1680,31 @@ class Solution:
         # Preparing Submissions|Sessions penalty
         p12_list = ["Evaluate Submissions|Sessions"]
         p12_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolSubmissions()[i][j][x] != -1:
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                for x in range(len(self.get_submissions_solution()[i][j])):
+                    if self.get_submissions_solution()[i][j][x] != -1:
                         if (
-                            self.getProblem().get_submissions_sessions_penalty_by_index(
-                                self.getSolSubmissions()[i][j][x], i
+                            self.get_problem().get_submissions_sessions_penalty_by_index(
+                                self.get_submissions_solution()[i][j][x], i
                             )
                             != 0
                         ):
                             p12_list.append(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[i][j][x]
+                                )
                                 .get_submission_name()
                                 + " - "
-                                + self.getProblem().get_session(i).get_session_name()
+                                + self.get_problem().get_session(i).get_session_name()
                             )
                             p12_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .submissions_sessions_penalty_weight
-                                * self.getProblem().get_submissions_sessions_penalty_by_index(
-                                    self.getSolSubmissions()[i][j][x], i
+                                * self.get_problem().get_submissions_sessions_penalty_by_index(
+                                    self.get_submissions_solution()[i][j][x], i
                                 )
                             )
         p12_list.append("Total")
@@ -1325,29 +1716,31 @@ class Solution:
         # Preparing Submissions|Rooms penalty
         p13_list = ["Evaluate Submissions|Rooms"]
         p13_pen = []
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
-                    if self.getSolSubmissions()[i][j][x] != -1:
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                for x in range(len(self.get_submissions_solution()[i][j])):
+                    if self.get_submissions_solution()[i][j][x] != -1:
                         if (
-                            self.getProblem().get_submissions_rooms_penalty_by_index(
-                                self.getSolSubmissions()[i][j][x], j
+                            self.get_problem().get_submissions_rooms_penalty_by_index(
+                                self.get_submissions_solution()[i][j][x], j
                             )
                             != 0
                         ):
                             p13_list.append(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[i][j][x]
+                                )
                                 .get_submission_name()
                                 + " - "
-                                + self.getProblem().get_room(j).get_room_name()
+                                + self.get_problem().get_room(j).get_room_name()
                             )
                             p13_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .submissions_rooms_penalty_weight
-                                * self.getProblem().get_submissions_rooms_penalty_by_index(
-                                    self.getSolSubmissions()[i][j][x], j
+                                * self.get_problem().get_submissions_rooms_penalty_by_index(
+                                    self.get_submissions_solution()[i][j][x], j
                                 )
                             )
         p13_list.append("Total")
@@ -1360,49 +1753,52 @@ class Solution:
         p14_list = ["Evaluate Presenters Conflicts [S]"]
         p14_pen = []
         di = {
-            session: [] for session in range(self.getProblem().get_number_of_sessions())
+            session: []
+            for session in range(self.get_problem().get_number_of_sessions())
         }
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                for x in range(len(self.get_submissions_solution()[i][j])):
                     if (
-                        (self.getSolSubmissions()[i][j][x] != -1)
+                        (self.get_submissions_solution()[i][j][x] != -1)
                         and (
                             len(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[i][j][x]
+                                )
                                 .get_submission_presenter_conflicts_list()
                             )
                             != 0
                         )
-                        and ((self.getSolSubmissions()[i][j][x], j) not in di[i])
+                        and ((self.get_submissions_solution()[i][j][x], j) not in di[i])
                     ):
-                        di[i].append((self.getSolSubmissions()[i][j][x], j))
-        for i in range(len(self.getSolTracks())):
+                        di[i].append((self.get_submissions_solution()[i][j][x], j))
+        for i in range(len(self.get_tracks_solution())):
             if len(di[i]) > 1:
                 for j in range(len(di[i]) - 1):
                     for z in range(j + 1, len(di[i])):
                         if (
-                            self.getProblem().get_submission(di[i][j][0])
-                            in self.getProblem()
+                            self.get_problem().get_submission(di[i][j][0])
+                            in self.get_problem()
                             .get_submission(di[i][z][0])
                             .get_submission_presenter_conflicts_list()
                         ) and (di[i][j][1] != di[i][z][1]):
                             p14_list.append(
                                 str(
-                                    self.getProblem()
+                                    self.get_problem()
                                     .get_submission(di[i][j][0])
                                     .get_submission_name()
                                 )
                                 + " - "
                                 + str(
-                                    self.getProblem()
+                                    self.get_problem()
                                     .get_submission(di[i][z][0])
                                     .get_submission_name()
                                 )
                             )
                             p14_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .presenters_conflicts_weight
                             )
@@ -1416,45 +1812,48 @@ class Solution:
         p15_list = ["Evaluate Attendees Conflicts [S]"]
         p15_pen = []
         di = {
-            session: [] for session in range(self.getProblem().get_number_of_sessions())
+            session: []
+            for session in range(self.get_problem().get_number_of_sessions())
         }
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                for x in range(len(self.getSolSubmissions()[i][j])):
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                for x in range(len(self.get_submissions_solution()[i][j])):
                     if (
-                        (self.getSolSubmissions()[i][j][x] != -1)
+                        (self.get_submissions_solution()[i][j][x] != -1)
                         and (
                             len(
-                                self.getProblem()
-                                .get_submission(self.getSolSubmissions()[i][j][x])
+                                self.get_problem()
+                                .get_submission(
+                                    self.get_submissions_solution()[i][j][x]
+                                )
                                 .get_submission_attendee_conflicts_list()
                             )
                             != 0
                         )
-                        and ((self.getSolSubmissions()[i][j][x], j) not in di[i])
+                        and ((self.get_submissions_solution()[i][j][x], j) not in di[i])
                     ):
-                        di[i].append((self.getSolSubmissions()[i][j][x], j))
-        for i in range(len(self.getSolTracks())):
+                        di[i].append((self.get_submissions_solution()[i][j][x], j))
+        for i in range(len(self.get_tracks_solution())):
             if len(di[i]) > 1:
                 for j in range(len(di[i]) - 1):
                     for z in range(j + 1, len(di[i])):
                         if (
-                            self.getProblem().get_submission(di[i][j][0])
-                            in self.getProblem()
+                            self.get_problem().get_submission(di[i][j][0])
+                            in self.get_problem()
                             .get_submission(di[i][z][0])
                             .get_submission_attendee_conflicts_list()
                         ) and (di[i][j][1] != di[i][z][1]):
                             p15_list.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_submission(di[i][j][0])
                                 .get_submission_name()
                                 + " - "
-                                + self.getProblem()
+                                + self.get_problem()
                                 .get_submission(di[i][z][0])
                                 .get_submission_name()
                             )
                             p15_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .attendees_conflicts_weight
                             )
@@ -1468,36 +1867,39 @@ class Solution:
         p16_list = ["Evaluate Chairs Conflicts"]
         p16_pen = []
         di = {
-            session: [] for session in range(self.getProblem().get_number_of_sessions())
+            session: []
+            for session in range(self.get_problem().get_number_of_sessions())
         }
-        for i in range(len(self.getSolTracks())):
-            for j in range(len(self.getSolTracks()[i])):
-                if (self.getSolTracks()[i][j] != -1) and (
+        for i in range(len(self.get_tracks_solution())):
+            for j in range(len(self.get_tracks_solution()[i])):
+                if (self.get_tracks_solution()[i][j] != -1) and (
                     len(
-                        self.getProblem()
-                        .get_track(self.getSolTracks()[i][j])
+                        self.get_problem()
+                        .get_track(self.get_tracks_solution()[i][j])
                         .get_track_chair_conflicts_list()
                     )
                     != 0
                 ):
-                    di[i].append(self.getSolTracks()[i][j])
-        for i in range(len(self.getSolTracks())):
+                    di[i].append(self.get_tracks_solution()[i][j])
+        for i in range(len(self.get_tracks_solution())):
             if len(di[i]) > 1:
                 for j in range(len(di[i]) - 1):
                     for z in range(j + 1, len(di[i])):
                         if (
-                            self.getProblem().get_track(di[i][j])
-                            in self.getProblem()
+                            self.get_problem().get_track(di[i][j])
+                            in self.get_problem()
                             .get_track(di[i][z])
                             .get_track_chair_conflicts_list()
                         ):
                             p16_list.append(
-                                self.getProblem().get_track(di[i][j]).get_track_name()
+                                self.get_problem().get_track(di[i][j]).get_track_name()
                                 + " - "
-                                + self.getProblem().get_track(di[i][z]).get_track_name()
+                                + self.get_problem()
+                                .get_track(di[i][z])
+                                .get_track_name()
                             )
                             p16_pen.append(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_parameters()
                                 .presenters_conflicts_weight
                             )
@@ -1512,62 +1914,62 @@ class Solution:
         p19_pen = []
         di = {
             str(session) + str(ts): []
-            for session in range(self.getProblem().get_number_of_sessions())
+            for session in range(self.get_problem().get_number_of_sessions())
             for ts in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
         }
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                for ts in range(len(self.getSolSubmissions()[session][room])):
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for ts in range(len(self.get_submissions_solution()[session][room])):
                     if (
-                        (self.getSolSubmissions()[session][room][ts] != -1)
+                        (self.get_submissions_solution()[session][room][ts] != -1)
                         and (
                             len(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_submission(
-                                    self.getSolSubmissions()[session][room][ts]
+                                    self.get_submissions_solution()[session][room][ts]
                                 )
                                 .get_submission_presenter_conflicts_list()
                             )
                             != 0
                         )
                         and (
-                            self.getSolSubmissions()[session][room][ts]
+                            self.get_submissions_solution()[session][room][ts]
                             not in di[str(session) + str(ts)]
                         )
                     ):
                         di[str(session) + str(ts)].append(
-                            self.getSolSubmissions()[session][room][ts]
+                            self.get_submissions_solution()[session][room][ts]
                         )
-        for session in range(len(self.getSolTracks())):
-            for ts in range(len(self.getSolSubmissions()[session][room])):
+        for session in range(len(self.get_tracks_solution())):
+            for ts in range(len(self.get_submissions_solution()[session][room])):
                 if len(di[str(session) + str(ts)]) > 1:
                     for j in range(len(di[str(session) + str(ts)]) - 1):
                         for z in range(j + 1, len(di[str(session) + str(ts)])):
                             if (
-                                self.getProblem().get_submission(
+                                self.get_problem().get_submission(
                                     di[str(session) + str(ts)][j]
                                 )
-                                in self.getProblem()
+                                in self.get_problem()
                                 .get_submission(di[str(session) + str(ts)][z])
                                 .get_submission_presenter_conflicts_list()
                             ):
                                 p19_list.append(
                                     str(
-                                        self.getProblem()
+                                        self.get_problem()
                                         .get_submission(di[str(session) + str(ts)][j])
                                         .get_submission_name()
                                     )
                                     + " - "
                                     + str(
-                                        self.getProblem()
+                                        self.get_problem()
                                         .get_submission(di[str(session) + str(ts)][z])
                                         .get_submission_name()
                                     )
                                 )
                                 p19_pen.append(
-                                    self.getProblem()
+                                    self.get_problem()
                                     .get_parameters()
                                     .presenters_conflicts_timeslot_level_weight
                                 )
@@ -1582,58 +1984,58 @@ class Solution:
         p20_pen = []
         di = {
             str(session) + str(ts): []
-            for session in range(self.getProblem().get_number_of_sessions())
+            for session in range(self.get_problem().get_number_of_sessions())
             for ts in range(
-                self.getProblem().get_session(session).get_session_max_time_slots()
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
         }
-        for session in range(len(self.getSolTracks())):
-            for room in range(len(self.getSolTracks()[session])):
-                for ts in range(len(self.getSolSubmissions()[session][room])):
+        for session in range(len(self.get_tracks_solution())):
+            for room in range(len(self.get_tracks_solution()[session])):
+                for ts in range(len(self.get_submissions_solution()[session][room])):
                     if (
-                        (self.getSolSubmissions()[session][room][ts] != -1)
+                        (self.get_submissions_solution()[session][room][ts] != -1)
                         and (
                             len(
-                                self.getProblem()
+                                self.get_problem()
                                 .get_submission(
-                                    self.getSolSubmissions()[session][room][ts]
+                                    self.get_submissions_solution()[session][room][ts]
                                 )
                                 .get_submission_attendee_conflicts_list()
                             )
                             != 0
                         )
                         and (
-                            self.getSolSubmissions()[session][room][ts]
+                            self.get_submissions_solution()[session][room][ts]
                             not in di[str(session) + str(ts)]
                         )
                     ):
                         di[str(session) + str(ts)].append(
-                            self.getSolSubmissions()[session][room][ts]
+                            self.get_submissions_solution()[session][room][ts]
                         )
-        for session in range(len(self.getSolTracks())):
-            for ts in range(len(self.getSolSubmissions()[session][room])):
+        for session in range(len(self.get_tracks_solution())):
+            for ts in range(len(self.get_submissions_solution()[session][room])):
                 if len(di[str(session) + str(ts)]) > 1:
                     for j in range(len(di[str(session) + str(ts)]) - 1):
                         for z in range(j + 1, len(di[str(session) + str(ts)])):
                             if (
-                                self.getProblem().get_submission(
+                                self.get_problem().get_submission(
                                     di[str(session) + str(ts)][j]
                                 )
-                                in self.getProblem()
+                                in self.get_problem()
                                 .get_submission(di[str(session) + str(ts)][z])
                                 .get_submission_attendee_conflicts_list()
                             ):
                                 p20_list.append(
-                                    self.getProblem()
+                                    self.get_problem()
                                     .get_submission(di[str(session) + str(ts)][j])
                                     .get_submission_name()
                                     + " - "
-                                    + self.getProblem()
+                                    + self.get_problem()
                                     .get_submission(di[str(session) + str(ts)][z])
                                     .get_submission_name()
                                 )
                                 p20_pen.append(
-                                    self.getProblem()
+                                    self.get_problem()
                                     .get_parameters()
                                     .attendees_conflicts_timeslot_level_weight
                                 )
@@ -1644,14 +2046,14 @@ class Solution:
         df43 = pd.DataFrame(p20_pen)
 
         # Writing to excel file
-        with pd.ExcelWriter(file_name) as writer:
+        with pd.ExcelWriter(file_path) as writer:
             # Sol tracks
             df.to_excel(writer, sheet_name="sol")
             # Sol submissions
             df2.to_excel(
                 writer,
                 sheet_name="sol",
-                startrow=self.getProblem().get_number_of_sessions() + 2,
+                startrow=self.get_problem().get_number_of_sessions() + 2,
                 header=False,
             )
             # Objective
@@ -1768,19 +2170,20 @@ class Solution:
             df43.to_excel(
                 writer, sheet_name="violations", startcol=32, index=False, header=False
             )
+        logging.info(f"Solution saved at {file_path}")
 
-    def ReadSolution(self, file_name=None):
+    def load_solution(self, file_path: Path) -> None:
         # Creating temporary tracks solution
         file = pd.read_excel(
-            file_name, header=None, keep_default_na=False, na_filter=False
+            file_path, header=None, keep_default_na=False, na_filter=False
         )
         temp2 = []
-        for session in range(1, self.getProblem().get_number_of_sessions() + 1):
+        for session in range(1, self.get_problem().get_number_of_sessions() + 1):
             temp = []
             for room in range(1, len(file.keys())):
                 if file.iloc[session][room] != "":
                     temp.append(
-                        self.getProblem().get_track_index(file.iloc[session][room])
+                        self.get_problem().get_track_index(file.iloc[session][room])
                     )
                 else:
                     temp.append(-1)
@@ -1789,79 +2192,75 @@ class Solution:
         # Converting temporary tracks solution into permanent tracks solution
         for session in range(len(temp2)):
             for room in range(len(temp2[session])):
-                self.getSolTracks()[session][room] = temp2[session][room]
+                self.get_tracks_solution()[session][room] = temp2[session][room]
 
         # Creating temporary submissions solution
         temp3 = []
         sum_ts = 0
-        for session in range(self.getProblem().get_number_of_sessions()):
-            index = self.getProblem().get_number_of_sessions() + 1 + sum_ts
+        for session in range(self.get_problem().get_number_of_sessions()):
+            index = self.get_problem().get_number_of_sessions() + 1 + sum_ts
             temp2 = []
             for room in range(1, len(file.keys())):
                 temp = []
                 for ts in range(
-                    self.getProblem().get_session(session).get_session_max_time_slots()
+                    self.get_problem().get_session(session).get_session_max_time_slots()
                 ):
                     index += 1
                     if file.iloc[index][room] != "":
                         temp.append(
-                            self.getProblem().get_submission_index(
+                            self.get_problem().get_submission_index(
                                 file.iloc[index][room]
                             )
                         )
                     else:
                         temp.append(-1)
-                index = self.getProblem().get_number_of_sessions() + 1 + sum_ts
+                index = self.get_problem().get_number_of_sessions() + 1 + sum_ts
                 temp2.append(temp)
             temp3.append(temp2)
             sum_ts += (
-                self.getProblem().get_session(session).get_session_max_time_slots()
+                self.get_problem().get_session(session).get_session_max_time_slots()
             )
 
         # Converting temporary submissions solution into permanent submissions solution
         for session in range(len(temp3)):
             for room in range(len(temp3[session])):
                 for ts in range(
-                    self.getProblem().get_session(session).get_session_max_time_slots()
+                    self.get_problem().get_session(session).get_session_max_time_slots()
                 ):
-                    self.getSolSubmissions()[session][room][ts] = temp3[session][room][
-                        ts
-                    ]
+                    self.get_submissions_solution()[session][room][ts] = temp3[session][
+                        room
+                    ][ts]
 
 
-class InitialSolution(Solution):
-    def __init__(self, problem):
+class RandomIndirectSolution(Solution):
+    def __init__(self, problem: Problem) -> None:
+        self.__problem: Problem = problem
         Solution.__init__(self, problem)
-
-
-class RandomInd(InitialSolution):
-    def __init__(self, problem):
-        InitialSolution.__init__(self, problem)
-        temp = [
-            sub
-            for sub in range(self.getProblem().get_number_of_submissions())
-            if self.getProblem()
-            .get_submission(sub)
-            .get_submission_required_time_slots()
+        multi_slot_submissions = [
+            submission
+            for submission in range(self.__problem.get_number_of_submissions())
+            if self.__problem.get_submission(
+                submission
+            ).get_submission_required_time_slots()
             > 1
         ]
-        temp2 = [
-            sub
-            for sub in range(self.getProblem().get_number_of_submissions())
-            if self.getProblem()
-            .get_submission(sub)
-            .get_submission_required_time_slots()
+        single_slot_submissions = [
+            submission
+            for submission in range(self.__problem.get_number_of_submissions())
+            if self.__problem.get_submission(
+                submission
+            ).get_submission_required_time_slots()
             == 1
         ]
         sessions = [
-            session for session in range(self.getProblem().get_number_of_sessions())
+            session for session in range(self.__problem.get_number_of_sessions())
         ]
-        rooms = [room for room in range(self.getProblem().get_number_of_rooms())]
+        rooms = [room for room in range(self.__problem.get_number_of_rooms())]
         np.random.shuffle(sessions)
         np.random.shuffle(rooms)
         while True:
-            np.random.shuffle(temp)
-            for sub in temp:
+            np.random.shuffle(multi_slot_submissions)
+            for submission in multi_slot_submissions:
                 stop = False
                 for session in sessions:
                     if stop == True:
@@ -1871,49 +2270,55 @@ class RandomInd(InitialSolution):
                             break
                         if (
                             (
-                                self.getProblem()
-                                .get_submission(sub)
-                                .get_submission_required_time_slots()
-                                <= self.getSolSubmissions()[session][room].count(-1)
+                                self.__problem.get_submission(
+                                    submission
+                                ).get_submission_required_time_slots()
+                                <= self.get_submissions_solution()[session][room].count(
+                                    -1
+                                )
                             )
                             and (
-                                self.getProblem().get_track_index(
-                                    self.getProblem()
-                                    .get_submission(sub)
+                                self.__problem.get_track_index(
+                                    self.__problem.get_submission(submission)
                                     .get_submission_track()
                                     .get_track_name()
                                 )
-                                == self.getSolTracks()[session][room]
+                                == self.get_tracks_solution()[session][room]
                             )
                         ) or (
                             (
-                                self.getProblem()
-                                .get_submission(sub)
-                                .get_submission_required_time_slots()
-                                <= self.getSolSubmissions()[session][room].count(-1)
+                                self.__problem.get_submission(
+                                    submission
+                                ).get_submission_required_time_slots()
+                                <= self.get_submissions_solution()[session][room].count(
+                                    -1
+                                )
                             )
-                            and (self.getSolTracks()[session][room] == -1)
+                            and (self.get_tracks_solution()[session][room] == -1)
                         ):
-                            for ts in range(
-                                self.getProblem()
-                                .get_submission(sub)
-                                .get_submission_required_time_slots()
+                            for time_slot in range(
+                                self.__problem.get_submission(
+                                    submission
+                                ).get_submission_required_time_slots()
                             ):
-                                i = self.getSolSubmissions()[session][room].index(-1)
-                                self.getSolSubmissions()[session][room][i] = sub
+                                available_time_slot = self.get_submissions_solution()[
+                                    session
+                                ][room].index(-1)
+                                self.get_submissions_solution()[session][room][
+                                    available_time_slot
+                                ] = submission
                             stop = True
-                            self.getSolTracks()[session][room] = (
-                                self.getProblem().get_track_index(
-                                    self.getProblem()
-                                    .get_submission(sub)
+                            self.get_tracks_solution()[session][room] = (
+                                self.__problem.get_track_index(
+                                    self.__problem.get_submission(submission)
                                     .get_submission_track()
                                     .get_track_name()
                                 )
                             )
             np.random.shuffle(sessions)
             np.random.shuffle(rooms)
-            np.random.shuffle(temp2)
-            for sub in temp2:
+            np.random.shuffle(single_slot_submissions)
+            for submission in single_slot_submissions:
                 stop = False
                 for session in sessions:
                     if stop == True:
@@ -1923,71 +2328,95 @@ class RandomInd(InitialSolution):
                             break
                         if (
                             (
-                                self.getProblem()
-                                .get_submission(sub)
-                                .get_submission_required_time_slots()
-                                <= self.getSolSubmissions()[session][room].count(-1)
+                                self.__problem.get_submission(
+                                    submission
+                                ).get_submission_required_time_slots()
+                                <= self.get_submissions_solution()[session][room].count(
+                                    -1
+                                )
                             )
                             and (
-                                self.getProblem().get_track_index(
-                                    self.getProblem()
-                                    .get_submission(sub)
+                                self.__problem.get_track_index(
+                                    self.__problem.get_submission(submission)
                                     .get_submission_track()
                                     .get_track_name()
                                 )
-                                == self.getSolTracks()[session][room]
+                                == self.get_tracks_solution()[session][room]
                             )
                         ) or (
                             (
-                                self.getProblem()
-                                .get_submission(sub)
-                                .get_submission_required_time_slots()
-                                <= self.getSolSubmissions()[session][room].count(-1)
+                                self.__problem.get_submission(
+                                    submission
+                                ).get_submission_required_time_slots()
+                                <= self.get_submissions_solution()[session][room].count(
+                                    -1
+                                )
                             )
-                            and (self.getSolTracks()[session][room] == -1)
+                            and (self.get_tracks_solution()[session][room] == -1)
                         ):
-                            i = self.getSolSubmissions()[session][room].index(-1)
-                            self.getSolSubmissions()[session][room][i] = sub
+                            available_time_slot = self.get_submissions_solution()[
+                                session
+                            ][room].index(-1)
+                            self.get_submissions_solution()[session][room][
+                                available_time_slot
+                            ] = submission
                             stop = True
-                            self.getSolTracks()[session][room] = (
-                                self.getProblem().get_track_index(
-                                    self.getProblem()
-                                    .get_submission(sub)
+                            self.get_tracks_solution()[session][room] = (
+                                self.__problem.get_track_index(
+                                    self.__problem.get_submission(submission)
                                     .get_submission_track()
                                     .get_track_name()
                                 )
                             )
 
-            if self.EvaluateAllSubmissionsScheduled() == True:
-                # Creating Ind sol
-                temp3 = [[] for i in range(self.getProblem().get_number_of_tracks())]
-                for i in range(len(self.getSolTracks())):
-                    for j in range(len(self.getSolTracks()[i])):
-                        if self.getSolTracks()[i][j] != -1:
-                            for x in range(len(self.getSolSubmissions()[i][j])):
-                                if (self.getSolSubmissions()[i][j][x] != -1) and (
-                                    self.getSolSubmissions()[i][j][x]
-                                    not in temp3[self.getSolTracks()[i][j]]
+            if self.evaluate_all_submissions_scheduled() == True:
+                submissions_indirect_solution = [
+                    [] for i in range(self.__problem.get_number_of_tracks())
+                ]
+                for session in range(len(self.get_tracks_solution())):
+                    for room in range(len(self.get_tracks_solution()[session])):
+                        if self.get_tracks_solution()[session][room] != -1:
+                            for time_slot in range(
+                                len(self.get_submissions_solution()[session][room])
+                            ):
+                                if (
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
+                                    != -1
+                                ) and (
+                                    self.get_submissions_solution()[session][room][
+                                        time_slot
+                                    ]
+                                    not in submissions_indirect_solution[
+                                        self.get_tracks_solution()[session][room]
+                                    ]
                                 ):
-                                    temp3[self.getSolTracks()[i][j]].append(
-                                        self.getSolSubmissions()[i][j][x]
+                                    submissions_indirect_solution[
+                                        self.get_tracks_solution()[session][room]
+                                    ].append(
+                                        self.get_submissions_solution()[session][room][
+                                            time_slot
+                                        ]
                                     )
-                self.setIndSolSubmissions(temp3)
-                for session in range(self.getProblem().get_number_of_sessions()):
-                    for room in range(self.getProblem().get_number_of_rooms()):
-                        if self.getSolSubmissions()[session][room].count(-1) == len(
-                            self.getSolSubmissions()[session][room]
-                        ):
-                            self.getSolTracks()[session][room] = -1
-                self.resetSolSubmissions()
-                self.convertSol()
-                if self.EvaluateAllSubmissionsScheduled() == True:
+                self.set_submissions_indirect_solution(submissions_indirect_solution)
+
+                for session in range(self.__problem.get_number_of_sessions()):
+                    for room in range(self.__problem.get_number_of_rooms()):
+                        if self.get_submissions_solution()[session][room].count(
+                            -1
+                        ) == len(self.get_submissions_solution()[session][room]):
+                            self.get_tracks_solution()[session][room] = -1
+                self.reset_submissions_solution()
+                self.convert_solution()
+
+                if self.evaluate_all_submissions_scheduled() == True:
                     return
                 else:
-                    self.resetSolTracks()
-                    self.resetSolSubmissions()
-                    self.resetIndSolSubmissions()
+                    self.reset_tracks_solution()
+                    self.reset_submissions_solution()
+                    self.reset_submissions_indirect_solution()
             else:
-                self.resetSolTracks()
-                self.resetSolSubmissions()
-                self.resetIndSolSubmissions()
+                self.reset_tracks_solution()
+                self.reset_submissions_solution()
+                self.reset_submissions_indirect_solution()

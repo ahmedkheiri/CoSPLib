@@ -23,7 +23,7 @@ class Matheuristic:
     ) -> None:
         milp_model = TracksExactModel(problem, solution)
         milp_model.solve(time_limit_in_sec)
-        solution.convertIndSolFirstTime()
+        solution.convert_indirect_solution_first_time()
         hyper_heuristic = HyperHeuristic()
         hyper_heuristic.solve(
             problem,

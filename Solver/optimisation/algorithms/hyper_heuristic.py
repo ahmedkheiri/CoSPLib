@@ -30,9 +30,9 @@ class HyperHeuristic:
         ruin_and_recreate_frequency_in_sec: int = 600,
     ) -> None:
         logging.info("Solving with hyper-heuristic...")
-        objective_best = solution.EvaluateSolution()
+        objective_best = solution.evaluate_solution()
         objective_current = objective_best
-        solution_best = solution.copyWholeSolution()
+        solution_best = solution.copy_whole_solution()
         iteration = 0
         s_time = time()
         next_ruin_and_recreate_time = ruin_and_recreate_frequency_in_sec
@@ -41,24 +41,24 @@ class HyperHeuristic:
             selected_llh = self.__low_level_heuristics[
                 np.random.randint(len(self.__low_level_heuristics))
             ]
-            solution_copy = solution.copyWholeSolution()
+            solution_copy = solution.copy_whole_solution()
             selected_llh.apply(problem, solution)
-            solution.resetSolSubmissions()
-            solution.convertSol()
-            if solution.EvaluateAllSubmissionsScheduled() == True:
-                objective_new = solution.QuickEvaluateSolution(objective_current)
+            solution.reset_submissions_solution()
+            solution.convert_solution()
+            if solution.evaluate_all_submissions_scheduled() == True:
+                objective_new = solution.evaluate_solution_fast(objective_current)
                 if objective_new <= objective_current:
                     objective_current = objective_new
                     if objective_new < objective_best:
-                        solution_best = solution.copyWholeSolution()
+                        solution_best = solution.copy_whole_solution()
                         objective_best = objective_new
                         logging.info(f"Current best solution: {objective_best}")
                 else:
-                    solution.restoreSolution(
+                    solution.restore_solution(
                         solution_copy[0], solution_copy[1], solution_copy[2]
                     )
             else:
-                solution.restoreSolution(
+                solution.restore_solution(
                     solution_copy[0], solution_copy[1], solution_copy[2]
                 )
 
@@ -66,17 +66,17 @@ class HyperHeuristic:
             if time() - s_time > next_ruin_and_recreate_time:
                 ruin_counter = 0
                 while ruin_counter != 10:
-                    solution_copy = solution.copyWholeSolution()
+                    solution_copy = solution.copy_whole_solution()
                     self.__low_level_heuristics[0].apply(problem, solution)
-                    solution.resetSolSubmissions()
-                    solution.convertSol()
-                    if solution.EvaluateAllSubmissionsScheduled() == False:
-                        solution.restoreSolution(
+                    solution.reset_submissions_solution()
+                    solution.convert_solution()
+                    if solution.evaluate_all_submissions_scheduled() == False:
+                        solution.restore_solution(
                             solution_copy[0], solution_copy[1], solution_copy[2]
                         )
                     else:
                         ruin_counter += 1
-                objective_current = solution.EvaluateSolution()
+                objective_current = solution.evaluate_solution()
                 next_ruin_and_recreate_time += ruin_and_recreate_frequency_in_sec
-        solution.setBestSolution(solution_best[0], solution_best[1])
+        solution.set_best_solution(solution_best[0], solution_best[1])
         logging.info(f"Number of iterations {iteration}")

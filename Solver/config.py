@@ -1,4 +1,4 @@
-# Input file
+# Input
 INSTANCE_NAME = "N2OR"
 INPUT_PATH = "Dataset/" + INSTANCE_NAME + ".xlsx"
 REQUIRED_SHEETS = [
@@ -13,11 +13,27 @@ REQUIRED_SHEETS = [
     "sessions_rooms|penalty",
 ]
 
-# Optimisation
-HYPER_HEURISTIC = False
+# Output
+SAVE_SOLUTION = True
+OUTPUT_PATH = f"Solutions/{INSTANCE_NAME}Solution.xlsx"
+
+# Optimisation methods (Choose only one!)
+HYPER_HEURISTIC = True
 MATHEURISTIC = False
 EXACT_MILP = False
-EXTENDED_MILP = True
+EXTENDED_MILP = False
+
+# Optimisation settings
+# Global
+TIME_LIMIT_IN_SEC = 3600
+# Matheuristic
+MILP_TIME_LIMIT_IN_SEC = 90
+# Hyper-heuristic
+RUIN_AND_RECREATE_TIME_FREQUENCY_IN_SEC = 600
+
+# Solver checker
+SOLUTION_INPUT_PATH = f"Solutions/Exact Model/{INSTANCE_NAME}Solution.xlsx"
+SOLUTION_OUTPUT_PATH = f"Solutions/{INSTANCE_NAME}Solution.xlsx"
 
 # Utils
 # Timezone values are inversed intentionally

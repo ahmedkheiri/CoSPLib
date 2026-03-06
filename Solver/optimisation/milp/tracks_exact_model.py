@@ -73,10 +73,10 @@ class TracksExactModel:
         self.__build_objective_function()
         self.__build_constraints()
 
-    def solve(self, time_limit_in_sec: int) -> None:
+    def solve(self, milp_time_limit_in_sec: int) -> None:
         logging.info("Solving with tracks exact milp model...")
         stime = time()
-        self.__model.solve(GUROBI(msg=0, timeLimit=time_limit_in_sec))
+        self.__model.solve(GUROBI(msg=0, timeLimit=milp_time_limit_in_sec))
         logging.info(f"Solved within {round((time() - stime), 2)} seconds.")
         logging.info(f"Model status: {LpStatus[self.__model.status]}")
         logging.info(f"Objective value: {self.__model.objective.value()}")
@@ -498,7 +498,7 @@ class TracksExactModel:
                         )
                         for x in self.__problem.get_track(
                             track
-                        ).get_trackChairConflictsList():
+                        ).get_track_chair_conflicts_list():
                             temp.append(
                                 "|"
                                 + self.__problem.get_session(session).get_session_name()
@@ -666,7 +666,7 @@ class TracksExactModel:
             solution2 = df.iloc[:, 0].to_list()
 
         for i in range(len(solution)):
-            self.__solution.getSolTracks()[
+            self.__solution.get_tracks_solution()[
                 self.__problem.get_session_index(solution[i][1])
             ][
                 self.__problem.get_room_index(solution[i][2])
@@ -679,10 +679,10 @@ class TracksExactModel:
                         self.__problem.get_submission_index(solution2[i][4])
                     ).get_submission_required_time_slots()
                 ):
-                    ts = self.__solution.getSolSubmissions()[
+                    ts = self.__solution.get_submissions_solution()[
                         self.__problem.get_session_index(solution2[i][1])
                     ][self.__problem.get_room_index(solution2[i][2])].index(-1)
-                    self.__solution.getSolSubmissions()[
+                    self.__solution.get_submissions_solution()[
                         self.__problem.get_session_index(solution2[i][1])
                     ][self.__problem.get_room_index(solution2[i][2])][
                         ts

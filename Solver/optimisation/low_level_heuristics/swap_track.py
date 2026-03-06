@@ -18,21 +18,21 @@ class SwapTrack:
         while (
             (session[0] == session[1] and room[0] == room[1])
             or (
-                solution.getSolTracks()[session[0]][room[0]]
-                + solution.getSolTracks()[session[1]][room[1]]
+                solution.get_tracks_solution()[session[0]][room[0]]
+                + solution.get_tracks_solution()[session[1]][room[1]]
                 == -2
             )
             or (
-                solution.getSolTracks()[session[0]][room[0]]
-                == solution.getSolTracks()[session[1]][room[1]]
+                solution.get_tracks_solution()[session[0]][room[0]]
+                == solution.get_tracks_solution()[session[1]][room[1]]
             )
         ):
             session = np.random.randint(problem.get_number_of_sessions(), size=2)
             room = np.random.randint(problem.get_number_of_rooms(), size=2)
         (
-            solution.getSolTracks()[session[0]][room[0]],
-            solution.getSolTracks()[session[1]][room[1]],
+            solution.get_tracks_solution()[session[0]][room[0]],
+            solution.get_tracks_solution()[session[1]][room[1]],
         ) = (
-            solution.getSolTracks()[session[1]][room[1]],
-            solution.getSolTracks()[session[0]][room[0]],
+            solution.get_tracks_solution()[session[1]][room[1]],
+            solution.get_tracks_solution()[session[0]][room[0]],
         )

@@ -9,7 +9,7 @@ from domain.submission import Submission
 from domain.track import Track
 from domain.room import Room
 from domain.session import Session
-from Solver.domain.parameters import Parameters
+from domain.parameters import Parameters
 from typing import List, Dict
 from pathlib import Path
 import logging

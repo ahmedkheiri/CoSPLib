@@ -3,3 +3,4 @@ pandas>=2.2.3
 pulp>=3.1.1
 python>=3.8.16
 pytz==2022.2
+openpyxl>=3.1.5

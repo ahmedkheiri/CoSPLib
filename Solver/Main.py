@@ -5,21 +5,36 @@ Created on Tue Mar 14 19:16:16 2023
 @author: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
 """
 
-from Optimisation import *
+from optimisation.run_mode import (
+    solve_with_exact_milp,
+    solve_with_extended_milp,
+    solve_with_hyper_heuristic,
+    solve_with_matheuristic,
+)
+from domain.problem import Problem
+from pathlib import Path
+import config
+import logging
 
-instance = 'N2OR'
-f_name = '..\\Dataset\\'+str(instance)+'.xlsx'
 
-p = Problem(file_name = f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = Solution(p)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    problem = Problem(file_path=Path(config.INPUT_PATH))
+    problem.build()
 
-solver = ExactModel(p, sol) #Available models: ExactModel(), ExtendedModel()
-solver.solve(timelimit = 3600)
+    if config.HYPER_HEURISTIC:
+        final_solution = solve_with_hyper_heuristic(problem)
+    if config.MATHEURISTIC:
+        final_solution = solve_with_matheuristic(problem)
+    if config.EXACT_MILP:
+        final_solution = solve_with_exact_milp(problem)
+    if config.EXTENDED_MILP:
+        final_solution = solve_with_extended_milp(problem)
 
-print('Objective Value:', sol.EvaluateSolution())
-print('All submissions scheduled? ', sol.EvaluateAllSubmissionsScheduled())
-sol.printViolations()
-sol.toExcel(file_name = 'Solution'+str(instance)+'.xlsx')
+    logging.info(
+        f"Is solution feasible? {final_solution.evaluate_all_submissions_scheduled()}"
+    )
+    logging.info(f"Objective value: {final_solution.evaluate_solution()}")
+    final_solution.print_violations()
+    if config.SAVE_SOLUTION:
+        final_solution.to_excel(file_path=Path(config.OUTPUT_PATH))

@@ -56,11 +56,11 @@ To install CoSPLib and its dependencies, follow these steps:
 
 ### Requirements
 
-- NumPy >= 1.24.2
-- pandas >= 2.2.2
-- PuLP >= 2.8.0
+- NumPy >= 2.2.5
+- pandas >= 2.2.3
+- PuLP >= 3.1.1
 - Python >= 3.8.16
-- pytz >= 2022.2
+- pytz == 2022.2
 
 ## Features
 
@@ -262,7 +262,7 @@ The Parameters sheet includes settings for hybrid or online conferences and allo
 
 ## Use Cases
 
-The Conference Scheduler consists of the following modules: Main, Optimisation, Parameters, Problem, Room, Session, Solution, Solver_Checker_v1.1, Submission, and Track. To run the solver, the user should open and run the Main.py file. Some example use cases are presented in the sections below.
+Before running the solver, make sure to visit `config.py` and check the configurations. To run the solver, open and run the `main.py` file. Some example use cases are presented in the sections below. The use cases show the necessary changes in `config.py`, then you need to run `main.py`.
 
 ### Integer Programming
 
@@ -272,114 +272,54 @@ The exact model handles the following constraints: presenters' conflicts, presen
 
 The extended model includes all the constraints of the exact model and the following additional constraints: attendees' conflicts, similar tracks, track chairs' conflicts, and consecutive tracks.
 
-#### Schedule N2OR conference using the exact model and print solution's information
+#### Schedule N2OR conference using the exact model
 
 ```python
-from Optimisation import *
-instance = "N2OR"
-f_name = "..\\Dataset\\" + str(instance) + ".xlsx"
-p = Problem(file_name = f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = Solution(p)
-solver = ExactModel(p, sol)
-solver.solve(timelimit = 3600)
-print("Objective Value:", sol.EvaluateSolution())
-print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
-sol.printViolations()
+INSTANCE_NAME = "N2OR"
+EXACT_MILP = True
 ```
 
 #### Schedule GECCO21 conference (online) using the extended model and save solution in Excel file
 
 ```python
-from Optimisation import *
-instance = "GECCO21"
-f_name = "..\\Dataset\\"+str(instance)+".xlsx"
-p = Problem(file_name = f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = Solution(p)
-solver = ExtendedModel(p, sol)
-solver.solve(timelimit = 3600)
-sol.toExcel(file_name = "Solution"+str(instance)+".xlsx")
+INSTANCE_NAME = "GECCO21"
+SAVE_SOLUTION = True
+EXTENDED_MILP = True
 ```
 
 ### Matheuristic
 
 The matheuristic algorithm consists of two phases and handles all available constraints including time slot level. In phase one, an integer programming model is used to build the high-level schedule by assigning tracks into sessions and rooms (either requires GUROBI license or you could use free solvers such as GLPK). Based on this solution, the low-level schedule is created where submissions are allocated into sessions, rooms, and time slots. In phase two, a selection perturbative hyper-heuristic is used to further optimise both levels of the schedule.
 
-#### Schedule ISF22 conference using the matheuristic with a 300 seconds time limit overall and save solution in Excel file
+#### Schedule ISF22 conference using the matheuristic with a 300 seconds time limit overall
 
 ```python
-from Optimisation import *
-instance = "ISF22"
-f_name = "..\\Dataset\\"+str(instance)+".xlsx"
-p = Problem(file_name = f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters) 
-sol = Solution(p) 
-solver = Matheuristic(p, sol)
-s_time = time()
-solver.solve(s_time, run_time = 300)
-sol.toExcel(file_name = "..\\Solution"+str(instance)+".xlsx")
+INSTANCE_NAME = "ISF22"
+MATHEURISTIC = True
+TIME_LIMIT_IN_SEC = 300
 ```
 
-#### Schedule OR60 conference using the matheuristic with a 90 seconds time limit for phase one and 500 seconds time limit overall
+#### Schedule OR60 conference using the matheuristic with a 120 seconds time limit for phase one and 500 seconds time limit overall
 
 ```python
-from Optimisation import *
-instance = "OR60"
-f_name = "..\\Dataset\\"+str(instance)+".xlsx"
-p = Problem(file_name = f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters) 
-sol = Solution(p)
-solver = Matheuristic(p, sol)
-s_time = time()
-solver.solve(s_time, run_time = 500, timelimit = 90)
+INSTANCE_NAME = "OR60"
+MATHEURISTIC = True
+TIME_LIMIT_IN_SEC = 500
+MILP_TIME_LIMIT_IN_SEC = 120
 ```
 
 ### Hyper-heuristic
 
 The hyper-heuristic algorithm does not require a software license and it handles all available constraints including time slot level. It consists of four low-level heuristics, specifically two swap heuristics, a reverse heuristic, and a ruin and recreate heuristic. Its framework involves a two-step iterative process during scheduling optimisation where, in the first step, a low-level heuristic is selected randomly and is applied to the schedule. Then, in the second step, if the modified schedule is not worse than the previous, it is accepted. Otherwise, it is rejected and the previous schedule is restored.
 
-#### Schedule GECCO22 conference using the hyper-heuristic with a 3600 seconds time limit and apply ruin and recreate every 600 seconds
+#### Schedule GECCO22 conference using the hyper-heuristic with a 1800 seconds time limit and apply ruin and recreate every 900 seconds
 
 ```python
-from Optimisation import *
-instance = "GECCO22"
-f_name = "..\\Dataset\\"+str(instance)+".xlsx"
-p = Problem(file_name = f_name)
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = RandomInd(p)
-solver = HyperHeuristic(p, sol)
-s_time = time()
-solver.solve(s_time, run_time = 3600, rr = 600)
-print("Objective Value:", sol.EvaluateSolution())
-print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
-sol.printViolations()
+INSTANCE_NAME = "GECCO22"
+HYPER_HEURISTIC = True
+TIME_LIMIT_IN_SEC = 1800
+RUIN_AND_RECREATE_TIME_FREQUENCY_IN_SEC = 900
 ```
-
-### How to configure the GLPK_CMD free solver in integer programming models
-
-To configure the GLPK_CMD solver, follow these steps:
-
-**Step 1:** Open the `Optimisation.py` file.
-
-**Step 2:** Go to line 470 and comment it out, then uncomment line 471 as shown next for the exact model. Similarly, comment out line 774 and uncomment line 775 for the extended model.
-
-```python
-#model.solve(GUROBI(msg = 0, MIPGap = 0, timeLimit = timelimit))
-model.solve(GLPK_CMD(msg = 0))
-```
-
-For more information, visit [How to Configure Solvers](https://coin-or.github.io/pulp/guides/how_to_configure_solvers.html).
 
 ### How to Manually Edit an Obtained Schedule and Observe the Impact on Schedule's Quality
 
@@ -393,22 +333,16 @@ Suppose the conference scheduler has generated the N2OR schedule, *SolutionN2OR.
 
 ![N2OR initial schedule](Figures/2.png)
 
-**Step 3:** Open the *Solver_Checker_v1.1.py* file, edit as needed, and run it to obtain the new schedule with the updated violations. You can view the impact of the changes directly by printing on the console or by generating a new Excel file (violations sheet). Below is the code for the N2OR example:
+**Step 3:** Open the *config.py* file, and proceed with the following changes:
 
 ```python
-from Solution import *
-p = Problem(file_name = "..\\Dataset\\N2OR.xlsx")
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = Solution(p)
-sol.ReadSolution(file_name = "..\\Solutions\\SolutionN2OR.xlsx")
-print("Objective Value:", sol.EvaluateSolution())
-print("All submissions scheduled?", sol.EvaluateAllSubmissionsScheduled())
-print("Is Solution Valid?", sol.ValidateSolution())
-sol.printViolations()
-sol.toExcel(file_name = "New_Solution.xlsx")
+INSTANCE_NAME = "N2OR"
+SAVE_SOLUTION = True
+SOLUTION_INPUT_PATH = f"Solutions/Exact Model/{INSTANCE_NAME}Solution.xlsx" # or wherever the solution file is located
+SOLUTION_OUTPUT_PATH = f"Solutions/{INSTANCE_NAME}Solution.xlsx" # or wherever you wish to save the new solution file
 ```
+
+**Step 4:** Open the *Solver_Checker_v1.1.py* file, and run it to obtain the new schedule with the updated violations. You can view the impact of the changes directly on console or in the new Excel file (violations sheet).
 
 ## Support
 

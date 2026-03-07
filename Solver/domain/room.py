@@ -5,12 +5,13 @@ Created on Tue Mar 14 19:16:16 2023
 @authors: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
 """
 
+
 class Room:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.__name = name
-    def getRoomName(self) -> str:
+
+    def get_room_name(self) -> str:
         return self.__name
-    def setRoomName(self, name):
-        self.__name = name
+
     def __str__(self):
-        return "Room("+self.__name+")"
+        return "Room(" + self.__name + ")"

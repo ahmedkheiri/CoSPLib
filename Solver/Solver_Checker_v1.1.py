@@ -5,19 +5,24 @@ Created on Tue Mar 14 19:16:16 2023
 @author: Yaroslav Pylyavskyy (pylyavskyy@hotmail.com) & Ahmed Kheiri (a.o.kheiri@gmail.com)
 """
 
-from Solution import *
+from domain.problem import Problem
+from solution import Solution
+from pathlib import Path
+import config
+import logging
 
-p = Problem(file_name = "..\\Dataset\\N2OR.xlsx")
-parameters = p.ReadProblemInstance()
-p.FindConflicts()
-p.AssignTimezonesPenalties(parameters)
-sol = Solution(p)
-sol.ReadSolution(file_name = "..\\Solutions\\SolutionN2OR.xlsx")
 
-print(sol.getSolTracks())
-print(sol.getSolSubmissions())
-print('Objective Value:', sol.EvaluateSolution())
-print('All Submissions Scheduled?', sol.EvaluateAllSubmissionsScheduled())
-print('Is Solution Valid?', sol.ValidateSolution())
-sol.printViolations()
-sol.toExcel(file_name = 'New_Solution.xlsx')
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    problem = Problem(file_path=Path(config.INPUT_PATH))
+    problem.build()
+    final_solution = Solution(problem)
+    final_solution.load_solution(file_path=config.SOLUTION_INPUT_PATH)
+    logging.info(
+        f"Is solution feasible? {final_solution.evaluate_all_submissions_scheduled()}"
+    )
+    logging.info(f"Is solution valid? {final_solution.validate_solution()}")
+    logging.info(f"Objective value: {final_solution.evaluate_solution()}")
+    final_solution.print_violations()
+    if config.SAVE_SOLUTION:
+        final_solution.to_excel(file_path=Path(config.SOLUTION_OUTPUT_PATH))

@@ -18,11 +18,10 @@ class Matheuristic:
         solution: Solution,
         start_time: time,
         run_time_in_sec: int,
-        time_limit_in_sec=90,
         ruin_and_recreate_frequency_in_sec=600,
     ) -> None:
         milp_model = TracksExactModel(problem, solution)
-        milp_model.solve(time_limit_in_sec)
+        milp_model.solve()
         solution.convert_indirect_solution_first_time()
         hyper_heuristic = HyperHeuristic()
         hyper_heuristic.solve(

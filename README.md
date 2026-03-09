@@ -56,11 +56,15 @@ To install CoSPLib and its dependencies, follow these steps:
 
 ### Requirements
 
-- NumPy >= 2.2.5
-- pandas >= 2.2.3
-- PuLP >= 3.1.1
-- Python >= 3.8.16
-- pytz == 2022.2
+- numpy>=2.2.5
+- pandas>=2.2.3
+- pulp>=3.1.1
+- python>=3.8.16
+- pytz==2022.2
+- openpyxl>=3.1.5
+- gurobipy>=12.0.3
+- highspy>=1.11.0
+- scipy>=1.16.1
 
 ## Features
 
@@ -266,7 +270,7 @@ Before running the solver, make sure to visit `config.py` and check the configur
 
 ### Integer Programming
 
-Two integer programming models are available: an exact model and an extended model. For best results, we recommend the GUROBI solver, which requires a license. Alternatively, the "GLPK_CMD" solver can be used, which is free. Note that both models only handle constraints on a session level, and if any model is infeasible, then either some constraints need to be relaxed, or another method should be selected to schedule the conference.
+Two integer programming models are available: an exact model and an extended model. For best results, we recommend the GUROBI solver, which requires a license. Alternatively, HiGHS and SCIP open-source solvers can be used. Note that both models only handle constraints on a session level, and if any model is infeasible, then either some constraints need to be relaxed, or another optimisation method should be selected to schedule the conference.
 
 The exact model handles the following constraints: presenters' conflicts, presenters' preferences, presenters' time zones, room preferences, room capacities, parallel tracks, session hopping, track scheduling preferences, and room unavailability.
 
@@ -289,7 +293,7 @@ EXTENDED_MILP = True
 
 ### Matheuristic
 
-The matheuristic algorithm consists of two phases and handles all available constraints including time slot level. In phase one, an integer programming model is used to build the high-level schedule by assigning tracks into sessions and rooms (either requires GUROBI license or you could use free solvers such as GLPK). Based on this solution, the low-level schedule is created where submissions are allocated into sessions, rooms, and time slots. In phase two, a selection perturbative hyper-heuristic is used to further optimise both levels of the schedule.
+The matheuristic algorithm consists of two phases and handles all available constraints including time slot level. In phase one, an integer programming model is used to build the high-level schedule by assigning tracks into sessions and rooms. Based on this solution, the low-level schedule is created where submissions are allocated into sessions, rooms, and time slots. In phase two, a selection perturbative hyper-heuristic is used to further optimise both levels of the schedule.
 
 #### Schedule ISF22 conference using the matheuristic with a 300 seconds time limit overall
 
@@ -310,7 +314,7 @@ MILP_TIME_LIMIT_IN_SEC = 120
 
 ### Hyper-heuristic
 
-The hyper-heuristic algorithm does not require a software license and it handles all available constraints including time slot level. It consists of four low-level heuristics, specifically two swap heuristics, a reverse heuristic, and a ruin and recreate heuristic. Its framework involves a two-step iterative process during scheduling optimisation where, in the first step, a low-level heuristic is selected randomly and is applied to the schedule. Then, in the second step, if the modified schedule is not worse than the previous, it is accepted. Otherwise, it is rejected and the previous schedule is restored.
+The hyper-heuristic algorithm handles all available constraints including time slot level. It consists of three low-level heuristics: two swap heuristics and a reverse heuristic. In addition, it implements a ruin and recreate mechanism to escape local optima. Its framework involves a two-step iterative process during scheduling optimisation where, in the first step, a low-level heuristic is selected randomly and is applied to the schedule. Then, in the second step, if the modified schedule is not worse than the previous, it is accepted. Otherwise, it is rejected and the previous schedule is restored, or the ruin and recreate mechanism is activated.
 
 #### Schedule GECCO22 conference using the hyper-heuristic with a 1800 seconds time limit and apply ruin and recreate every 900 seconds
 

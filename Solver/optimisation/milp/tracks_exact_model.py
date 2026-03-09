@@ -8,15 +8,26 @@ from domain.problem import Problem
 import pandas as pd
 from time import time
 from solution import Solution
-from typing import List, Dict
-from pulp import LpProblem, LpMinimize, LpVariable, lpSum, LpStatus, GUROBI
+from typing import List, Dict, Literal
+from pulp import (
+    LpProblem,
+    LpMinimize,
+    LpVariable,
+    lpSum,
+    LpStatus,
+    GUROBI,
+    HiGHS,
+    SCIP_PY,
+)
 import logging
+import config
 
 
 class TracksExactModel:
     def __init__(self, problem: Problem, solution: Solution) -> None:
         self.__problem: Problem = problem
         self.__solution: Solution = solution
+        self.__solver: GUROBI | HiGHS | SCIP_PY = None
         self.__model: LpProblem = LpProblem("TracksExactModel", LpMinimize)
         self.__variables: LpVariable = None
         self.__add_variables: LpVariable = None
@@ -72,15 +83,35 @@ class TracksExactModel:
         self.__build_decision_variables()
         self.__build_objective_function()
         self.__build_constraints()
+        self.__set_solver(config.SOLVER, config.MILP_TIME_LIMIT_IN_SEC, config.MIPGAP)
 
-    def solve(self, milp_time_limit_in_sec: int) -> None:
+    def solve(self) -> None:
         logging.info("Solving with tracks exact milp model...")
         stime = time()
-        self.__model.solve(GUROBI(msg=0, timeLimit=milp_time_limit_in_sec))
+        self.__model.solve(self.__solver)
         logging.info(f"Solved within {round((time() - stime), 2)} seconds.")
         logging.info(f"Model status: {LpStatus[self.__model.status]}")
         logging.info(f"Objective value: {self.__model.objective.value()}")
         self.__extract_solution()
+
+    def __set_solver(
+        self,
+        solver: Literal["GUROBI", "SCIP", "HiGHS"],
+        milp_time_limit_in_sec: int,
+        MIPGap: float,
+    ) -> None:
+        if solver == "GUROBI":
+            self.__solver = GUROBI(MIPGap=MIPGap, timeLimit=milp_time_limit_in_sec)
+            return
+        if solver == "SCIP":
+            self.__solver = SCIP_PY(gapRel=MIPGap, timeLimit=milp_time_limit_in_sec)
+            return
+        if solver == "HiGHS":
+            self.__solver = HiGHS(gapRel=MIPGap, timeLimit=milp_time_limit_in_sec)
+            return
+        raise ValueError(
+            f"{config.SOLVER} is not supported!\nSupported solvers: 'GUROBI', 'SCIP', 'HiGHS'"
+        )
 
     def __build_decision_variables(self) -> None:
         logging.info("Building decision variables...")
@@ -637,14 +668,16 @@ class TracksExactModel:
         for constraint in constraints:
             self.__model += constraint <= 1
 
+    def __convert_float_to_int(self, float_value: float) -> int:
+        return int(round(float_value, ndigits=6))
+
     def __extract_solution(self) -> None:
         solution = []
         solution2 = []
         to_remove = []
-        gur_vars = self.__model.solverModel.getVars()
-        for i in gur_vars:
-            if i.X > 0:
-                solution.append(i.varName)
+        for i in self.__model.variables():
+            if self.__convert_float_to_int(i.varValue) > 0:
+                solution.append(i.name)
         for i in range(len(solution)):
             if solution[i].split("|")[0] != "AddVariables_":
                 to_remove.append(solution[i])

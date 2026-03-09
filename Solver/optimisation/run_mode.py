@@ -37,7 +37,6 @@ def solve_with_matheuristic(problem: Problem) -> Solution:
         solution=final_solution,
         start_time=s_time,
         run_time_in_sec=config.TIME_LIMIT_IN_SEC,
-        milp_time_limit_in_sec=config.MILP_TIME_LIMIT_IN_SEC,
         ruin_and_recreate_frequency_in_sec=config.RUIN_AND_RECREATE_TIME_FREQUENCY_IN_SEC,
     )
     return final_solution
@@ -46,12 +45,12 @@ def solve_with_matheuristic(problem: Problem) -> Solution:
 def solve_with_exact_milp(problem: Problem) -> Solution:
     final_solution = Solution(problem)
     solver = ExactModel(problem, final_solution)
-    solver.solve(time_limit_in_sec=config.TIME_LIMIT_IN_SEC)
+    solver.solve()
     return final_solution
 
 
 def solve_with_extended_milp(problem: Problem) -> Solution:
     final_solution = Solution(problem)
     solver = ExtendedModel(problem, final_solution)
-    solver.solve(time_limit_in_sec=config.TIME_LIMIT_IN_SEC)
+    solver.solve()
     return final_solution

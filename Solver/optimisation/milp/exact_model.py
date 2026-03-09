@@ -5,18 +5,29 @@ Created on Thu Mar 5 11:11:16 2026
 """
 
 from domain.problem import Problem
-from typing import List, Dict
-import pandas as pd
-from pulp import LpProblem, LpMinimize, LpVariable, lpSum, LpStatus, GUROBI
+from typing import List, Dict, Literal
+from pulp import (
+    LpProblem,
+    LpMinimize,
+    LpVariable,
+    lpSum,
+    LpStatus,
+    GUROBI,
+    HiGHS,
+    SCIP_PY,
+)
 from solution import Solution
 from time import time
+import pandas as pd
 import logging
+import config
 
 
 class ExactModel:
     def __init__(self, problem: Problem, solution: Solution) -> None:
         self.__problem: Problem = problem
         self.__solution: Solution = solution
+        self.__solver: GUROBI | HiGHS | SCIP_PY = None
         self.__model: LpProblem = LpProblem("ExactModel", LpMinimize)
         self.__variables: LpVariable = None
         self.__add_variables: LpVariable = None
@@ -63,15 +74,35 @@ class ExactModel:
         self.__build_decision_variables()
         self.__build_objective_function()
         self.__build_constraints()
+        self.__set_solver(config.SOLVER, config.TIME_LIMIT_IN_SEC, config.MIPGAP)
 
-    def solve(self, time_limit_in_sec: int) -> None:
+    def solve(self) -> None:
         logging.info("Solving with exact milp model...")
         stime = time()
-        self.__model.solve(GUROBI(msg=0, MIPGap=0, timeLimit=time_limit_in_sec))
+        self.__model.solve(self.__solver)
         logging.info(f"Solved within {round((time() - stime), 2)} seconds.")
         logging.info(f"Model status: {LpStatus[self.__model.status]}")
         logging.info(f"Objective value: {self.__model.objective.value()}")
         self.__extract_solution()
+
+    def __set_solver(
+        self,
+        solver: Literal["GUROBI", "SCIP", "HiGHS"],
+        time_limit_in_sec: int,
+        MIPGap: float,
+    ) -> None:
+        if solver == "GUROBI":
+            self.__solver = GUROBI(MIPGap=MIPGap, timeLimit=time_limit_in_sec)
+            return
+        if solver == "SCIP":
+            self.__solver = SCIP_PY(gapRel=MIPGap, timeLimit=time_limit_in_sec)
+            return
+        if solver == "HiGHS":
+            self.__solver = HiGHS(gapRel=MIPGap, timeLimit=time_limit_in_sec)
+            return
+        raise ValueError(
+            f"{config.SOLVER} is not supported!\nSupported solvers: 'GUROBI', 'SCIP', 'HiGHS'"
+        )
 
     def __build_decision_variables(self) -> None:
         logging.info("Building decision variables...")
@@ -570,10 +601,13 @@ class ExactModel:
         for constraint in constraints:
             self.__model += constraint == 1
 
+    def __convert_float_to_int(self, float_value: float) -> int:
+        return int(round(float_value, ndigits=6))
+
     def __extract_solution(self) -> None:
         solution = []
         for i in self.__model.variables():
-            if i.varValue > 0:
+            if self.__convert_float_to_int(i.varValue) > 0:
                 solution.append(i.name)
         to_remove = []
         for i in range(len(solution)):

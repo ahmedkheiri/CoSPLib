@@ -26,6 +26,8 @@ EXTENDED_MILP = False
 # Optimisation settings
 # Global
 TIME_LIMIT_IN_SEC = 3600
+MIPGAP = 0.0
+SOLVER = "HiGHS"  # Supported solvers: 'GUROBI', 'SCIP', 'HiGHS'
 # Matheuristic
 MILP_TIME_LIMIT_IN_SEC = 90
 # Hyper-heuristic

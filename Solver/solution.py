@@ -8,7 +8,6 @@ Created on Tue Mar 14 19:16:16 2023
 from domain.problem import Problem
 from pathlib import Path
 from typing import List, Callable
-import config
 import numpy as np
 import pandas as pd
 import logging

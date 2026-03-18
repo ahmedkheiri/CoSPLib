@@ -91,7 +91,9 @@ class ExtendedModel:
         MIPGap: float,
     ) -> None:
         if solver == "GUROBI":
-            self.__solver = GUROBI(MIPGap=MIPGap, timeLimit=time_limit_in_sec, IntegralityFocus=1)
+            self.__solver = GUROBI(
+                MIPGap=MIPGap, timeLimit=time_limit_in_sec, IntegralityFocus=1
+            )
             return
         if solver == "SCIP":
             self.__solver = SCIP_PY(gapRel=MIPGap, timeLimit=time_limit_in_sec)

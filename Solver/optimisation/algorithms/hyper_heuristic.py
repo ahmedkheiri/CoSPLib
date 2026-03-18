@@ -7,16 +7,17 @@ Created on Wed Mar 4 15:44:16 2026
 from solution import Solution
 from domain.problem import Problem
 from typing import List
+from optimisation.random_number_generator import RandomNumberGenerator
 from optimisation.low_level_heuristics.swap_track import SwapTrack
 from optimisation.low_level_heuristics.swap_submission import SwapSubmission
 from optimisation.low_level_heuristics.reverse_submission import ReverseSubmission
 from time import time
-import numpy as np
 import logging
 
 
 class HyperHeuristic:
     def __init__(self) -> None:
+        self.__random: RandomNumberGenerator = RandomNumberGenerator()
         self.__low_level_heuristics: List[
             SwapTrack | SwapSubmission | ReverseSubmission
         ] = [SwapTrack(), SwapSubmission(), ReverseSubmission()]
@@ -39,7 +40,7 @@ class HyperHeuristic:
         while time() - start_time < run_time_in_sec:
             iteration += 1
             selected_llh = self.__low_level_heuristics[
-                np.random.randint(len(self.__low_level_heuristics))
+                self.__random.get_random_integer(len(self.__low_level_heuristics))
             ]
             solution_copy = solution.copy_whole_solution()
             selected_llh.apply(problem, solution)

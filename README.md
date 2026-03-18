@@ -1,4 +1,4 @@
-# CoSPLib User Guides (Version 0.1)
+# CoSPLib (Version 1.0.2)
 
 ## Citation
 
@@ -370,4 +370,4 @@ We welcome contributions from the community! If you have ideas for new features,
 
 This software is licensed under the [MIT License](https://github.com/ahmedkheiri/CoSPLib/blob/main/LICENSE.txt).
 
-Note: If you intend to use the GUROBI solver for Integer Programming and Matheuristic algorithms, a separate license from GUROBI Optimisation is required. Please ensure GUROBI is installed and licensed according to their terms. The hyper-heuristic approach does not require GUROBI.
+Note: If you intend to use the GUROBI solver for Integer Programming and Matheuristic algorithms, a separate license from GUROBI Optimisation is required. Alternatively, you may use HiGHS or SCIP open-source solvers. The Hyper-heuristic does not require any license.

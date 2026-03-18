@@ -1,4 +1,4 @@
-# CoSPLib User Guides (Version 0.1)
+# CoSPLib User Guides (Version 1.0.1)
 
 ## Citation
 
